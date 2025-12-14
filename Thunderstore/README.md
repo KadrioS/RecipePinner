@@ -24,15 +24,15 @@ The mod supports 3 different layout modes to fit your screen perfectly.
 
 ### 1. Vertical Mode (Standard)
 *Placed under the minimap. Good for vanilla UI.*
-![Vertical Layout Screenshot](https://github.com/KadrioS/RecipePinner/blob/main/Images/Vertical.png)
+![Vertical Layout Screenshot](https://github.com/KadrioS/RecipePinner/blob/main/Images/Vertical.png?raw=true)
 
 ### 2. Horizontal Mode (Map Side)
 *Perfect if you use **MyLittleUI** or other map mods. Places pins to the left of the map.*
-![Horizontal Layout Screenshot](https://github.com/KadrioS/RecipePinner/blob/main/Images/Horizontal.png)
+![Horizontal Layout Screenshot](https://github.com/KadrioS/RecipePinner/blob/main/Images/Horizontal.png?raw=true)
 
 ### 3. Horizontal Mode (Bottom Right)
 *Keeps the top screen clean. Places pins near your ammo/hotbar.*
-![Bottom Right Horizontal Screenshot](https://github.com/KadrioS/RecipePinner/blob/main/Images/BottomRightHorizontal.png)
+![Bottom Right Horizontal Screenshot](https://github.com/KadrioS/RecipePinner/blob/main/Images/BottomRightHorizontal.png?raw=true)
 
 If you don't like these 3 layouts, you can set your own layout using [Configuration Manager](https://valheim.thunderstore.io/package/Azumatt/Official_BepInEx_ConfigurationManager/).
 
@@ -44,7 +44,7 @@ I strongly recommend using [Configuration Manager](https://valheim.thunderstore.
 
 You can tweak **Colors** (supports Hex & RGBA), **UI Position** (X, Y coordinates), **Scales**, and **Fonts** instantly!
 
-![Config Menu](https://github.com/KadrioS/RecipePinner/blob/main/Images/ConfigurationManager.png)
+![Config Menu](https://github.com/KadrioS/RecipePinner/blob/main/Images/ConfigurationManager.png?raw=true)
 
 ---
 
