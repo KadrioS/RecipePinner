@@ -102,6 +102,12 @@ Auto-detected based on your game language.
 
 ---
 
+## Mirror
+
+[NexusMods](https://www.nexusmods.com/valheim/mods/3195)
+
+---
+
 ## 📞 Support & Feedback
 
 Found a bug? Have a feature request?
