@@ -1,0 +1,9 @@
+{
+    "name": "RecipePinner",
+    "version_number": "1.0.0",
+    "website_url": "https://github.com/KadrioS/RecipePinner",
+    "description": "Pin crafting recipes to your HUD!",
+    "dependencies": [
+        "denikson-BepInExPack_Valheim-5.4.2202"
+    ]
+}
