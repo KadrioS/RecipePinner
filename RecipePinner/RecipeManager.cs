@@ -309,25 +309,16 @@ namespace ValheimRecipePinner
         public void TryPinHoveredPiece()
         {
             DebugLogger.Verbose("Attempting to pin hovered piece...");
-
             if (Hud.instance == null) return;
 
             Piece targetPiece = ReflectionHelper.GetHoveredPiece(Hud.instance);
-
-            if (targetPiece == null && Player.m_localPlayer != null)
-            {
-                targetPiece = Player.m_localPlayer.GetSelectedPiece();
-            }
-
             if (targetPiece != null && targetPiece.m_resources != null && targetPiece.m_resources.Length > 0)
             {
                 DebugLogger.Log($"Pinning piece: {targetPiece.name}");
                 TogglePin(targetPiece.name);
             }
             else
-            {
-                DebugLogger.Verbose("No valid piece to pin");
-            }
+                DebugLogger.Verbose("No valid piece to pin (Mouse must be over a recipe icon)");
         }
 
         private void TogglePin(string recipeName)

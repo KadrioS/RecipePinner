@@ -1,6 +1,6 @@
 {
     "name": "RecipePinner",
-    "version_number": "1.0.0",
+    "version_number": "1.0.2",
     "website_url": "https://github.com/KadrioS/RecipePinner",
     "description": "Pin crafting recipes to your HUD!",
     "dependencies": [
