@@ -11,6 +11,8 @@ namespace ValheimRecipePinner
         public Text HeaderText;
         public Transform ResourceListRoot;
 
+        public PinnedRecipeData CurrentData;
+
         private Coroutine _layoutCoroutine;
 
         private Image _cachedBg;

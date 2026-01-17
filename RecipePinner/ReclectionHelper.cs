@@ -18,6 +18,7 @@ namespace ValheimRecipePinner
         private static Func<InventoryGui, Recipe> _getCraftRecipe;
         private static Func<Hud, Piece> _getHoveredPiece;
         public static Func<Container, long, bool> CheckContainerAccess;
+        private static FieldInfo _f_buildPieces;
 
         public static float currentGuiScaleValue = 1.0f;
 
@@ -155,6 +156,19 @@ namespace ValheimRecipePinner
                 {
                     DebugLogger.Warning("Some reflection targets failed - mod may not work correctly!");
                 }
+
+                // Player - Build Pieces (PieceTable)
+                _f_buildPieces = AccessTools.Field(typeof(Player), "m_buildPieces");
+                if (_f_buildPieces != null)
+                {
+                    successCount++;
+                    DebugLogger.Verbose("✓ Player.m_buildPieces");
+                }
+                else
+                {
+                    failCount++;
+                    DebugLogger.Warning("✗ Player.m_buildPieces not found");
+                }
             }
             catch (Exception ex)
             {
@@ -218,6 +232,12 @@ namespace ValheimRecipePinner
                 return null;
             }
             return _getHoveredPiece(hud);
+        }
+
+        public static PieceTable GetPieceTable(Player player)
+        {
+            if (_f_buildPieces == null || player == null) return null;
+            return _f_buildPieces.GetValue(player) as PieceTable;
         }
     }
 

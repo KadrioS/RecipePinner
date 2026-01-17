@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace ValheimRecipePinner
 {
-    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.0.2")]
+    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.1.0")]
     public class RecipePinnerPlugin : BaseUnityPlugin
     {
         public static RecipePinnerPlugin Instance;
@@ -17,12 +17,14 @@ namespace ValheimRecipePinner
         public static ConfigEntry<string> LanguageOverride;
         public static ConfigEntry<PinLayoutMode> LayoutModeConfig;
         public static ConfigEntry<int> MaximumPins;
+        public static ConfigEntry<int> PinsPerPage;
         public static ConfigEntry<bool> AutoUnpinAfterCrafting;
 
         // --- 2. CONTROLS / HOTKEYS ---
         public static ConfigEntry<KeyCode> HotkeyPin;
         public static ConfigEntry<KeyCode> HotkeyClearAll;
         public static ConfigEntry<KeyCode> HotkeyToggleVisibility;
+        public static ConfigEntry<KeyCode> HotkeyPageSwitch;
 
         // --- 3. CRAFT FROM CHEST ---
         public static ConfigEntry<bool> EnableChestScanning;
@@ -38,6 +40,10 @@ namespace ValheimRecipePinner
         public static ConfigEntry<Color> ColorEnoughInInventory;
         public static ConfigEntry<Color> ColorEnoughWithChests;
         public static ConfigEntry<Color> ColorMissing;
+        public static ConfigEntry<Color> ColorPaginationActive;
+        public static ConfigEntry<float> PaginationInactiveOpacity;
+        public static ConfigEntry<int> PaginationDotSize;
+        public static ConfigEntry<int> PaginationDotSpacing;
 
         // --- 5. LAYOUT: VERTICAL MODE ---
         public static ConfigEntry<float> VerticalListWidth;
@@ -138,10 +144,18 @@ namespace ValheimRecipePinner
                 new ConfigurationManagerAttributes { Order = 97 }));
             LayoutModeConfig.SettingChanged += (s, e) => UIMgr?.DestroyUI();
 
-            MaximumPins = Config.Bind("1 - General", "MaximumPins", 5,
+            MaximumPins = Config.Bind("1 - General", "MaximumPins", 10,
                 new ConfigDescription("Max pins allowed.", new AcceptableValueRange<int>(1, 20),
                 new ConfigurationManagerAttributes { Order = 96 }));
             MaximumPins.SettingChanged += (s, e) => UIMgr?.DestroyUI();
+
+            PinsPerPage = Config.Bind("1 - General", "PinsPerPage", 5,
+                new ConfigDescription("How many pins to show per page.", new AcceptableValueRange<int>(1, 10),
+                new ConfigurationManagerAttributes { Order = 95 }));
+            PinsPerPage.SettingChanged += (s, e) => {
+                UIMgr?.ResetPage();
+                UIMgr?.DestroyUI();
+            };
 
             AutoUnpinAfterCrafting = Config.Bind("1 - General", "AutoUnpinAfterCrafting", true,
                 new ConfigDescription("Unpin after crafting.", null,
@@ -151,6 +165,7 @@ namespace ValheimRecipePinner
             HotkeyPin = Config.Bind("2 - Controls", "HotkeyPin", KeyCode.Mouse2, "Key to pin recipe.");
             HotkeyClearAll = Config.Bind("2 - Controls", "HotkeyClearAll", KeyCode.P, "Key to clear all pins.");
             HotkeyToggleVisibility = Config.Bind("2 - Controls", "HotkeyToggleVisibility", KeyCode.F7, "Key to toggle overlay.");
+            HotkeyPageSwitch = Config.Bind("2 - Controls", "HotkeyPageSwitch", KeyCode.LeftAlt, "Key to cycle through pin pages.");
 
             // --- 3. CHEST SCANNER) ---
             EnableChestScanning = Config.Bind("3 - Chest Scanner", "EnableChestScanning", false,
@@ -177,7 +192,7 @@ namespace ValheimRecipePinner
             FontSizeMaterials = Config.Bind("4 - Visual Settings", "FontSizeMaterials", 15, "Material font size.");
             FontSizeMaterials.SettingChanged += (s, e) => RecipeMgr?.RefreshRecipeCache();
 
-            ColorHeader = Config.Bind("4 - Visual Settings", "ColorHeader", new Color(1f, 0.77f, 0.31f, 1f), "Recipe title color.");
+            ColorHeader = Config.Bind("4 - Visual Settings", "ColorHeader", new Color(1f, 0.717f, 0.368f, 1f), "Recipe title color.");
             ColorHeader.SettingChanged += (s, e) => RecipeMgr?.RefreshRecipeCache();
 
             ColorEnoughInInventory = Config.Bind("4 - Visual Settings", "ColorEnoughInInventory", new Color(0f, 1f, 0f, 1f), "Color: Enough in inventory.");
@@ -188,6 +203,19 @@ namespace ValheimRecipePinner
 
             ColorMissing = Config.Bind("4 - Visual Settings", "ColorMissing", new Color(1f, 0.33f, 0.33f, 1f), "Color: Missing materials.");
             ColorMissing.SettingChanged += (s, e) => RecipeMgr?.RefreshRecipeCache();
+
+            ColorPaginationActive = Config.Bind("4 - Visual Settings", "ColorPaginationActive", new Color(1f, 0.717f, 0.368f, 1f), "Active page dot color (Orange).");
+            ColorPaginationActive.SettingChanged += (s, e) => UIMgr?.UpdateUI(true);
+
+            PaginationInactiveOpacity = Config.Bind("4 - Visual Settings", "PaginationInactiveOpacity", 0.30f,
+                new ConfigDescription("Opacity of inactive page dots (0.0 to 1.0).", new AcceptableValueRange<float>(0.1f, 1.0f)));
+            PaginationInactiveOpacity.SettingChanged += (s, e) => UIMgr?.UpdateUI(true);
+
+            PaginationDotSize = Config.Bind("4 - Visual Settings", "PaginationDotSize", 10, new ConfigDescription("Size of the pagination squares.", new AcceptableValueRange<int>(5, 20)));
+            PaginationDotSize.SettingChanged += (s, e) => UIMgr?.UpdateUI(true);
+
+            PaginationDotSpacing = Config.Bind("4 - Visual Settings", "PaginationDotSpacing", 8, new ConfigDescription("Space between pagination squares.", new AcceptableValueRange<int>(0, 20)));
+            PaginationDotSpacing.SettingChanged += (s, e) => UIMgr?.UpdateUI(true);
 
             // --- 5. LAYOUT: VERTICAL ---
             VerticalListWidth = Config.Bind("5 - Layout (Vertical Mode)", "ListWidth", 265f, "List width.");
@@ -223,8 +251,10 @@ namespace ValheimRecipePinner
 
         private void OnDestroy()
         {
-            DebugLogger.Log("Plugin destroyed - Saving data and cleaning up");
-            DataMgr.SavePins();
+            DebugLogger.Log("Plugin destroyed - Cleaning up");
+
+            if (Player.m_localPlayer != null) DataMgr.SavePins();
+
             RecipeMgr.Cleanup();
         }
 
@@ -298,7 +328,16 @@ namespace ValheimRecipePinner
                     DebugLogger.Log($"Language changed from {_lastLanguage} to {currentLang}");
                     _lastLanguage = currentLang;
                     LocalizationMgr.LoadTranslations();
-                    RecipeMgr.RefreshRecipeCache();
+
+                    if (ObjectDB.instance != null) RecipeMgr.RefreshRecipeCache();
+                }
+            }
+
+            if (Input.GetKeyDown(HotkeyPageSwitch.Value))
+            {
+                if (_isUiVisible && !InputHelper.IsInputBlocked())
+                {
+                    UIMgr?.CyclePage();
                 }
             }
         }
@@ -309,6 +348,8 @@ namespace ValheimRecipePinner
 
             string activePlayerName = Player.m_localPlayer.GetPlayerName();
 
+            if (string.IsNullOrEmpty(activePlayerName)) return;
+
             if (_currentSessionPlayer != activePlayerName)
             {
                 DebugLogger.Log($"Player session changed from '{_currentSessionPlayer}' to '{activePlayerName}'");
@@ -318,8 +359,12 @@ namespace ValheimRecipePinner
                 UIMgr.DestroyUI();
 
                 _currentSessionPlayer = activePlayerName;
-                DataMgr.LoadPins();
-                RecipeMgr.RefreshRecipeCache();
+
+                if (!string.IsNullOrEmpty(activePlayerName))
+                {
+                    DataMgr.LoadPins();
+                    RecipeMgr.RefreshRecipeCache();
+                }
             }
 
             UIMgr.UpdateUI(_isUiVisible);
@@ -428,6 +473,39 @@ namespace ValheimRecipePinner
                 {
                     Instance.RecipeMgr.PinnedRecipes.Remove(craftedRecipe.name);
                     DebugLogger.Log($"Recipe {craftedRecipe.name} fully unpinned");
+                }
+
+                Instance.RecipeMgr.RefreshRecipeCache();
+            }
+        }
+
+        [HarmonyPatch(typeof(Player), "ConsumeResources")]
+        [HarmonyPostfix]
+        public static void AutoUnpinBuildHook()
+        {
+            if (Instance == null || !EnableMod.Value || !AutoUnpinAfterCrafting.Value) return;
+
+            Player player = Player.m_localPlayer;
+            if (player == null) return;
+
+            PieceTable pieceTable = ReflectionHelper.GetPieceTable(player);
+
+            if (pieceTable == null) return;
+
+            Piece selectedPiece = pieceTable.GetSelectedPiece();
+            if (selectedPiece == null) return;
+
+            string pieceName = selectedPiece.name.Replace("(Clone)", "").Trim();
+
+            if (Instance.RecipeMgr.PinnedRecipes.ContainsKey(pieceName))
+            {
+                Instance.RecipeMgr.PinnedRecipes[pieceName]--;
+                DebugLogger.Log($"Auto-unpin (Build): {pieceName}, remaining count: {Instance.RecipeMgr.PinnedRecipes[pieceName]}");
+
+                if (Instance.RecipeMgr.PinnedRecipes[pieceName] <= 0)
+                {
+                    Instance.RecipeMgr.PinnedRecipes.Remove(pieceName);
+                    DebugLogger.Log($"Build recipe {pieceName} fully unpinned");
                 }
 
                 Instance.RecipeMgr.RefreshRecipeCache();

@@ -1,6 +1,6 @@
 # 📌 Recipe Pinner
 
-> **Stop running back and forth between chests just to check how much Iron you need!**
+**Stop running back and forth between chests just to check how much Iron you need!**
 
 **Recipe Pinner** is a quality-of-life mod that lets you "pin" any crafting recipe to your HUD. It tracks materials in your inventory (and nearby chests!) in real-time, helping you focus on crafting, not memorizing numbers.
 
@@ -8,13 +8,16 @@
 
 ## 🌟 Key Features
 
-* **📍 Pin & Forget:** Hover over any recipe (Crafting Table, Hammer, Cauldron) and press **Middle Mouse** to pin it.
+* **📍 Pin & Forget:** Hover over any recipe (Crafting Table, Cauldron) or **Construction Piece (Hammer)** and press **Middle Mouse** to pin it.
+    * *New:* Now fully supports auto-unpinning when building structures with the Hammer!
+* **📄 Pagination System:** Pinned too many recipes? No problem! The list automatically splits into pages to keep your screen clean.
+    * Includes stylish diamond-shaped indicators to show which page you are on.
 * **📦 Smart Chest Scanner:** Automatically counts items in nearby chests.
     * <span style="color:green">**Green Text:**</span> You have enough in your Inventory.
     * <span style="color:yellow">**Yellow Text:**</span> You have enough combined (Inventory + Nearby Chests). (If ChestScanner enable)
     * <span style="color:red">**Red Text:**</span> Missing materials. Time to farm!
-* **🎨 Fully Customizable:** Change colors, font sizes, positions, and opacity via config.
-* **🧩 Multiple Layouts:** Auto-detects MyLittleUI mods or lets you choose your style.
+* **🎨 Fully Customizable:** Change colors, font sizes, positions, opacity, and **pins per page** via config.
+* **🧩 Multiple Layouts:** Auto-detects MyLittleUI mod or lets you choose your style.
 
 ---
 
@@ -24,15 +27,15 @@ The mod supports 3 different layout modes to fit your screen perfectly.
 
 ### 1. Vertical Mode (Standard)
 *Placed under the minimap. Good for vanilla UI.*
-![Vertical Layout Screenshot](https://github.com/KadrioS/RecipePinner/blob/main/Images/Vertical.png)
+![Vertical Layout Screenshot](https://github.com/KadrioS/RecipePinner/blob/main/Images/Vertical.png?raw=true)
 
 ### 2. Horizontal Mode (Map Side)
-*Perfect if you use **MyLittleUI** or other map mods. Places pins to the left of the map.*
-![Horizontal Layout Screenshot](https://github.com/KadrioS/RecipePinner/blob/main/Images/Horizontal.png)
+*Perfect if you use **MyLittleUI**. Places pins to the left of the map.*
+![Horizontal Layout Screenshot](https://github.com/KadrioS/RecipePinner/blob/main/Images/Horizontal.png?raw=true)
 
 ### 3. Horizontal Mode (Bottom Right)
 *Keeps the top screen clean. Places pins near your ammo/hotbar.*
-![Bottom Right Horizontal Screenshot](https://github.com/KadrioS/RecipePinner/blob/main/Images/BottomRightHorizontal.png)
+![Bottom Right Horizontal Screenshot](https://github.com/KadrioS/RecipePinner/blob/main/Images/BottomRightHorizontal.png?raw=true)
 
 If you don't like these 3 layouts, you can set your own layout using [Configuration Manager](https://valheim.thunderstore.io/package/Azumatt/Official_BepInEx_ConfigurationManager/).
 
@@ -42,16 +45,20 @@ If you don't like these 3 layouts, you can set your own layout using [Configurat
 
 I strongly recommend using [Configuration Manager](https://valheim.thunderstore.io/package/Azumatt/Official_BepInEx_ConfigurationManager/) to edit settings in-game (Press F1).
 
-You can tweak **Colors** (supports Hex & RGBA), **UI Position** (X, Y coordinates), **Scales**, and **Fonts** instantly!
+You can tweak:
+* **Colors** (Hex & RGBA)
+* **UI Position** (X, Y coordinates) & Scales
+* **Pagination Settings** (Pins per Page, Dot Size, Spacing)
+* **Fonts** and **Opacity**
 
-![Config Menu](https://github.com/KadrioS/RecipePinner/blob/main/Images/ConfigurationManager.png)
+![Config Menu](https://github.com/KadrioS/RecipePinner/blob/main/Images/ConfigurationManager.png?raw=true)
 
 ---
 
 ## 🔧 Installation
 
 1.  Download and install [BepInEx](https://valheim.thunderstore.io/package/denikson/BepInExPack_Valheim/).
-2.  Extract the `RecipePinner.dll and RecipePinner_languages` files into `Valheim/BepInEx/plugins/`.
+2.  Extract the `RecipePinner.dll` and `RecipePinner_languages` folder into `Valheim/BepInEx/plugins/`.
 3.  Done!
 
 > **Note:** Ensure the `RecipePinner_languages` folder is next to the `.dll` file for translations to work.
@@ -66,6 +73,7 @@ You can tweak **Colors** (supports Hex & RGBA), **UI Position** (X, Y coordinate
 | :--- | :--- |
 | **Pin Recipe / Add Count (+1)** | `Middle Mouse Button` |
 | **Unpin / Decrease Count (-1)** | `Shift` + `Middle Mouse Button` |
+| **Cycle Pages** | `Left Alt` |
 | **Clear All Pins** | `P` |
 | **Show/Hide Overlay** | `F7` |
 

@@ -211,5 +211,50 @@ namespace ValheimRecipePinner
             DebugLogger.Verbose("Created resource slot UI");
             return slot;
         }
+
+        public static GameObject CreatePaginationContainer(Transform parent)
+        {
+            GameObject go = new GameObject("PaginationDots", typeof(RectTransform));
+            go.layer = 5;
+            go.transform.SetParent(parent, false);
+
+            LayoutElement le = go.AddComponent<LayoutElement>();
+            le.ignoreLayout = true;
+
+            HorizontalLayoutGroup hlg = go.AddComponent<HorizontalLayoutGroup>();
+            hlg.childControlHeight = false;
+            hlg.childControlWidth = false;
+            hlg.childForceExpandHeight = false;
+            hlg.childForceExpandWidth = false;
+
+            hlg.spacing = RecipePinnerPlugin.PaginationDotSpacing.Value;
+
+            hlg.childAlignment = TextAnchor.MiddleCenter;
+
+            ContentSizeFitter csf = go.AddComponent<ContentSizeFitter>();
+            csf.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+            csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            return go;
+        }
+
+        public static Image CreatePageDot(Transform parent)
+        {
+            GameObject go = new GameObject("PageDot", typeof(RectTransform));
+            go.layer = 5;
+            go.transform.SetParent(parent, false);
+
+            Image img = go.AddComponent<Image>();
+            img.type = Image.Type.Simple;
+            img.raycastTarget = false;
+
+            int size = RecipePinnerPlugin.PaginationDotSize.Value;
+            RectTransform rect = go.GetComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(size, size);
+
+            rect.localRotation = Quaternion.Euler(0, 0, 45f);
+
+            return img;
+        }
     }
 }
