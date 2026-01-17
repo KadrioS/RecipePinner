@@ -1,3 +1,6 @@
+###
+- Updated installation instructions in README. No code changes.
+
 ### 1.1.0
 - Added pagination system to handle large numbers of pins (configurable 'PinsPerPage').
 - Added visual pagination indicators (diamond dots) with configurable size, spacing, and opacity.

@@ -61,7 +61,7 @@ You can tweak:
 2.  Extract the `RecipePinner.dll` and `RecipePinner_languages` folder into `Valheim/BepInEx/plugins/`.
 3.  Done!
 
-> **Note:** Ensure the `RecipePinner_languages` folder is next to the `.dll` file for translations to work.
+**⚠️ IMPORTANT:** Ensure the `RecipePinner_languages` folder is next to the `.dll` file for translations to work.
 
 ---
 
