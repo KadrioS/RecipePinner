@@ -113,6 +113,7 @@ Auto-detected based on your game language.
 ## Mirror
 
 [NexusMods](https://www.nexusmods.com/valheim/mods/3195)
+[Thunderstore](https://thunderstore.io/c/valheim/p/KadrioS/RecipePinner/)
 
 ---
 
