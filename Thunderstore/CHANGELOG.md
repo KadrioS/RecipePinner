@@ -1,4 +1,11 @@
-###
+### 1.1.2
+- Added full support for tracking Item Upgrades (pinning directly from the Upgrade tab).
+- Added smart auto-unpin logic to correctly distinguish between crafting new items and upgrading existing ones.
+- Added new localization keys (max_level, no_upgrade_cost) for upgrade notifications.
+- Optimized internal logic with reflection caching to improve performance and reduce overhead.
+- Note: Users with custom language files must update them to include new keys to avoid missing text.
+
+### 1.1.1
 - Updated installation instructions in README. No code changes.
 
 ### 1.1.0

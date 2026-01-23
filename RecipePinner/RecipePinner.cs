@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace ValheimRecipePinner
 {
-    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.1.0")]
+    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.1.2")]
     public class RecipePinnerPlugin : BaseUnityPlugin
     {
         public static RecipePinnerPlugin Instance;
@@ -460,22 +460,43 @@ namespace ValheimRecipePinner
         public static void AutoUnpinHook(InventoryGui __instance)
         {
             if (!EnableMod.Value || !AutoUnpinAfterCrafting.Value || Instance == null) return;
-
             Recipe craftedRecipe = ReflectionHelper.GetCraftRecipe(__instance);
 
-            if (craftedRecipe != null && Instance.RecipeMgr.PinnedRecipes.ContainsKey(craftedRecipe.name))
+            if (craftedRecipe != null)
             {
-                Instance.RecipeMgr.PinnedRecipes[craftedRecipe.name]--;
+                string keyToRemove = null;
 
-                DebugLogger.Log($"Auto-unpin: {craftedRecipe.name}, remaining count: {Instance.RecipeMgr.PinnedRecipes[craftedRecipe.name]}");
+                bool isUpgrade = !__instance.m_tabUpgrade.interactable;
 
-                if (Instance.RecipeMgr.PinnedRecipes[craftedRecipe.name] <= 0)
+                if (isUpgrade)
                 {
-                    Instance.RecipeMgr.PinnedRecipes.Remove(craftedRecipe.name);
-                    DebugLogger.Log($"Recipe {craftedRecipe.name} fully unpinned");
-                }
+                    ItemDrop.ItemData upgradeItem = ReflectionHelper.GetCraftUpgradeItem(__instance);
+                    if (upgradeItem != null)
+                    {
+                        string prefabName = craftedRecipe.m_item.name;
+                        int currentReadingLevel = upgradeItem.m_quality;
+                        int targetLevelKey = currentReadingLevel + 1;
 
-                Instance.RecipeMgr.RefreshRecipeCache();
+                        keyToRemove = $"{prefabName} ★{targetLevelKey}";
+                        DebugLogger.Log($"Upgrade crafted: Unpinning target {keyToRemove} (Base Level: {currentReadingLevel})");
+                    }
+                }
+                else
+                    keyToRemove = craftedRecipe.name;
+
+                if (keyToRemove != null && Instance.RecipeMgr.PinnedRecipes.ContainsKey(keyToRemove))
+                {
+                    Instance.RecipeMgr.PinnedRecipes[keyToRemove]--;
+                    DebugLogger.Log($"Auto-unpin: {keyToRemove}, remaining count: {Instance.RecipeMgr.PinnedRecipes[keyToRemove]}");
+
+                    if (Instance.RecipeMgr.PinnedRecipes[keyToRemove] <= 0)
+                    {
+                        Instance.RecipeMgr.PinnedRecipes.Remove(keyToRemove);
+                        DebugLogger.Log($"Recipe {keyToRemove} fully unpinned");
+                    }
+
+                    Instance.RecipeMgr.RefreshRecipeCache();
+                }
             }
         }
 

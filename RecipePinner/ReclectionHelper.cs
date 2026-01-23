@@ -16,6 +16,7 @@ namespace ValheimRecipePinner
         private static Func<InventoryGui, object> _getAvailableRecipes;
         private static Func<InventoryGui, Container> _getCurrentContainer;
         private static Func<InventoryGui, Recipe> _getCraftRecipe;
+        private static Func<InventoryGui, ItemDrop.ItemData> _getCraftUpgradeItem;
         private static Func<Hud, Piece> _getHoveredPiece;
         public static Func<Container, long, bool> CheckContainerAccess;
         private static FieldInfo _f_buildPieces;
@@ -117,6 +118,22 @@ namespace ValheimRecipePinner
                 {
                     failCount++;
                     DebugLogger.Warning("✗ InventoryGui.m_craftRecipe not found");
+                }
+
+                FieldInfo f_upgradeItem = AccessTools.Field(typeof(InventoryGui), "m_craftUpgradeItem");
+                if (f_upgradeItem != null)
+                {
+                    var param = System.Linq.Expressions.Expression.Parameter(typeof(InventoryGui), "arg");
+                    _getCraftUpgradeItem = System.Linq.Expressions.Expression.Lambda<Func<InventoryGui, ItemDrop.ItemData>>(
+                        System.Linq.Expressions.Expression.Field(param, f_upgradeItem), param
+                    ).Compile();
+                    successCount++;
+                    DebugLogger.Verbose("✓ InventoryGui.m_craftUpgradeItem");
+                }
+                else
+                {
+                    failCount++;
+                    DebugLogger.Warning("✗ InventoryGui.m_craftUpgradeItem not found");
                 }
 
                 // Hud - Hovered Piece
@@ -222,6 +239,11 @@ namespace ValheimRecipePinner
                 return null;
             }
             return _getCraftRecipe(gui);
+        }
+
+        public static ItemDrop.ItemData GetCraftUpgradeItem(InventoryGui gui)
+        {
+            return _getCraftUpgradeItem?.Invoke(gui);
         }
 
         public static Piece GetHoveredPiece(Hud hud)
