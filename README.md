@@ -100,7 +100,9 @@ Auto-detected based on your game language.
       "list_full": "List Full!",
       "added_more": "Added More: {0}x",
       "decreased": "Decreased: {0}x",
-      "cleared": "Pinned Recipes Cleared"
+      "cleared": "Pinned Recipes Cleared",
+      "max_level": "Max Level Reached",
+      "no_upgrade_cost": "No upgrade cost found"
     }
     ```
 4.  Translate the sentences on the right side.
