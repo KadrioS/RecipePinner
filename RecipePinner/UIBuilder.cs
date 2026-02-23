@@ -1,6 +1,4 @@
-﻿using ValheimRecipePinner;
-using System.Linq;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 namespace ValheimRecipePinner
@@ -21,8 +19,14 @@ namespace ValheimRecipePinner
 
             Sprite[] allSprites = Resources.FindObjectsOfTypeAll<Sprite>();
 
-            _cachedUiSprite = allSprites.FirstOrDefault(x => x.name == "UISprite")
-                           ?? allSprites.FirstOrDefault(x => x.name == "Knob");
+            Sprite fallback = null;
+            foreach (var s in allSprites)
+            {
+                if (s == null) continue;
+                if (s.name == "UISprite") { _cachedUiSprite = s; break; }
+                if (fallback == null && s.name == "Knob") fallback = s;
+            }
+            if (_cachedUiSprite == null) _cachedUiSprite = fallback;
 
             _spriteSearchDone = true;
 

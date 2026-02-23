@@ -1,3 +1,10 @@
+### 1.1.3
+- Fixed upgrade recipes (★3, ★4) showing incorrect material amounts — now correctly calculates costs based on upgrade level.
+- Optimized container scanning with a movement cooldown to prevent excessive scans.
+- Reduced memory allocations by reusing container snapshot buffers instead of creating new lists each scan.
+- Improved dictionary access efficiency across TogglePin, AutoUnpinHook, and AutoUnpinBuildHook using TryGetValue pattern.
+- Removed unused legacy PinnedRecipe.cs file.
+
 ### 1.1.2
 - Added full support for tracking Item Upgrades (pinning directly from the Upgrade tab).
 - Added smart auto-unpin logic to correctly distinguish between crafting new items and upgrading existing ones.

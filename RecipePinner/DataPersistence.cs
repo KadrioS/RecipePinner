@@ -1,7 +1,6 @@
 ﻿using BepInEx;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using UnityEngine;
 
 namespace ValheimRecipePinner
@@ -65,24 +64,21 @@ namespace ValheimRecipePinner
                 {
                     if (string.IsNullOrWhiteSpace(line)) continue;
 
-                    if (line.Contains(":"))
+                    int lastColon = line.LastIndexOf(':');
+                    if (lastColon > 0 && lastColon < line.Length - 1)
                     {
-                        string[] parts = line.Split(':');
-                        if (parts.Length == 2)
-                        {
-                            string key = parts[0].Trim();
-                            string valString = parts[1].Trim();
+                        string key = line.Substring(0, lastColon).Trim();
+                        string valString = line.Substring(lastColon + 1).Trim();
 
-                            if (int.TryParse(valString, out int count))
-                            {
-                                recipeMgr.PinnedRecipes[key] = count;
-                                loadedCount++;
-                            }
-                            else
-                            {
-                                DebugLogger.Warning($"Invalid count value in save file: {line}");
-                                errorCount++;
-                            }
+                        if (int.TryParse(valString, out int count))
+                        {
+                            recipeMgr.PinnedRecipes[key] = count;
+                            loadedCount++;
+                        }
+                        else
+                        {
+                            DebugLogger.Warning($"Invalid count value in save file: {line}");
+                            errorCount++;
                         }
                     }
                     else
@@ -100,9 +96,15 @@ namespace ValheimRecipePinner
                 if (recipeMgr.PinnedRecipes.Count > RecipePinnerPlugin.MaximumPins.Value)
                 {
                     int originalCount = recipeMgr.PinnedRecipes.Count;
-                    recipeMgr.PinnedRecipes = recipeMgr.PinnedRecipes
-                        .Take(RecipePinnerPlugin.MaximumPins.Value)
-                        .ToDictionary(k => k.Key, v => v.Value);
+                    var trimmed = new Dictionary<string, int>();
+                    int taken = 0;
+                    foreach (var kvp in recipeMgr.PinnedRecipes)
+                    {
+                        if (taken >= RecipePinnerPlugin.MaximumPins.Value) break;
+                        trimmed[kvp.Key] = kvp.Value;
+                        taken++;
+                    }
+                    recipeMgr.PinnedRecipes = trimmed;
 
                     DebugLogger.Warning($"Exceeded max pins limit - trimmed from {originalCount} to {recipeMgr.PinnedRecipes.Count}");
                 }

@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -13,7 +12,7 @@ namespace ValheimRecipePinner
         public Dictionary<string, int> PinnedRecipes = new Dictionary<string, int>();
         public List<PinnedRecipeData> CachedPins = new List<PinnedRecipeData>();
 
-        private Dictionary<string, Recipe> _fakeRecipeCache = new Dictionary<string, Recipe>();
+        private readonly Dictionary<string, Recipe> _fakeRecipeCache = new Dictionary<string, Recipe>();
 
         // Regexler (Compiled = Performanslı)
         private static readonly Regex CleanNameRegex = new Regex("<.*?>", RegexOptions.Compiled);
@@ -21,10 +20,10 @@ namespace ValheimRecipePinner
         private static readonly Regex AmountSuffixRegex = new Regex(@"\s*[xX]?\s*\d+$", RegexOptions.Compiled);
         private static readonly Regex UpgradeStarRegex = new Regex(@"\s*★(\d+)$", RegexOptions.Compiled);
 
-        private static Dictionary<System.Type, FieldInfo> _cachedRecipeFields = new Dictionary<System.Type, FieldInfo>();
-        private static Dictionary<System.Type, PropertyInfo> _cachedRecipeProps = new Dictionary<System.Type, PropertyInfo>();
-        private static Dictionary<System.Type, FieldInfo> _cachedItemFields = new Dictionary<System.Type, FieldInfo>();
-        private static Dictionary<System.Type, PropertyInfo> _cachedItemProps = new Dictionary<System.Type, PropertyInfo>();
+        private static readonly Dictionary<System.Type, FieldInfo> _cachedRecipeFields = new Dictionary<System.Type, FieldInfo>();
+        private static readonly Dictionary<System.Type, PropertyInfo> _cachedRecipeProps = new Dictionary<System.Type, PropertyInfo>();
+        private static readonly Dictionary<System.Type, FieldInfo> _cachedItemFields = new Dictionary<System.Type, FieldInfo>();
+        private static readonly Dictionary<System.Type, PropertyInfo> _cachedItemProps = new Dictionary<System.Type, PropertyInfo>();
 
         public void Cleanup()
         {
@@ -82,6 +81,7 @@ namespace ValheimRecipePinner
                     }
                     else
                     {
+                        // m_item is null — this is likely a piece
                         GameObject prefab = ZNetScene.instance?.GetPrefab(r.name);
                         if (prefab != null)
                         {
@@ -91,11 +91,6 @@ namespace ValheimRecipePinner
                                 data.Icon = p.m_icon;
                                 data.RawName = p.m_name;
                             }
-                        }
-                        else if (UpgradeStarRegex.IsMatch(recipeName) && r.m_item != null)
-                        {
-                            data.Icon = r.m_item.m_itemData.GetIcon();
-                            data.RawName = r.name;
                         }
                     }
 
@@ -199,8 +194,16 @@ namespace ValheimRecipePinner
                 }
             }
 
-            // Recipe List Check
-            Recipe standardRecipe = ObjectDB.instance.m_recipes.FirstOrDefault(r => r.name == name);
+            // Recipe List Check (manual loop to avoid LINQ allocation)
+            Recipe standardRecipe = null;
+            foreach (var r2 in ObjectDB.instance.m_recipes)
+            {
+                if (r2.name == name)
+                {
+                    standardRecipe = r2;
+                    break;
+                }
+            }
             if (standardRecipe != null)
             {
                 DebugLogger.Verbose($"Found recipe in ObjectDB: {name}");
@@ -218,8 +221,7 @@ namespace ValheimRecipePinner
                     fakeRecipe.hideFlags = HideFlags.HideAndDontSave;
                     fakeRecipe.name = name;
                     fakeRecipe.m_item = prefab.GetComponent<ItemDrop>();
-                    List<Piece.Requirement> reqs = piece.m_resources.ToList();
-                    fakeRecipe.m_resources = reqs.ToArray();
+                    fakeRecipe.m_resources = (Piece.Requirement[])piece.m_resources.Clone();
                     _fakeRecipeCache[name] = fakeRecipe;
                     DebugLogger.Verbose($"Created fake recipe for piece: {name}");
                     return fakeRecipe;
@@ -240,6 +242,8 @@ namespace ValheimRecipePinner
             fakeRecipe.m_item = baseRecipe.m_item;
             fakeRecipe.m_amount = 1;
 
+            int levelMultiplier = Mathf.Max(1, targetLevel - 1);
+
             List<Piece.Requirement> upgradeReqs = new List<Piece.Requirement>();
             foreach (var req in baseRecipe.m_resources)
             {
@@ -248,7 +252,7 @@ namespace ValheimRecipePinner
                     Piece.Requirement newReq = new Piece.Requirement
                     {
                         m_resItem = req.m_resItem,
-                        m_amount = req.m_amountPerLevel,
+                        m_amount = req.m_amountPerLevel * levelMultiplier,
                         m_amountPerLevel = 0,
                         m_recover = req.m_recover
                     };
@@ -291,8 +295,7 @@ namespace ValheimRecipePinner
                     DebugLogger.Warning($"Removed invalid recipe: {key}");
                 }
 
-                if (RecipePinnerPlugin.Instance != null)
-                    RecipePinnerPlugin.Instance.DataMgr.SavePins();
+                RecipePinnerPlugin.Instance?.DataMgr.SavePins();
 
                 DebugLogger.Log($"Validation complete: {keysToRemove.Count} invalid recipes removed");
             }
@@ -307,10 +310,8 @@ namespace ValheimRecipePinner
             DebugLogger.Verbose("Attempting to pin hovered recipe...");
 
             Transform listRoot = ReflectionHelper.GetRecipeListRoot(gui);
-            object rawList = ReflectionHelper.GetAvailableRecipes(gui);
-            System.Collections.IList availableRecipes = rawList as System.Collections.IList;
 
-            if (listRoot == null || availableRecipes == null)
+            if (!(ReflectionHelper.GetAvailableRecipes(gui) is System.Collections.IList availableRecipes) || listRoot == null)
             {
                 DebugLogger.Verbose("Cannot pin - listRoot or availableRecipes is null");
                 return;
@@ -357,8 +358,8 @@ namespace ValheimRecipePinner
                                 {
                                     if (isUpgradeTab)
                                     {
-                                        ItemDrop.ItemData itemData = GetItemDataFromObject(itemObj);
-                                        if (itemData == null) itemData = ReflectionHelper.GetCraftUpgradeItem(gui);
+                                        ItemDrop.ItemData itemData = GetItemDataFromObject(itemObj)
+                                            ?? ReflectionHelper.GetCraftUpgradeItem(gui);
 
                                         if (itemData != null)
                                         {
@@ -428,12 +429,12 @@ namespace ValheimRecipePinner
             bool isShiftHeld = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
             var locMgr = RecipePinnerPlugin.Instance.LocalizationMgr;
 
-            if (PinnedRecipes.ContainsKey(recipeName))
+            if (PinnedRecipes.TryGetValue(recipeName, out int currentCount))
             {
                 if (isShiftHeld)
                 {
-                    PinnedRecipes[recipeName]--;
-                    if (PinnedRecipes[recipeName] <= 0)
+                    currentCount--;
+                    if (currentCount <= 0)
                     {
                         PinnedRecipes.Remove(recipeName);
                         Player.m_localPlayer?.Message(MessageHud.MessageType.Center, locMgr.GetText("unpinned"));
@@ -441,17 +442,19 @@ namespace ValheimRecipePinner
                     }
                     else
                     {
-                        string msg = string.Format(locMgr.GetText("decreased"), PinnedRecipes[recipeName]);
+                        PinnedRecipes[recipeName] = currentCount;
+                        string msg = string.Format(locMgr.GetText("decreased"), currentCount);
                         Player.m_localPlayer?.Message(MessageHud.MessageType.Center, msg);
-                        DebugLogger.Log($"Decreased pin count: {recipeName} = {PinnedRecipes[recipeName]}");
+                        DebugLogger.Log($"Decreased pin count: {recipeName} = {currentCount}");
                     }
                 }
                 else
                 {
-                    PinnedRecipes[recipeName]++;
-                    string msg = string.Format(locMgr.GetText("added_more"), PinnedRecipes[recipeName]);
+                    currentCount++;
+                    PinnedRecipes[recipeName] = currentCount;
+                    string msg = string.Format(locMgr.GetText("added_more"), currentCount);
                     Player.m_localPlayer?.Message(MessageHud.MessageType.Center, msg);
-                    DebugLogger.Log($"Increased pin count: {recipeName} = {PinnedRecipes[recipeName]}");
+                    DebugLogger.Log($"Increased pin count: {recipeName} = {currentCount}");
                 }
             }
             else

@@ -188,11 +188,10 @@
     <Compile Include="DebugLogger.cs" />
     <Compile Include="LocalizationManager.cs" />
     <Compile Include="Models.cs" />
-    <Compile Include="PinnedRecipe.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RecipeManager.cs" />
     <Compile Include="RecipePinner.cs" />
-    <Compile Include="ReclectionHelper.cs" />
+    <Compile Include="ReflectionHelper.cs" />
     <Compile Include="UIBuilder.cs" />
     <Compile Include="UIComponents.cs" />
     <Compile Include="UIManager.cs" />

@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace ValheimRecipePinner
 {
-    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.1.2")]
+    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.1.3")]
     public class RecipePinnerPlugin : BaseUnityPlugin
     {
         public static RecipePinnerPlugin Instance;
@@ -152,7 +152,8 @@ namespace ValheimRecipePinner
             PinsPerPage = Config.Bind("1 - General", "PinsPerPage", 5,
                 new ConfigDescription("How many pins to show per page.", new AcceptableValueRange<int>(1, 10),
                 new ConfigurationManagerAttributes { Order = 95 }));
-            PinsPerPage.SettingChanged += (s, e) => {
+            PinsPerPage.SettingChanged += (s, e) =>
+            {
                 UIMgr?.ResetPage();
                 UIMgr?.DestroyUI();
             };
@@ -306,9 +307,8 @@ namespace ValheimRecipePinner
             }
 
             // Clear all pins hotkey
-            if (Input.GetKeyDown(HotkeyClearAll.Value))
+            if (Input.GetKeyDown(HotkeyClearAll.Value) && !InputHelper.IsInputBlocked())
             {
-                if (InputHelper.IsInputBlocked()) return;
                 if (RecipeMgr.PinnedRecipes.Count > 0)
                 {
                     int count = RecipeMgr.PinnedRecipes.Count;
@@ -484,15 +484,19 @@ namespace ValheimRecipePinner
                 else
                     keyToRemove = craftedRecipe.name;
 
-                if (keyToRemove != null && Instance.RecipeMgr.PinnedRecipes.ContainsKey(keyToRemove))
+                if (keyToRemove != null && Instance.RecipeMgr.PinnedRecipes.TryGetValue(keyToRemove, out int currentCount))
                 {
-                    Instance.RecipeMgr.PinnedRecipes[keyToRemove]--;
-                    DebugLogger.Log($"Auto-unpin: {keyToRemove}, remaining count: {Instance.RecipeMgr.PinnedRecipes[keyToRemove]}");
+                    currentCount--;
+                    DebugLogger.Log($"Auto-unpin: {keyToRemove}, remaining count: {currentCount}");
 
-                    if (Instance.RecipeMgr.PinnedRecipes[keyToRemove] <= 0)
+                    if (currentCount <= 0)
                     {
                         Instance.RecipeMgr.PinnedRecipes.Remove(keyToRemove);
                         DebugLogger.Log($"Recipe {keyToRemove} fully unpinned");
+                    }
+                    else
+                    {
+                        Instance.RecipeMgr.PinnedRecipes[keyToRemove] = currentCount;
                     }
 
                     Instance.RecipeMgr.RefreshRecipeCache();
@@ -518,15 +522,19 @@ namespace ValheimRecipePinner
 
             string pieceName = selectedPiece.name.Replace("(Clone)", "").Trim();
 
-            if (Instance.RecipeMgr.PinnedRecipes.ContainsKey(pieceName))
+            if (Instance.RecipeMgr.PinnedRecipes.TryGetValue(pieceName, out int buildCount))
             {
-                Instance.RecipeMgr.PinnedRecipes[pieceName]--;
-                DebugLogger.Log($"Auto-unpin (Build): {pieceName}, remaining count: {Instance.RecipeMgr.PinnedRecipes[pieceName]}");
+                buildCount--;
+                DebugLogger.Log($"Auto-unpin (Build): {pieceName}, remaining count: {buildCount}");
 
-                if (Instance.RecipeMgr.PinnedRecipes[pieceName] <= 0)
+                if (buildCount <= 0)
                 {
                     Instance.RecipeMgr.PinnedRecipes.Remove(pieceName);
                     DebugLogger.Log($"Build recipe {pieceName} fully unpinned");
+                }
+                else
+                {
+                    Instance.RecipeMgr.PinnedRecipes[pieceName] = buildCount;
                 }
 
                 Instance.RecipeMgr.RefreshRecipeCache();

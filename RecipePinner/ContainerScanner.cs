@@ -7,16 +7,20 @@ namespace ValheimRecipePinner
     public class ContainerScanner
     {
         public static List<Container> AllContainers = new List<Container>();
+        private static readonly HashSet<Container> _containerSet = new HashSet<Container>();
         internal static readonly object ContainerLock = new object();
 
         public Dictionary<string, int> ContainerCache = new Dictionary<string, int>();
 
-        private static HashSet<int> _processedIDs = new HashSet<int>();
+        private static readonly HashSet<int> _processedIDs = new HashSet<int>();
+        private readonly List<Container> _snapshotBuffer = new List<Container>();
         private Vector3 _lastScanPos;
         private int _lastItemCount = 0;
         private float _scanTimer = 0f;
+        private float _moveScanCooldown = 0f;
 
         private const float MovementThresholdSqr = 4.0f;
+        private const float MinMoveScanCooldown = 1.0f;
 
         public void InitializeContainers()
         {
@@ -30,7 +34,7 @@ namespace ValheimRecipePinner
 
                     foreach (var container in existingContainers)
                     {
-                        if (container != null && !AllContainers.Contains(container))
+                        if (container != null && _containerSet.Add(container))
                         {
                             AllContainers.Add(container);
                             if (container.GetComponent<ContainerTracker>() == null)
@@ -51,8 +55,9 @@ namespace ValheimRecipePinner
             if (Player.m_localPlayer == null) return;
 
             _scanTimer += Time.deltaTime;
+            _moveScanCooldown += Time.deltaTime;
             float distSqr = Vector3.SqrMagnitude(Player.m_localPlayer.transform.position - _lastScanPos);
-            bool playerMoved = distSqr > MovementThresholdSqr;
+            bool playerMoved = distSqr > MovementThresholdSqr && _moveScanCooldown >= MinMoveScanCooldown;
 
             int currentCount = 0;
             foreach (var item in Player.m_localPlayer.GetInventory().GetAllItems())
@@ -70,12 +75,13 @@ namespace ValheimRecipePinner
 
             float dynamicInterval = isContainerOpen ? 0.5f : RecipePinnerPlugin.ChestScanInterval.Value;
 
-            if (playerMoved || inventoryChanged || _scanTimer >= dynamicInterval)
+            bool timerExpired = _scanTimer >= dynamicInterval;
+            if (playerMoved || inventoryChanged || timerExpired)
             {
+                DebugLogger.Verbose($"Scanning containers - Moved: {playerMoved}, InvChanged: {inventoryChanged}, Interval: {timerExpired}");
                 _scanTimer = 0f;
+                if (playerMoved) _moveScanCooldown = 0f;
                 _lastItemCount = currentCount;
-
-                DebugLogger.Verbose($"Scanning containers - Moved: {playerMoved}, InvChanged: {inventoryChanged}, Interval: {_scanTimer >= dynamicInterval}");
                 UpdateContainerCache();
             }
         }
@@ -94,10 +100,10 @@ namespace ValheimRecipePinner
             float range = RecipePinnerPlugin.ChestScanRange.Value;
             float rangeSqr = range * range;
 
-            List<Container> snapshot;
+            _snapshotBuffer.Clear();
             lock (ContainerLock)
             {
-                snapshot = new List<Container>(AllContainers);
+                _snapshotBuffer.AddRange(AllContainers);
             }
 
             _processedIDs.Clear();
@@ -106,7 +112,7 @@ namespace ValheimRecipePinner
             int skippedCount = 0;
             int accessDeniedCount = 0;
 
-            foreach (var container in snapshot)
+            foreach (var container in _snapshotBuffer)
             {
                 if (container == null || container.transform == null)
                 {
@@ -115,12 +121,11 @@ namespace ValheimRecipePinner
                 }
 
                 int id = container.GetInstanceID();
-                if (_processedIDs.Contains(id))
+                if (!_processedIDs.Add(id))
                 {
                     skippedCount++;
                     continue;
                 }
-                _processedIDs.Add(id);
 
                 float distSqr = Vector3.SqrMagnitude(container.transform.position - center);
                 if (distSqr > rangeSqr)
@@ -174,21 +179,23 @@ namespace ValheimRecipePinner
             {
                 lock (ContainerLock)
                 {
-                    if (!AllContainers.Contains(__instance))
+                    if (_containerSet.Add(__instance))
                     {
                         AllContainers.Add(__instance);
 
-                        ContainerTracker tracker = __instance.gameObject.GetComponent<ContainerTracker>();
-                        if (tracker == null)
-                        {
-                            tracker = __instance.gameObject.AddComponent<ContainerTracker>();
-                        }
+                        ContainerTracker tracker = __instance.gameObject.GetComponent<ContainerTracker>()
+                            ?? __instance.gameObject.AddComponent<ContainerTracker>();
                         tracker.MyContainer = __instance;
 
                         DebugLogger.Verbose($"New container tracked: {__instance.name} (Total: {AllContainers.Count})");
                     }
                 }
             }
+        }
+
+        public static void RemoveFromSet(Container c)
+        {
+            _containerSet.Remove(c);
         }
     }
 
@@ -203,6 +210,7 @@ namespace ValheimRecipePinner
                 lock (ContainerScanner.ContainerLock)
                 {
                     ContainerScanner.AllContainers.Remove(MyContainer);
+                    ContainerScanner.RemoveFromSet(MyContainer);
                     DebugLogger.Verbose($"Container removed: {MyContainer.name} (Remaining: {ContainerScanner.AllContainers.Count})");
                 }
             }

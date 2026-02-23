@@ -26,6 +26,9 @@ namespace ValheimRecipePinner
             if (_pinPool != null)
                 _pinPool.Clear();
 
+            _pageDots.Clear();
+            _paginationRoot = null;
+
             DebugLogger.Log("UI destroyed successfully");
         }
 
@@ -101,8 +104,8 @@ namespace ValheimRecipePinner
             foreach (var item in pInv.GetAllItems())
             {
                 string iName = item.m_shared.m_name;
-                if (_reusableInvCounts.ContainsKey(iName))
-                    _reusableInvCounts[iName] += item.m_stack;
+                if (_reusableInvCounts.TryGetValue(iName, out int existing))
+                    _reusableInvCounts[iName] = existing + item.m_stack;
                 else
                     _reusableInvCounts[iName] = item.m_stack;
             }
@@ -145,6 +148,8 @@ namespace ValheimRecipePinner
             UpdatePageDots(totalPages);
         }
 
+        private List<Image> _pageDots = new List<Image>();
+
         private void UpdatePageDots(int totalPages)
         {
             if (_paginationRoot == null) return;
@@ -163,30 +168,37 @@ namespace ValheimRecipePinner
 
             if (!_paginationRoot.activeSelf) _paginationRoot.SetActive(true);
 
-            foreach (Transform child in _paginationRoot.transform)
+            // Add missing dots
+            while (_pageDots.Count < totalPages)
             {
-                Object.Destroy(child.gameObject);
+                _pageDots.Add(UIBuilder.CreatePageDot(_paginationRoot.transform));
             }
 
             int baseSize = RecipePinnerPlugin.PaginationDotSize.Value;
             Color baseColor = RecipePinnerPlugin.ColorPaginationActive.Value;
 
-            for (int i = 0; i < totalPages; i++)
+            for (int i = 0; i < _pageDots.Count; i++)
             {
-                Image dot = UIBuilder.CreatePageDot(_paginationRoot.transform);
-
-                if (i == _currentPage)
+                if (i < totalPages)
                 {
-                    dot.color = baseColor;
-                    dot.rectTransform.sizeDelta = new Vector2(baseSize * 1.2f, baseSize * 1.2f);
+                    _pageDots[i].gameObject.SetActive(true);
+
+                    if (i == _currentPage)
+                    {
+                        _pageDots[i].color = baseColor;
+                        _pageDots[i].rectTransform.sizeDelta = new Vector2(baseSize * 1.2f, baseSize * 1.2f);
+                    }
+                    else
+                    {
+                        Color fadedColor = baseColor;
+                        fadedColor.a = RecipePinnerPlugin.PaginationInactiveOpacity.Value;
+                        _pageDots[i].color = fadedColor;
+                        _pageDots[i].rectTransform.sizeDelta = new Vector2(baseSize, baseSize);
+                    }
                 }
                 else
                 {
-                    Color fadedColor = baseColor;
-                    fadedColor.a = RecipePinnerPlugin.PaginationInactiveOpacity.Value;
-
-                    dot.color = fadedColor;
-                    dot.rectTransform.sizeDelta = new Vector2(baseSize, baseSize);
+                    _pageDots[i].gameObject.SetActive(false);
                 }
             }
         }
@@ -285,8 +297,8 @@ namespace ValheimRecipePinner
                 _reusableInvCounts.TryGetValue(res.ItemName, out invCount);
 
                 int chestCount = 0;
-                if (RecipePinnerPlugin.EnableChestScanning.Value && containerMgr.ContainerCache.ContainsKey(res.ItemName))
-                    chestCount = containerMgr.ContainerCache[res.ItemName];
+                if (RecipePinnerPlugin.EnableChestScanning.Value)
+                    containerMgr.ContainerCache.TryGetValue(res.ItemName, out chestCount);
 
                 int total = invCount + chestCount;
 
@@ -397,7 +409,6 @@ namespace ValheimRecipePinner
                 }
             }
 
-            _paginationRoot = UIBuilder.CreatePaginationContainer(_pinListRoot);
             _paginationRoot = UIBuilder.CreatePaginationContainer(_pinListRoot);
             _paginationRoot.transform.SetAsLastSibling();
 
