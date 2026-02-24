@@ -43,14 +43,12 @@ namespace ValheimRecipePinner
             int totalPins = recipeMgr.CachedPins.Count;
             int perPage = RecipePinnerPlugin.PinsPerPage.Value;
 
-            // Eğer pin sayısı tek sayfaya sığıyorsa işlem yapma
             if (totalPins <= perPage) return;
 
             int totalPages = Mathf.CeilToInt((float)totalPins / perPage);
 
             _currentPage++;
 
-            // Son sayfayı geçtiysek başa dön
             if (_currentPage >= totalPages)
             {
                 _currentPage = 0;
@@ -168,7 +166,6 @@ namespace ValheimRecipePinner
 
             if (!_paginationRoot.activeSelf) _paginationRoot.SetActive(true);
 
-            // Add missing dots
             while (_pageDots.Count < totalPages)
             {
                 _pageDots.Add(UIBuilder.CreatePageDot(_paginationRoot.transform));
@@ -259,7 +256,6 @@ namespace ValheimRecipePinner
             if (!uiSlot.gameObject.activeSelf)
                 uiSlot.SetActive(true);
 
-            // Update background opacity
             if (uiSlot.BgImage != null)
             {
                 float currentAlpha = uiSlot.BgImage.color.a;
@@ -284,11 +280,8 @@ namespace ValheimRecipePinner
                     slotRect.sizeDelta = new Vector2(targetWidth, slotRect.sizeDelta.y);
             }
 
-            // --- YENİ DÜZELTME BAŞLANGICI ---
-            // Slotun içindeki veri değişmiş mi kontrol et (Sayfa geçişi için kritik)
             bool dataChanged = (uiSlot.CurrentData != pinData);
             uiSlot.CurrentData = pinData;
-            // -------------------------------
 
             // Update resource counts and colors
             foreach (var res in pinData.Resources)

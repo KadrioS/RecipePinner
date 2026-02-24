@@ -33,7 +33,6 @@ namespace ValheimRecipePinner
 
             string targetLang = RecipePinnerPlugin.LanguageOverride.Value.Trim();
 
-            // Auto-detect language
             if (string.IsNullOrEmpty(targetLang) || targetLang.ToLower() == "auto")
             {
                 if (Localization.instance != null)

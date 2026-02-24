@@ -1,3 +1,6 @@
+### 1.1.4
+- In the 1.1.3 update, I put in an old DLL lol (sorry).
+
 ### 1.1.3
 - Fixed upgrade recipes (★3, ★4) showing incorrect material amounts — now correctly calculates costs based on upgrade level.
 - Optimized container scanning with a movement cooldown to prevent excessive scans.

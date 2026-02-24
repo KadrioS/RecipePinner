@@ -1,6 +1,6 @@
 {
     "name": "RecipePinner",
-    "version_number": "1.1.3",
+    "version_number": "1.1.4",
     "website_url": "https://github.com/KadrioS/RecipePinner",
     "description": "Stop running back and forth! Pin any recipe or structure to your HUD. Tracks materials in your inventory, with optional scanning for nearby chests.",
     "dependencies": [

@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace ValheimRecipePinner
 {
-    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.1.3")]
+    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.1.4")]
     public class RecipePinnerPlugin : BaseUnityPlugin
     {
         public static RecipePinnerPlugin Instance;
@@ -265,7 +265,6 @@ namespace ValheimRecipePinner
 
             ReflectionHelper.UpdateGuiScale();
 
-            // Startup initialization
             if (!_startupInitialized && Player.m_localPlayer != null && ObjectDB.instance != null && ObjectDB.instance.m_recipes.Count > 0)
             {
                 DebugLogger.Log("First-time initialization triggered");

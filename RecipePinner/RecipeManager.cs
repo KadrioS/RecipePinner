@@ -14,7 +14,6 @@ namespace ValheimRecipePinner
 
         private readonly Dictionary<string, Recipe> _fakeRecipeCache = new Dictionary<string, Recipe>();
 
-        // Regexler (Compiled = Performanslı)
         private static readonly Regex CleanNameRegex = new Regex("<.*?>", RegexOptions.Compiled);
         private static readonly Regex ShadowCleanRegex = new Regex("<color=.*?>|</color>", RegexOptions.Compiled);
         private static readonly Regex AmountSuffixRegex = new Regex(@"\s*[xX]?\s*\d+$", RegexOptions.Compiled);
@@ -81,7 +80,6 @@ namespace ValheimRecipePinner
                     }
                     else
                     {
-                        // m_item is null — this is likely a piece
                         GameObject prefab = ZNetScene.instance?.GetPrefab(r.name);
                         if (prefab != null)
                         {
@@ -194,7 +192,7 @@ namespace ValheimRecipePinner
                 }
             }
 
-            // Recipe List Check (manual loop to avoid LINQ allocation)
+            // Recipe List Check
             Recipe standardRecipe = null;
             foreach (var r2 in ObjectDB.instance.m_recipes)
             {
@@ -505,7 +503,6 @@ namespace ValheimRecipePinner
                 return fRecipe;
             }
 
-            // Universal Scan
             foreach (FieldInfo f in type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
             {
                 if (f.FieldType == typeof(Recipe))

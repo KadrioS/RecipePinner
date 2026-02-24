@@ -83,7 +83,6 @@ namespace ValheimRecipePinner
                     }
                     else
                     {
-                        // Legacy format without count
                         if (!recipeMgr.PinnedRecipes.ContainsKey(line))
                         {
                             recipeMgr.PinnedRecipes[line] = 1;
@@ -92,7 +91,6 @@ namespace ValheimRecipePinner
                     }
                 }
 
-                // Enforce maximum pins limit
                 if (recipeMgr.PinnedRecipes.Count > RecipePinnerPlugin.MaximumPins.Value)
                 {
                     int originalCount = recipeMgr.PinnedRecipes.Count;
@@ -148,7 +146,6 @@ namespace ValheimRecipePinner
                 }
             }
 
-            // Sanitize player name for file system
             string sanitizedName = playerName;
             foreach (char c in Path.GetInvalidFileNameChars())
             {
