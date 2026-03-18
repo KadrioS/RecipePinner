@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
@@ -6,8 +6,8 @@ namespace ValheimRecipePinner
 {
     public class LocalizationManager
     {
-        private RecipePinnerPlugin _plugin;
-        private Dictionary<string, string> _localizedText = new Dictionary<string, string>();
+        private readonly RecipePinnerPlugin _plugin;
+        private readonly Dictionary<string, string> _localizedText = new Dictionary<string, string>();
 
         private static readonly Dictionary<string, string> _defaultEnglish = new Dictionary<string, string>
         {
@@ -18,13 +18,18 @@ namespace ValheimRecipePinner
             { "decreased", "Decreased: {0}x" },
             { "cleared", "Pinned Recipes Cleared" },
             { "max_level", "Max Level Reached" },
-            { "no_upgrade_cost", "No upgrade cost found" }
+            { "no_upgrade_cost", "No upgrade cost found" },
+            { "gathering_title", "GATHERING LIST" },
+            { "gathering_opened", "Gathering List Opened" },
+            { "gathering_closed", "Gathering List Closed" },
+            { "gathering_empty", "No Recipes Pinned" },
+            { "gathering_hint", "Open/Close: {0}" }
         };
 
         public LocalizationManager(RecipePinnerPlugin plugin)
         {
             _plugin = plugin;
-            DebugLogger.Log("LocalizationManager initialized");
+            DebugLogger.Log("LocalizationManager init");
         }
 
         public void LoadTranslations()
@@ -63,19 +68,20 @@ namespace ValheimRecipePinner
 
                 foreach (string line in jsonContent.Split('\n'))
                 {
-                    if (line.Contains(":"))
-                    {
-                        string[] parts = line.Split(new[] { ':' }, 2);
-                        if (parts.Length == 2)
-                        {
-                            string key = parts[0].Trim().Trim(',', '\"', ' ', '\t', '\r');
-                            string val = parts[1].Trim().Trim(',', '\"', ' ', '\t', '\r');
+                    string trimmed = line.Trim();
+                    if (string.IsNullOrEmpty(trimmed) || trimmed == "{" || trimmed == "}" || !trimmed.Contains(":"))
+                        continue;
 
-                            if (!string.IsNullOrEmpty(key) && !string.IsNullOrEmpty(val))
-                            {
-                                _localizedText[key] = val;
-                                loadedCount++;
-                            }
+                    string[] parts = trimmed.Split(new[] { ':' }, 2);
+                    if (parts.Length == 2)
+                    {
+                        string key = parts[0].Trim(',', '"', ' ', '\t', '\r');
+                        string val = parts[1].Trim(',', '"', ' ', '\t', '\r');
+
+                        if (!string.IsNullOrEmpty(key) && !string.IsNullOrEmpty(val))
+                        {
+                            _localizedText[key] = val;
+                            loadedCount++;
                         }
                     }
                 }
@@ -90,21 +96,18 @@ namespace ValheimRecipePinner
 
         public string GetText(string key)
         {
-            // Try localized text first
             if (_localizedText.TryGetValue(key, out string val))
             {
                 DebugLogger.Verbose($"Translation found for '{key}': {val}");
                 return val;
             }
 
-            // Fall back to default English
             if (_defaultEnglish.TryGetValue(key, out string defVal))
             {
                 DebugLogger.Verbose($"Using default English for '{key}': {defVal}");
                 return defVal;
             }
 
-            // Return key if no translation found
             DebugLogger.Warning($"No translation found for key: {key}");
             return key;
         }

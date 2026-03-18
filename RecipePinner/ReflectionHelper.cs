@@ -1,4 +1,4 @@
-﻿using HarmonyLib;
+using HarmonyLib;
 using System;
 using System.Reflection;
 using UnityEngine;
@@ -6,9 +6,6 @@ using UnityEngine.UI;
 
 namespace ValheimRecipePinner
 {
-    /// <summary>
-    /// Reflection helper for accessing private fields/methods
-    /// </summary>
     public static class ReflectionHelper
     {
         private static Func<float> _getGuiScale;
@@ -30,7 +27,7 @@ namespace ValheimRecipePinner
 
         public static void InitializeReflection()
         {
-            DebugLogger.Log("Initializing reflection helpers...");
+            DebugLogger.Log("Reflection init");
             int successCount = 0;
             int failCount = 0;
 
@@ -167,11 +164,11 @@ namespace ValheimRecipePinner
                     DebugLogger.Warning("✗ Container.CheckAccess not found");
                 }
 
-                DebugLogger.Log($"Reflection initialization complete: {successCount} successful, {failCount} failed");
+                DebugLogger.Log($"Reflection done: {successCount} ok, {failCount} failed");
 
                 if (failCount > 0)
                 {
-                    DebugLogger.Warning("Some reflection targets failed - mod may not work correctly!");
+                    DebugLogger.Warning("Some reflection targets failed");
                 }
 
                 // Player - Build Pieces (PieceTable)
@@ -189,7 +186,7 @@ namespace ValheimRecipePinner
             }
             catch (Exception ex)
             {
-                DebugLogger.Error("Critical error during reflection initialization", ex);
+                DebugLogger.Error("Reflection init failed", ex);
             }
         }
 
@@ -263,9 +260,6 @@ namespace ValheimRecipePinner
         }
     }
 
-    /// <summary>
-    /// Input helper for checking input states
-    /// </summary>
     public static class InputHelper
     {
         public static bool IsInputBlocked()

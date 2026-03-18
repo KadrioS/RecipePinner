@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -7,29 +7,45 @@ namespace ValheimRecipePinner
     public class UIManager
     {
         private Transform _pinListRoot;
-        private List<PinSlotUI> _pinPool = new List<PinSlotUI>();
+        private readonly List<PinSlotUI> _pinPool = new List<PinSlotUI>();
         private Font _cachedFont;
-        private static Dictionary<string, int> _reusableInvCounts = new Dictionary<string, int>();
+        private readonly Dictionary<string, int> _reusableInvCounts = new Dictionary<string, int>();
 
         private int _currentPage = 0;
         private GameObject _paginationRoot;
 
+        private GatheringListUI _gatheringListPanel;
+        private bool _gatheringListVisible = false;
+        private bool _gatheringListRepositioned = false;
+        private readonly List<GatheringItemData> _gatheringData = new List<GatheringItemData>();
+        private readonly Dictionary<string, GatheringItemData> _gatheringAggregator = new Dictionary<string, GatheringItemData>();
+        private int _previousPinCount = 0;
+        private string _lastHintKey = null;
+
         public void DestroyUI()
         {
-            DebugLogger.Verbose("Destroying UI...");
+            DebugLogger.Verbose("DestroyUI");
             if (_pinListRoot != null)
             {
                 Object.Destroy(_pinListRoot.gameObject);
                 _pinListRoot = null;
             }
 
-            if (_pinPool != null)
-                _pinPool.Clear();
+            _pinPool?.Clear();
 
             _pageDots.Clear();
             _paginationRoot = null;
 
-            DebugLogger.Log("UI destroyed successfully");
+            if (_gatheringListPanel != null)
+            {
+                Object.Destroy(_gatheringListPanel.gameObject);
+                _gatheringListPanel = null;
+            }
+
+            _lastHintKey = null;
+            _previousPinCount = 0;
+
+            DebugLogger.Log("UI destroyed");
         }
 
         public void ResetPage()
@@ -58,6 +74,43 @@ namespace ValheimRecipePinner
             UpdateUI(true);
         }
 
+        public void ToggleGatheringList()
+        {
+            var recipeMgr = RecipePinnerPlugin.Instance?.RecipeMgr;
+
+            if (!_gatheringListVisible && (recipeMgr == null || recipeMgr.CachedPins.Count == 0))
+            {
+                DebugLogger.Log("Gathering list toggle blocked: no pins");
+                if (Player.m_localPlayer != null)
+                {
+                    var loc = RecipePinnerPlugin.Instance?.LocalizationMgr;
+                    string msg = loc?.GetText("gathering_empty") ?? "No Recipes Pinned";
+                    Player.m_localPlayer.Message(MessageHud.MessageType.Center, msg);
+                }
+                return;
+            }
+
+            _gatheringListVisible = !_gatheringListVisible;
+            DebugLogger.Log($"Gathering list toggled: {_gatheringListVisible}");
+
+            _gatheringListPanel?.SetActive(_gatheringListVisible);
+
+            if (Player.m_localPlayer != null)
+            {
+                var locMgr = RecipePinnerPlugin.Instance?.LocalizationMgr;
+                string msg = _gatheringListVisible
+                    ? locMgr?.GetText("gathering_opened") ?? "Gathering List Opened"
+                    : locMgr?.GetText("gathering_closed") ?? "Gathering List Closed";
+                Player.m_localPlayer.Message(MessageHud.MessageType.Center, msg);
+            }
+        }
+
+        public void CloseGatheringList()
+        {
+            _gatheringListVisible = false;
+            _gatheringListPanel?.SetActive(false);
+        }
+
         public void UpdateUI(bool isVisible)
         {
             if (Player.m_localPlayer == null || Player.m_localPlayer.IsDead()) return;
@@ -71,7 +124,7 @@ namespace ValheimRecipePinner
 
             if (_pinPool.Count < RecipePinnerPlugin.MaximumPins.Value)
             {
-                DebugLogger.Log($"Pin limit changed (Pool: {_pinPool.Count}, Config: {RecipePinnerPlugin.MaximumPins.Value}). Rebuilding UI...");
+                DebugLogger.Log($"Pin limit changed ({_pinPool.Count} -> {RecipePinnerPlugin.MaximumPins.Value}), rebuilding");
                 DestroyUI();
             }
 
@@ -90,13 +143,109 @@ namespace ValheimRecipePinner
 
             if (_pinListRoot == null) return;
 
+            bool isInventoryOpen = InventoryGui.instance != null && InventoryGui.IsVisible();
             bool shouldShow = isVisible && !InputHelper.IsInputBlocked() && recipeMgr.CachedPins.Count > 0;
-            if (_pinListRoot.gameObject.activeSelf != shouldShow)
+            bool gatheringListOnly = !shouldShow && _gatheringListVisible && _gatheringListPanel != null && recipeMgr.CachedPins.Count > 0;
+
+            if (gatheringListOnly)
             {
-                _pinListRoot.gameObject.SetActive(shouldShow);
+                if (!_pinListRoot.gameObject.activeSelf)
+                    _pinListRoot.gameObject.SetActive(true);
+
+                for (int i = 0; i < _pinPool.Count; i++)
+                {
+                    if (_pinPool[i] != null && _pinPool[i].gameObject.activeSelf)
+                        _pinPool[i].SetActive(false);
+                }
+                if (_paginationRoot != null && _paginationRoot.activeSelf)
+                    _paginationRoot.SetActive(false);
+
+                _gatheringListPanel.SetActive(true);
+
+                LayoutElement le = _gatheringListPanel.GetComponent<LayoutElement>()
+                    ?? _gatheringListPanel.gameObject.AddComponent<LayoutElement>();
+                le.ignoreLayout = true;
+
+                RectTransform panelRect = _gatheringListPanel.PanelRect;
+                bool glForcedBR = RecipePinnerPlugin.LayoutModeConfig.Value == RecipePinnerPlugin.PinLayoutMode.ForceBottomRightHorizontal;
+                bool glSailing = Player.m_localPlayer.GetControlledShip() != null;
+                bool glBottomRight = glForcedBR || glSailing || isInventoryOpen;
+                float columnWidth = glBottomRight
+                    ? RecipePinnerPlugin.BottomRightColumnWidth.Value
+                    : (RecipePinnerPlugin.Instance.IsHorizontalMode ? RecipePinnerPlugin.HorizontalColumnWidth.Value : RecipePinnerPlugin.VerticalListWidth.Value);
+
+                panelRect.sizeDelta = new Vector2(columnWidth, panelRect.sizeDelta.y);
+                panelRect.anchoredPosition = Vector2.zero;
+
+                if (_gatheringListRepositioned)
+                {
+                    _gatheringListRepositioned = false;
+                }
+
+                UpdateGatheringList();
+                return;
             }
 
-            if (!shouldShow) return;
+            if (_pinListRoot.gameObject.activeSelf != shouldShow)
+                _pinListRoot.gameObject.SetActive(shouldShow);
+
+            if (!shouldShow)
+            {
+                if (_gatheringListRepositioned && _gatheringListPanel != null)
+                {
+                    _gatheringListRepositioned = false;
+                    _gatheringListPanel.SetActive(_gatheringListVisible);
+                }
+                return;
+            }
+
+            if (isInventoryOpen && _gatheringListPanel != null && recipeMgr.CachedPins.Count > 0)
+            {
+                bool isChestOpen = ReflectionHelper.GetCurrentContainer(InventoryGui.instance) != null;
+                _gatheringListPanel.SetActive(true);
+                if (isChestOpen)
+                {
+                    RepositionGatheringListForInventory();
+                }
+            }
+            else if (_gatheringListRepositioned && _gatheringListPanel != null)
+            {
+                _gatheringListRepositioned = false;
+                _gatheringListPanel.SetActive(_gatheringListVisible);
+            }
+
+            int currentPinCount = recipeMgr.CachedPins.Count;
+            if (RecipePinnerPlugin.AutoOpenGatheringList.Value &&
+                RecipePinnerPlugin.EnableGatheringList.Value &&
+                !_gatheringListVisible &&
+                currentPinCount >= 2 &&
+                _previousPinCount < 2)
+            {
+                _gatheringListVisible = true;
+                _gatheringListPanel?.SetActive(true);
+                DebugLogger.Log("Gathering list auto-opened (2+ pins detected)");
+            }
+            if (_gatheringListVisible &&
+                currentPinCount < 2 &&
+                _previousPinCount >= 2)
+            {
+                _gatheringListVisible = false;
+                _gatheringListPanel?.SetActive(false);
+                DebugLogger.Log("Gathering list auto-closed (less than 2 pins)");
+            }
+            _previousPinCount = currentPinCount;
+
+            if (_gatheringListPanel != null && _gatheringListPanel.HintText != null)
+            {
+                string keyName = RecipePinnerPlugin.HotkeyGatheringList.Value.ToString();
+                if (_lastHintKey != keyName)
+                {
+                    _lastHintKey = keyName;
+                    var locMgr = RecipePinnerPlugin.Instance?.LocalizationMgr;
+                    string hintTemplate = locMgr?.GetText("gathering_hint") ?? "Open/Close: {0}";
+                    _gatheringListPanel.HintText.text = string.Format(hintTemplate, keyName);
+                }
+            }
 
             _reusableInvCounts.Clear();
             foreach (var item in pInv.GetAllItems())
@@ -138,15 +287,22 @@ namespace ValheimRecipePinner
                 }
             }
 
+            bool isSailing = Player.m_localPlayer.GetControlledShip() != null;
+            bool isInvOpen = InventoryGui.instance != null && InventoryGui.IsVisible();
+            bool shouldBeHorizontal = RecipePinnerPlugin.Instance.IsHorizontalMode || isSailing || isInvOpen;
+            EqualizePinHeights(startIndex, endIndex, shouldBeHorizontal);
+
             int totalPages = 1;
             if (activePinCount > 0)
             {
                 totalPages = Mathf.CeilToInt((float)activePinCount / perPage);
             }
             UpdatePageDots(totalPages);
+
+            UpdateGatheringList();
         }
 
-        private List<Image> _pageDots = new List<Image>();
+        private readonly List<Image> _pageDots = new List<Image>();
 
         private void UpdatePageDots(int totalPages)
         {
@@ -165,6 +321,7 @@ namespace ValheimRecipePinner
             }
 
             if (!_paginationRoot.activeSelf) _paginationRoot.SetActive(true);
+
 
             while (_pageDots.Count < totalPages)
             {
@@ -208,17 +365,19 @@ namespace ValheimRecipePinner
 
             bool isForcedBottomRight = RecipePinnerPlugin.LayoutModeConfig.Value == RecipePinnerPlugin.PinLayoutMode.ForceBottomRightHorizontal;
             bool isSailing = Player.m_localPlayer.GetControlledShip() != null;
-            bool shouldUseHorizontal = RecipePinnerPlugin.Instance.IsHorizontalMode || isSailing;
+            bool isInvOpen = InventoryGui.instance != null && InventoryGui.IsVisible();
+            bool shouldUseHorizontal = RecipePinnerPlugin.Instance.IsHorizontalMode || isSailing || isInvOpen;
 
             if (shouldUseHorizontal)
             {
-                float colWidth = (isForcedBottomRight || isSailing)
+                bool isBottomRight = isForcedBottomRight || isSailing || isInvOpen;
+                float colWidth = isBottomRight
                     ? RecipePinnerPlugin.BottomRightColumnWidth.Value
                     : RecipePinnerPlugin.HorizontalColumnWidth.Value;
 
                 float centerOffset = -(colWidth / 2f);
 
-                if (isForcedBottomRight || isSailing)
+                if (isBottomRight)
                 {
                     // --- Bottom Right ---
                     dotsRect.anchorMin = new Vector2(1, 0);
@@ -248,6 +407,29 @@ namespace ValheimRecipePinner
             }
         }
 
+        private void EqualizePinHeights(int startIndex, int endIndex, bool isHorizontal)
+        {
+            for (int i = 0; i < _pinPool.Count; i++)
+            {
+                PinSlotUI slot = _pinPool[i];
+                if (slot?.Csf == null) continue;
+
+                int dataIndex = startIndex + i;
+                bool isVisible = dataIndex < endIndex;
+
+                if (isHorizontal && isVisible)
+                {
+                    if (slot.Csf.verticalFit != ContentSizeFitter.FitMode.Unconstrained)
+                        slot.Csf.verticalFit = ContentSizeFitter.FitMode.Unconstrained;
+                }
+                else
+                {
+                    if (slot.Csf.verticalFit != ContentSizeFitter.FitMode.PreferredSize)
+                        slot.Csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+                }
+            }
+        }
+
         private void UpdatePinSlot(int index, PinnedRecipeData pinData, ContainerScanner containerMgr)
         {
             PinSlotUI uiSlot = _pinPool[index];
@@ -263,16 +445,16 @@ namespace ValheimRecipePinner
                     uiSlot.BgImage.color = new Color(0, 0, 0, RecipePinnerPlugin.BackgroundOpacity.Value);
             }
 
-            // Update width for horizontal mode
             bool isBottomRight = (RecipePinnerPlugin.LayoutModeConfig.Value == RecipePinnerPlugin.PinLayoutMode.ForceBottomRightHorizontal);
             bool isSailing = (Player.m_localPlayer.GetControlledShip() != null);
-            bool shouldBeHorizontal = RecipePinnerPlugin.Instance.IsHorizontalMode || isSailing;
+            bool isInvOpen = InventoryGui.instance != null && InventoryGui.IsVisible();
+            bool shouldBeHorizontal = RecipePinnerPlugin.Instance.IsHorizontalMode || isSailing || isInvOpen;
 
             if (shouldBeHorizontal)
             {
                 RectTransform slotRect = uiSlot.Rect ?? uiSlot.GetComponent<RectTransform>();
 
-                float targetWidth = (isBottomRight || isSailing)
+                float targetWidth = (isBottomRight || isSailing || isInvOpen)
                     ? RecipePinnerPlugin.BottomRightColumnWidth.Value
                     : RecipePinnerPlugin.HorizontalColumnWidth.Value;
 
@@ -283,11 +465,9 @@ namespace ValheimRecipePinner
             bool dataChanged = (uiSlot.CurrentData != pinData);
             uiSlot.CurrentData = pinData;
 
-            // Update resource counts and colors
             foreach (var res in pinData.Resources)
             {
-                int invCount = 0;
-                _reusableInvCounts.TryGetValue(res.ItemName, out invCount);
+                _reusableInvCounts.TryGetValue(res.ItemName, out int invCount);
 
                 int chestCount = 0;
                 if (RecipePinnerPlugin.EnableChestScanning.Value)
@@ -317,7 +497,37 @@ namespace ValheimRecipePinner
                 }
             }
 
-            // Refresh UI if data changed OR specifically marked dirty
+            if (uiSlot.AccentBar != null)
+            {
+                if (RecipePinnerPlugin.EnableCraftReadiness.Value)
+                {
+                    if (!uiSlot.AccentBar.gameObject.activeSelf)
+                        uiSlot.AccentBar.gameObject.SetActive(true);
+
+                    bool allReady = true;
+                    for (int r = 0; r < pinData.Resources.Count; r++)
+                    {
+                        if (pinData.Resources[r].LastKnownAmount < pinData.Resources[r].RequiredAmount)
+                        {
+                            allReady = false;
+                            break;
+                        }
+                    }
+
+                    Color targetAccent = allReady
+                        ? RecipePinnerPlugin.ColorCraftReady.Value
+                        : RecipePinnerPlugin.ColorCraftNotReady.Value;
+
+                    if (uiSlot.AccentBar.color != targetAccent)
+                        uiSlot.AccentBar.color = targetAccent;
+                }
+                else
+                {
+                    if (uiSlot.AccentBar.gameObject.activeSelf)
+                        uiSlot.AccentBar.gameObject.SetActive(false);
+                }
+            }
+
             if (dataChanged || pinData.IsDirty)
             {
                 uiSlot.UpdateData(pinData, _cachedFont);
@@ -344,11 +554,10 @@ namespace ValheimRecipePinner
                 return;
             }
 
-            DebugLogger.Log("Creating canvas UI...");
+            DebugLogger.Log("CreateCanvasUI");
 
             Transform parentTransform = Hud.instance.m_rootObject.transform;
-            GameObject rootObj = new GameObject("PinListRoot", typeof(RectTransform));
-            rootObj.layer = 5;
+            GameObject rootObj = new GameObject("PinListRoot", typeof(RectTransform)) { layer = 5 };
             rootObj.transform.SetParent(parentTransform, false);
             _pinListRoot = rootObj.transform;
             _pinListRoot.localScale = Vector3.one * RecipePinnerPlugin.UIScale.Value;
@@ -360,8 +569,9 @@ namespace ValheimRecipePinner
 
             bool isSailing = Player.m_localPlayer != null && Player.m_localPlayer.GetControlledShip() != null;
             bool isForcedBottomRight = RecipePinnerPlugin.LayoutModeConfig.Value == RecipePinnerPlugin.PinLayoutMode.ForceBottomRightHorizontal;
-            bool isBottomRightMode = isSailing || isForcedBottomRight;
-            bool shouldUseHorizontal = RecipePinnerPlugin.Instance.IsHorizontalMode || isSailing;
+            bool isInventoryOpen = InventoryGui.instance != null && InventoryGui.IsVisible();
+            bool isBottomRightMode = isSailing || isForcedBottomRight || isInventoryOpen;
+            bool shouldUseHorizontal = RecipePinnerPlugin.Instance.IsHorizontalMode || isSailing || isInventoryOpen;
 
             DebugLogger.Verbose($"UI Layout - Horizontal: {shouldUseHorizontal}, BottomRight: {isBottomRightMode}, Sailing: {isSailing}");
 
@@ -370,7 +580,7 @@ namespace ValheimRecipePinner
                 HorizontalLayoutGroup hlg = rootObj.AddComponent<HorizontalLayoutGroup>();
                 hlg.childControlHeight = true;
                 hlg.childControlWidth = false;
-                hlg.childForceExpandHeight = false;
+                hlg.childForceExpandHeight = true;
                 hlg.childForceExpandWidth = false;
                 hlg.childAlignment = isBottomRightMode ? TextAnchor.LowerRight : TextAnchor.UpperRight;
                 hlg.spacing = RecipePinnerPlugin.HorizontalPinSpacing.Value;
@@ -405,7 +615,16 @@ namespace ValheimRecipePinner
             _paginationRoot = UIBuilder.CreatePaginationContainer(_pinListRoot);
             _paginationRoot.transform.SetAsLastSibling();
 
-            DebugLogger.Log($"Canvas UI created with {_pinPool.Count} pin slots");
+            // Gathering List Panel
+            if (RecipePinnerPlugin.EnableGatheringList.Value)
+            {
+                string title = RecipePinnerPlugin.Instance?.LocalizationMgr?.GetText("gathering_title") ?? "TOTAL NEEDS";
+                _gatheringListPanel = UIBuilder.CreateGatheringListPanel(_pinListRoot, _cachedFont, title);
+                _gatheringListPanel.SetActive(_gatheringListVisible);
+                DebugLogger.Log("Gathering list panel ready");
+            }
+
+            DebugLogger.Log($"UI ready ({_pinPool.Count} slots)");
         }
 
         private void UpdateLayout()
@@ -415,8 +634,9 @@ namespace ValheimRecipePinner
             var instance = RecipePinnerPlugin.Instance;
             bool isForcedBottomRight = RecipePinnerPlugin.LayoutModeConfig.Value == RecipePinnerPlugin.PinLayoutMode.ForceBottomRightHorizontal;
             bool isSailing = !isForcedBottomRight && Player.m_localPlayer.GetControlledShip() != null;
-            bool isBottomRightMode = isForcedBottomRight || isSailing;
-            bool shouldBeHorizontal = instance.IsHorizontalMode || isSailing;
+            bool isInventoryOpen = InventoryGui.instance != null && InventoryGui.IsVisible();
+            bool isBottomRightMode = isForcedBottomRight || isSailing || isInventoryOpen;
+            bool shouldBeHorizontal = instance.IsHorizontalMode || isSailing || isInventoryOpen;
 
             var layoutGroup = _pinListRoot.GetComponent<HorizontalLayoutGroup>();
             bool hasHorizontalComponent = layoutGroup != null;
@@ -445,6 +665,69 @@ namespace ValheimRecipePinner
             }
 
             UpdateDotsPosition();
+            UpdateGatheringListPosition(shouldBeHorizontal, isBottomRightMode);
+        }
+
+        private void UpdateGatheringListPosition(bool isHorizontal, bool isBottomRight)
+        {
+            if (_gatheringListPanel == null) return;
+
+            LayoutElement le = _gatheringListPanel.GetComponent<LayoutElement>()
+                ?? _gatheringListPanel.gameObject.AddComponent<LayoutElement>();
+
+            RectTransform panelRect = _gatheringListPanel.PanelRect;
+
+            if (isHorizontal)
+            {
+                le.ignoreLayout = true;
+
+                float columnWidth = isBottomRight
+                    ? RecipePinnerPlugin.BottomRightColumnWidth.Value
+                    : RecipePinnerPlugin.HorizontalColumnWidth.Value;
+
+                panelRect.sizeDelta = new Vector2(columnWidth, panelRect.sizeDelta.y);
+
+                if (isBottomRight)
+                {
+                    panelRect.anchorMin = new Vector2(1, 1);
+                    panelRect.anchorMax = new Vector2(1, 1);
+                    panelRect.pivot = new Vector2(1, 0);
+                    panelRect.anchoredPosition = new Vector2(0, 10f);
+                }
+                else
+                {
+                    panelRect.anchorMin = new Vector2(1, 0);
+                    panelRect.anchorMax = new Vector2(1, 0);
+                    panelRect.pivot = new Vector2(1, 1);
+                    panelRect.anchoredPosition = new Vector2(0, -10f);
+                }
+            }
+            else
+            {
+                le.ignoreLayout = false;
+            }
+        }
+
+        private void RepositionGatheringListForInventory()
+        {
+            if (_gatheringListPanel == null) return;
+
+            LayoutElement le = _gatheringListPanel.GetComponent<LayoutElement>()
+                ?? _gatheringListPanel.gameObject.AddComponent<LayoutElement>();
+            le.ignoreLayout = true;
+
+            RectTransform panelRect = _gatheringListPanel.PanelRect;
+            float columnWidth = RecipePinnerPlugin.BottomRightColumnWidth?.Value ?? 265f;
+
+            Vector2 offset = RecipePinnerPlugin.InventoryGatheringListPosition?.Value ?? new Vector2(-460f, 0f);
+
+            panelRect.anchorMin = new Vector2(0.5f, 0.5f);
+            panelRect.anchorMax = new Vector2(0.5f, 0.5f);
+            panelRect.pivot = new Vector2(0.5f, 0.5f);
+            panelRect.anchoredPosition = offset;
+            panelRect.sizeDelta = new Vector2(columnWidth, panelRect.sizeDelta.y);
+
+            _gatheringListRepositioned = true;
         }
 
         private void UpdateHorizontalLayout(RectTransform rootRect, bool isBottomRightMode)
@@ -526,6 +809,104 @@ namespace ValheimRecipePinner
 
             if (Mathf.Abs(rootRect.sizeDelta.x - RecipePinnerPlugin.VerticalListWidth.Value) > 1f)
                 rootRect.sizeDelta = new Vector2(RecipePinnerPlugin.VerticalListWidth.Value, 0);
+        }
+
+        private void UpdateGatheringList()
+        {
+            if (_gatheringListPanel == null || (!_gatheringListVisible && !_gatheringListRepositioned)) return;
+
+            if (_gatheringListPanel.BgImage != null)
+            {
+                float currentAlpha = _gatheringListPanel.BgImage.color.a;
+                if (Mathf.Abs(currentAlpha - RecipePinnerPlugin.BackgroundOpacity.Value) > 0.01f)
+                    _gatheringListPanel.BgImage.color = new Color(0, 0, 0, RecipePinnerPlugin.BackgroundOpacity.Value);
+            }
+
+            var recipeMgr = RecipePinnerPlugin.Instance?.RecipeMgr;
+            if (recipeMgr == null) return;
+
+            var containerMgr = RecipePinnerPlugin.Instance.ContainerMgr;
+
+            _gatheringAggregator.Clear();
+            _gatheringData.Clear();
+
+            foreach (var pin in recipeMgr.CachedPins)
+            {
+                int pinCount = 1;
+                if (recipeMgr.PinnedRecipes.TryGetValue(pin.RawName, out int c))
+                    pinCount = Mathf.Max(1, c);
+
+                foreach (var res in pin.Resources)
+                {
+                    if (_gatheringAggregator.TryGetValue(res.ItemName, out GatheringItemData existing))
+                    {
+                        existing.TotalRequired += res.RequiredAmount * pinCount;
+                    }
+                    else
+                    {
+                        var item = new GatheringItemData
+                        {
+                            ItemName = res.ItemName,
+                            DisplayName = res.CachedName ?? res.ItemName,
+                            Icon = res.Icon,
+                            TotalRequired = res.RequiredAmount * pinCount
+                        };
+                        _gatheringAggregator[res.ItemName] = item;
+                        _gatheringData.Add(item);
+                    }
+                }
+            }
+
+            // Calculate totals
+            foreach (var item in _gatheringData)
+            {
+                _reusableInvCounts.TryGetValue(item.ItemName, out int invCount);
+
+                int chestCount = 0;
+                if (RecipePinnerPlugin.EnableChestScanning.Value)
+                    containerMgr.ContainerCache.TryGetValue(item.ItemName, out chestCount);
+
+                item.TotalHave = invCount + chestCount;
+                item.IsComplete = item.TotalHave >= item.TotalRequired;
+            }
+
+            // Update UI slots
+            var panel = _gatheringListPanel;
+            while (panel.ItemSlots.Count < _gatheringData.Count)
+            {
+                panel.ItemSlots.Add(UIBuilder.CreateGatheringItemSlot(panel.ItemListRoot, _cachedFont));
+            }
+
+            for (int i = 0; i < panel.ItemSlots.Count; i++)
+            {
+                if (i < _gatheringData.Count)
+                {
+                    var slot = panel.ItemSlots[i];
+                    var data = _gatheringData[i];
+
+                    if (!slot.gameObject.activeSelf) slot.SetActive(true);
+
+                    slot.Icon.sprite = data.Icon;
+
+                    Color amountColor = data.IsComplete
+                        ? RecipePinnerPlugin.ColorEnoughInInventory.Value
+                        : RecipePinnerPlugin.ColorMissing.Value;
+
+                    string hexColor = "#" + ColorUtility.ToHtmlStringRGBA(amountColor);
+                    slot.AmountText.text = $"<color={hexColor}>{data.TotalHave}/{data.TotalRequired}</color>";
+
+                }
+                else
+                {
+                    if (panel.ItemSlots[i].gameObject.activeSelf)
+                        panel.ItemSlots[i].SetActive(false);
+                }
+            }
+
+            if (panel.ItemSlots.Count == _gatheringData.Count)
+                panel.HintText?.transform.SetAsLastSibling();
+
+            panel.RefreshLayout();
         }
 
         private Font GetGameFont()

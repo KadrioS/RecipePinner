@@ -1,4 +1,4 @@
-﻿using BepInEx;
+using BepInEx;
 using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using HarmonyLib;
@@ -7,31 +7,34 @@ using UnityEngine;
 
 namespace ValheimRecipePinner
 {
-    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.1.4")]
+    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.2.0")]
     public class RecipePinnerPlugin : BaseUnityPlugin
     {
         public static RecipePinnerPlugin Instance;
 
-        // --- 1. GENERAL SETTINGS ---
+        // General
         public static ConfigEntry<bool> EnableMod;
         public static ConfigEntry<string> LanguageOverride;
         public static ConfigEntry<PinLayoutMode> LayoutModeConfig;
         public static ConfigEntry<int> MaximumPins;
         public static ConfigEntry<int> PinsPerPage;
         public static ConfigEntry<bool> AutoUnpinAfterCrafting;
+        public static ConfigEntry<bool> EnableGatheringList;
+        public static ConfigEntry<bool> AutoOpenGatheringList;
 
-        // --- 2. CONTROLS / HOTKEYS ---
+        // Controls
         public static ConfigEntry<KeyCode> HotkeyPin;
         public static ConfigEntry<KeyCode> HotkeyClearAll;
         public static ConfigEntry<KeyCode> HotkeyToggleVisibility;
         public static ConfigEntry<KeyCode> HotkeyPageSwitch;
+        public static ConfigEntry<KeyCode> HotkeyGatheringList;
 
-        // --- 3. CRAFT FROM CHEST ---
+        // Chest scanning
         public static ConfigEntry<bool> EnableChestScanning;
         public static ConfigEntry<float> ChestScanRange;
         public static ConfigEntry<float> ChestScanInterval;
 
-        // --- 4. VISUAL SETTINGS ---
+        // Appearance
         public static ConfigEntry<float> UIScale;
         public static ConfigEntry<int> FontSizeRecipeName;
         public static ConfigEntry<int> FontSizeMaterials;
@@ -45,35 +48,49 @@ namespace ValheimRecipePinner
         public static ConfigEntry<int> PaginationDotSize;
         public static ConfigEntry<int> PaginationDotSpacing;
 
-        // --- 5. LAYOUT: VERTICAL MODE ---
+        // Craft readiness
+        public static ConfigEntry<bool> EnableCraftReadiness;
+        public static ConfigEntry<Color> ColorCraftReady;
+        public static ConfigEntry<Color> ColorCraftNotReady;
+
+        // Gathering list fonts
+        public static ConfigEntry<int> GatheringListFontSizeTitle;
+        public static ConfigEntry<int> GatheringListFontSizeMaterials;
+
+        // Layout: Vertical
         public static ConfigEntry<float> VerticalListWidth;
         public static ConfigEntry<float> VerticalPinSpacing;
         public static ConfigEntry<Vector2> VerticalPosition;
 
-        // --- 6. LAYOUT: HORIZONTAL MODE ---
+        // Layout: Horizontal (map side)
         public static ConfigEntry<float> HorizontalColumnWidth;
         public static ConfigEntry<float> HorizontalPinSpacing;
         public static ConfigEntry<Vector2> HorizontalPosition;
 
-        // --- 7. LAYOUT: BOTTOM RIGHT HORIZONTAL ---
+        // Layout: Bottom right
         public static ConfigEntry<float> BottomRightColumnWidth;
         public static ConfigEntry<float> BottomRightPinSpacing;
         public static ConfigEntry<Vector2> BottomRightPosition;
 
-        // --- 8. DEBUG SETTINGS ---
+        // Debug
         public static ConfigEntry<bool> EnableDebugLogging;
 
-        // --- MANAGERS ---
+        // Inventory behavior
+        public static ConfigEntry<Vector2> InventoryGatheringListPosition;
+
+        // Managers
         public LocalizationManager LocalizationMgr;
         public RecipeManager RecipeMgr;
         public ContainerScanner ContainerMgr;
         public UIManager UIMgr;
         public DataPersistence DataMgr;
 
-        // --- HELPER & MLUI DETECTION ---
+        // MLUI compat
         internal bool _mluiMapListEnabled = false;
         internal bool _mluiNoMapListEnabled = false;
         internal bool _mluiInstalled = false;
+
+
         private bool _startupInitialized = false;
         private string _lastLanguage = "";
         private string _currentSessionPlayer = null;
@@ -108,7 +125,7 @@ namespace ValheimRecipePinner
 
             BindConfigs();
 
-            DebugLogger.Log("RecipePinner plugin initializing...");
+            DebugLogger.Log("Plugin init");
 
             // Initialize managers
             LocalizationMgr = new LocalizationManager(this);
@@ -117,18 +134,18 @@ namespace ValheimRecipePinner
             UIMgr = new UIManager();
             DataMgr = new DataPersistence();
 
-            DebugLogger.Log("All managers initialized successfully");
+            DebugLogger.Log("Managers ready");
 
             Harmony harmony = new Harmony("com.Kadrio.RecipePinner");
             harmony.PatchAll(typeof(RecipePinnerPlugin));
             harmony.PatchAll(typeof(ContainerScanner));
 
-            DebugLogger.Log("Harmony patches applied successfully");
+            DebugLogger.Log("Patches applied");
         }
 
         private void BindConfigs()
         {
-            // --- 1. GENERAL ---
+            // General
             EnableMod = Config.Bind("1 - General", "EnableMod", true,
                 new ConfigDescription("Enable or disable the mod completely.", null,
                 new ConfigurationManagerAttributes { Order = 99 }));
@@ -137,7 +154,7 @@ namespace ValheimRecipePinner
             LanguageOverride = Config.Bind("1 - General", "LanguageOverride", "Auto",
                 new ConfigDescription("Force a specific language (e.g., 'German', 'Turkish').", null,
                 new ConfigurationManagerAttributes { Order = 98 }));
-            LanguageOverride.SettingChanged += (s, e) => { LocalizationMgr?.LoadTranslations(); RecipeMgr?.RefreshRecipeCache(); };
+            LanguageOverride.SettingChanged += (s, e) => { LocalizationMgr?.LoadTranslations(); RecipeMgr?.RefreshRecipeCache(); UIMgr?.DestroyUI(); };
 
             LayoutModeConfig = Config.Bind("1 - General", "LayoutMode", PinLayoutMode.AutoDetect,
                 new ConfigDescription("Choose layout position.", null,
@@ -160,99 +177,197 @@ namespace ValheimRecipePinner
 
             AutoUnpinAfterCrafting = Config.Bind("1 - General", "AutoUnpinAfterCrafting", true,
                 new ConfigDescription("Unpin after crafting.", null,
+                new ConfigurationManagerAttributes { Order = 94 }));
+
+            EnableGatheringList = Config.Bind("1 - General", "EnableGatheringList", true,
+                new ConfigDescription("Enable the gathering list feature.", null,
+                new ConfigurationManagerAttributes { Order = 93 }));
+            EnableGatheringList.SettingChanged += (s, e) => UIMgr?.DestroyUI();
+
+            AutoOpenGatheringList = Config.Bind("1 - General", "AutoOpenGatheringList", true,
+                new ConfigDescription("Automatically open gathering list when 2+ recipes are pinned.", null,
+                new ConfigurationManagerAttributes { Order = 92 }));
+
+            // Controls
+            HotkeyPin = Config.Bind("2 - Controls", "HotkeyPin", KeyCode.Mouse2,
+                new ConfigDescription("Key to pin recipe.", null,
+                new ConfigurationManagerAttributes { Order = 99 }));
+            HotkeyToggleVisibility = Config.Bind("2 - Controls", "HotkeyToggleVisibility", KeyCode.F7,
+                new ConfigDescription("Key to toggle overlay.", null,
+                new ConfigurationManagerAttributes { Order = 98 }));
+            HotkeyGatheringList = Config.Bind("2 - Controls", "HotkeyGatheringList", KeyCode.F8,
+                new ConfigDescription("Key to toggle gathering list panel.", null,
+                new ConfigurationManagerAttributes { Order = 97 }));
+            HotkeyPageSwitch = Config.Bind("2 - Controls", "HotkeyPageSwitch", KeyCode.LeftAlt,
+                new ConfigDescription("Key to cycle through pin pages.", null,
+                new ConfigurationManagerAttributes { Order = 96 }));
+            HotkeyClearAll = Config.Bind("2 - Controls", "HotkeyClearAll", KeyCode.P,
+                new ConfigDescription("Key to clear all pins.", null,
                 new ConfigurationManagerAttributes { Order = 95 }));
 
-            // --- 2. CONTROLS ---
-            HotkeyPin = Config.Bind("2 - Controls", "HotkeyPin", KeyCode.Mouse2, "Key to pin recipe.");
-            HotkeyClearAll = Config.Bind("2 - Controls", "HotkeyClearAll", KeyCode.P, "Key to clear all pins.");
-            HotkeyToggleVisibility = Config.Bind("2 - Controls", "HotkeyToggleVisibility", KeyCode.F7, "Key to toggle overlay.");
-            HotkeyPageSwitch = Config.Bind("2 - Controls", "HotkeyPageSwitch", KeyCode.LeftAlt, "Key to cycle through pin pages.");
-
-            // --- 3. CHEST SCANNER) ---
+            // Chest Scanning
             EnableChestScanning = Config.Bind("3 - Chest Scanner", "EnableChestScanning", false,
-                new ConfigDescription("Count materials in nearby chests.", null, new ConfigurationManagerAttributes { Order = 99 }));
+                new ConfigDescription("Count materials in nearby chests.", null,
+                new ConfigurationManagerAttributes { Order = 99 }));
             EnableChestScanning.SettingChanged += (s, e) => RecipeMgr?.RefreshRecipeCache();
 
             ChestScanRange = Config.Bind("3 - Chest Scanner", "ChestScanRange", 20f,
-                new ConfigDescription("Scan radius.", new AcceptableValueRange<float>(5f, 100f), new ConfigurationManagerAttributes { Order = 98 }));
+                new ConfigDescription("Scan radius.", new AcceptableValueRange<float>(5f, 100f),
+                new ConfigurationManagerAttributes { Order = 98 }));
 
             ChestScanInterval = Config.Bind("3 - Chest Scanner", "ChestScanInterval", 3.0f,
-                new ConfigDescription("Scan frequency.", new AcceptableValueRange<float>(0.5f, 10f), new ConfigurationManagerAttributes { Order = 97 }));
+                new ConfigDescription("Scan frequency (seconds).", new AcceptableValueRange<float>(0.5f, 10f),
+                new ConfigurationManagerAttributes { Order = 97 }));
 
-            // --- 4. VISUALS ---
-            UIScale = Config.Bind("4 - Visual Settings", "UIScale", 0.75f,
-                new ConfigDescription("Global UI scale.", new AcceptableValueRange<float>(0.3f, 3.0f)));
+            // Appearance
+            UIScale = Config.Bind("4 - Appearance", "UIScale", 0.75f,
+                new ConfigDescription("Global UI scale.", new AcceptableValueRange<float>(0.3f, 3.0f),
+                new ConfigurationManagerAttributes { Order = 99 }));
             UIScale.SettingChanged += (s, e) => UIMgr?.DestroyUI();
 
-            BackgroundOpacity = Config.Bind("4 - Visual Settings", "BackgroundOpacity", 0.45f,
-                new ConfigDescription("Background opacity.", new AcceptableValueRange<float>(0f, 1f)));
+            BackgroundOpacity = Config.Bind("4 - Appearance", "BackgroundOpacity", 0.50f,
+                new ConfigDescription("Background opacity.", new AcceptableValueRange<float>(0f, 1f),
+                new ConfigurationManagerAttributes { Order = 98 }));
 
-            FontSizeRecipeName = Config.Bind("4 - Visual Settings", "FontSizeRecipeName", 15, "Recipe name font size.");
+            FontSizeRecipeName = Config.Bind("4 - Appearance", "FontSizeRecipeName", 16,
+                new ConfigDescription("Recipe name font size.", null,
+                new ConfigurationManagerAttributes { Order = 97 }));
             FontSizeRecipeName.SettingChanged += (s, e) => RecipeMgr?.RefreshRecipeCache();
 
-            FontSizeMaterials = Config.Bind("4 - Visual Settings", "FontSizeMaterials", 15, "Material font size.");
+            FontSizeMaterials = Config.Bind("4 - Appearance", "FontSizeMaterials", 15,
+                new ConfigDescription("Material font size.", null,
+                new ConfigurationManagerAttributes { Order = 96 }));
             FontSizeMaterials.SettingChanged += (s, e) => RecipeMgr?.RefreshRecipeCache();
 
-            ColorHeader = Config.Bind("4 - Visual Settings", "ColorHeader", new Color(1f, 0.717f, 0.368f, 1f), "Recipe title color.");
+            GatheringListFontSizeTitle = Config.Bind("4 - Appearance", "GatheringListFontSizeTitle", 20,
+                new ConfigDescription("Gathering list title font size.", null,
+                new ConfigurationManagerAttributes { Order = 95 }));
+            GatheringListFontSizeTitle.SettingChanged += (s, e) => UIMgr?.DestroyUI();
+
+            GatheringListFontSizeMaterials = Config.Bind("4 - Appearance", "GatheringListFontSizeMaterials", 15,
+                new ConfigDescription("Gathering list material font size.", null,
+                new ConfigurationManagerAttributes { Order = 94 }));
+            GatheringListFontSizeMaterials.SettingChanged += (s, e) => UIMgr?.DestroyUI();
+
+            EnableCraftReadiness = Config.Bind("4 - Appearance", "EnableCraftReadiness", true,
+                new ConfigDescription("Show a colored accent bar indicating craft readiness.", null,
+                new ConfigurationManagerAttributes { Order = 93 }));
+            EnableCraftReadiness.SettingChanged += (s, e) => RecipeMgr?.RefreshRecipeCache();
+
+            // Colors
+            ColorHeader = Config.Bind("5 - Colors", "ColorHeader", new Color(1f, 0.717f, 0.368f, 1f),
+                new ConfigDescription("Recipe title color.", null,
+                new ConfigurationManagerAttributes { Order = 99 }));
             ColorHeader.SettingChanged += (s, e) => RecipeMgr?.RefreshRecipeCache();
 
-            ColorEnoughInInventory = Config.Bind("4 - Visual Settings", "ColorEnoughInInventory", new Color(0f, 1f, 0f, 1f), "Color: Enough in inventory.");
+            ColorEnoughInInventory = Config.Bind("5 - Colors", "ColorEnoughInInventory", new Color(0f, 1f, 0f, 1f),
+                new ConfigDescription("Color: Enough in inventory.", null,
+                new ConfigurationManagerAttributes { Order = 98 }));
             ColorEnoughInInventory.SettingChanged += (s, e) => RecipeMgr?.RefreshRecipeCache();
 
-            ColorEnoughWithChests = Config.Bind("4 - Visual Settings", "ColorEnoughWithChests", new Color(1f, 1f, 0f, 1f), "Color: Enough with chests.");
+            ColorEnoughWithChests = Config.Bind("5 - Colors", "ColorEnoughWithChests", new Color(1f, 1f, 0f, 1f),
+                new ConfigDescription("Color: Enough with chests.", null,
+                new ConfigurationManagerAttributes { Order = 97 }));
             ColorEnoughWithChests.SettingChanged += (s, e) => RecipeMgr?.RefreshRecipeCache();
 
-            ColorMissing = Config.Bind("4 - Visual Settings", "ColorMissing", new Color(1f, 0.33f, 0.33f, 1f), "Color: Missing materials.");
+            ColorMissing = Config.Bind("5 - Colors", "ColorMissing", new Color(1f, 0.33f, 0.33f, 1f),
+                new ConfigDescription("Color: Missing materials.", null,
+                new ConfigurationManagerAttributes { Order = 96 }));
             ColorMissing.SettingChanged += (s, e) => RecipeMgr?.RefreshRecipeCache();
 
-            ColorPaginationActive = Config.Bind("4 - Visual Settings", "ColorPaginationActive", new Color(1f, 0.717f, 0.368f, 1f), "Active page dot color (Orange).");
+            ColorCraftReady = Config.Bind("5 - Colors", "ColorCraftReady",
+                new Color(0.2f, 0.9f, 0.3f, 0.85f),
+                new ConfigDescription("Accent bar color when all materials are available.", null,
+                new ConfigurationManagerAttributes { Order = 95 }));
+            ColorCraftReady.SettingChanged += (s, e) => RecipeMgr?.RefreshRecipeCache();
+
+            ColorCraftNotReady = Config.Bind("5 - Colors", "ColorCraftNotReady",
+                new Color(0.9f, 0.25f, 0.25f, 0.5f),
+                new ConfigDescription("Accent bar color when materials are missing.", null,
+                new ConfigurationManagerAttributes { Order = 94 }));
+            ColorCraftNotReady.SettingChanged += (s, e) => RecipeMgr?.RefreshRecipeCache();
+
+            // Pagination
+            ColorPaginationActive = Config.Bind("6 - Pagination", "ColorPaginationActive", new Color(1f, 0.717f, 0.368f, 1f),
+                new ConfigDescription("Active page dot color.", null,
+                new ConfigurationManagerAttributes { Order = 99 }));
             ColorPaginationActive.SettingChanged += (s, e) => UIMgr?.UpdateUI(true);
 
-            PaginationInactiveOpacity = Config.Bind("4 - Visual Settings", "PaginationInactiveOpacity", 0.30f,
-                new ConfigDescription("Opacity of inactive page dots (0.0 to 1.0).", new AcceptableValueRange<float>(0.1f, 1.0f)));
+            PaginationInactiveOpacity = Config.Bind("6 - Pagination", "PaginationInactiveOpacity", 0.30f,
+                new ConfigDescription("Opacity of inactive page dots.", new AcceptableValueRange<float>(0.1f, 1.0f),
+                new ConfigurationManagerAttributes { Order = 98 }));
             PaginationInactiveOpacity.SettingChanged += (s, e) => UIMgr?.UpdateUI(true);
 
-            PaginationDotSize = Config.Bind("4 - Visual Settings", "PaginationDotSize", 10, new ConfigDescription("Size of the pagination squares.", new AcceptableValueRange<int>(5, 20)));
+            PaginationDotSize = Config.Bind("6 - Pagination", "PaginationDotSize", 10,
+                new ConfigDescription("Size of the pagination squares.", new AcceptableValueRange<int>(5, 20),
+                new ConfigurationManagerAttributes { Order = 97 }));
             PaginationDotSize.SettingChanged += (s, e) => UIMgr?.UpdateUI(true);
 
-            PaginationDotSpacing = Config.Bind("4 - Visual Settings", "PaginationDotSpacing", 8, new ConfigDescription("Space between pagination squares.", new AcceptableValueRange<int>(0, 20)));
+            PaginationDotSpacing = Config.Bind("6 - Pagination", "PaginationDotSpacing", 8,
+                new ConfigDescription("Space between pagination squares.", new AcceptableValueRange<int>(0, 20),
+                new ConfigurationManagerAttributes { Order = 96 }));
             PaginationDotSpacing.SettingChanged += (s, e) => UIMgr?.UpdateUI(true);
 
-            // --- 5. LAYOUT: VERTICAL ---
-            VerticalListWidth = Config.Bind("5 - Layout (Vertical Mode)", "ListWidth", 265f, "List width.");
-            VerticalPinSpacing = Config.Bind("5 - Layout (Vertical Mode)", "PinSpacing", 10f, "Spacing between pins.");
-            VerticalPosition = Config.Bind("5 - Layout (Vertical Mode)", "Position", new Vector2(-40f, -250f), "Position (X, Y).");
+            // Layout: Vertical
+            VerticalListWidth = Config.Bind("7 - Layout (Vertical Mode)", "ListWidth", 265f,
+                new ConfigDescription("List width.", null,
+                new ConfigurationManagerAttributes { Order = 99 }));
+            VerticalPinSpacing = Config.Bind("7 - Layout (Vertical Mode)", "PinSpacing", 10f,
+                new ConfigDescription("Spacing between pins.", null,
+                new ConfigurationManagerAttributes { Order = 98 }));
+            VerticalPosition = Config.Bind("7 - Layout (Vertical Mode)", "Position", new Vector2(-40f, -250f),
+                new ConfigDescription("Position (X, Y).", null,
+                new ConfigurationManagerAttributes { Order = 97 }));
 
-            // --- 6. LAYOUT: HORIZONTAL ---
-            HorizontalColumnWidth = Config.Bind("6 - Layout (Horizontal - Map Side)", "ColumnWidth", 250f, "Column width.");
-            HorizontalPinSpacing = Config.Bind("6 - Layout (Horizontal - Map Side)", "PinSpacing", 10f, "Spacing between pins.");
-            HorizontalPosition = Config.Bind("6 - Layout (Horizontal - Map Side)", "Position", new Vector2(-250f, -40f), "Position (X, Y).");
+            // Layout: Horizontal (Map Side)
+            HorizontalColumnWidth = Config.Bind("8 - Layout (Horizontal - Map Side)", "ColumnWidth", 265f,
+                new ConfigDescription("Column width.", null,
+                new ConfigurationManagerAttributes { Order = 99 }));
+            HorizontalPinSpacing = Config.Bind("8 - Layout (Horizontal - Map Side)", "PinSpacing", 10f,
+                new ConfigDescription("Spacing between pins.", null,
+                new ConfigurationManagerAttributes { Order = 98 }));
+            HorizontalPosition = Config.Bind("8 - Layout (Horizontal - Map Side)", "Position", new Vector2(-250f, -40f),
+                new ConfigDescription("Position (X, Y).", null,
+                new ConfigurationManagerAttributes { Order = 97 }));
 
-            // --- 7. LAYOUT: BOTTOM RIGHT HORIZONTAL ---
-            BottomRightColumnWidth = Config.Bind("7 - Layout (Horizontal - Bottom Right)", "ColumnWidth", 250f, "Column width.");
-            BottomRightPinSpacing = Config.Bind("7 - Layout (Horizontal - Bottom Right)", "PinSpacing", 10f, "Spacing between pins.");
-            BottomRightPosition = Config.Bind("7 - Layout (Horizontal - Bottom Right)", "Position", new Vector2(-40f, 40f), "Position (X, Y).");
+            // Layout: Bottom Right Horizontal
+            BottomRightColumnWidth = Config.Bind("9 - Layout (Horizontal - Bottom Right)", "ColumnWidth", 265f,
+                new ConfigDescription("Column width.", null,
+                new ConfigurationManagerAttributes { Order = 99 }));
+            BottomRightPinSpacing = Config.Bind("9 - Layout (Horizontal - Bottom Right)", "PinSpacing", 10f,
+                new ConfigDescription("Spacing between pins.", null,
+                new ConfigurationManagerAttributes { Order = 98 }));
+            BottomRightPosition = Config.Bind("9 - Layout (Horizontal - Bottom Right)", "Position", new Vector2(-40f, 40f),
+                new ConfigDescription("Position (X, Y).", null,
+                new ConfigurationManagerAttributes { Order = 97 }));
 
-            // --- 8. DEBUG ---
-            EnableDebugLogging = Config.Bind("8 - Debug", "EnableDebugLogging", false, "Enable debug logs.");
+            // Inventory Behavior
+            InventoryGatheringListPosition = Config.Bind("1 - General", "InventoryGatheringListPosition", new Vector2(-1680f, 1150f),
+                new ConfigDescription("Gathering list position offset (X, Y) when inventory/chest is open.", null,
+                new ConfigurationManagerAttributes { Order = 91 }));
 
-            DebugLogger.Log("Configuration loaded successfully");
+            // Debug
+            EnableDebugLogging = Config.Bind("10 - Debug", "EnableDebugLogging", false,
+                new ConfigDescription("Enable debug logs.", null,
+                new ConfigurationManagerAttributes { Order = 99 }));
+
+            DebugLogger.Log("Config loaded");
         }
 
         private void Start()
         {
-            DebugLogger.Log("Start() called - Loading translations and initializing containers");
+            DebugLogger.Log("Start()");
 
             LocalizationMgr.LoadTranslations();
             ReadMyLittleUIConfig();
             ContainerMgr.InitializeContainers();
 
-            DebugLogger.Log("Start() completed successfully");
+            DebugLogger.Log("Start done");
         }
 
         private void OnDestroy()
         {
-            DebugLogger.Log("Plugin destroyed - Cleaning up");
+            DebugLogger.Log("OnDestroy");
 
             if (Player.m_localPlayer != null) DataMgr.SavePins();
 
@@ -267,13 +382,13 @@ namespace ValheimRecipePinner
 
             if (!_startupInitialized && Player.m_localPlayer != null && ObjectDB.instance != null && ObjectDB.instance.m_recipes.Count > 0)
             {
-                DebugLogger.Log("First-time initialization triggered");
+                DebugLogger.Log("First init");
                 _lastLanguage = Localization.instance.GetSelectedLanguage();
                 DataMgr.LoadPins();
                 RecipeMgr.ValidateAndCleanPins();
                 RecipeMgr.RefreshRecipeCache();
                 _startupInitialized = true;
-                DebugLogger.Log($"Initialization complete - {RecipeMgr.PinnedRecipes.Count} recipes loaded");
+                DebugLogger.Log($"Init done - {RecipeMgr.PinnedRecipes.Count} pins loaded");
             }
 
             // Container scanning
@@ -313,6 +428,7 @@ namespace ValheimRecipePinner
                     int count = RecipeMgr.PinnedRecipes.Count;
                     RecipeMgr.PinnedRecipes.Clear();
                     RecipeMgr.RefreshRecipeCache();
+                    UIMgr.CloseGatheringList();
                     Player.m_localPlayer?.Message(MessageHud.MessageType.Center, LocalizationMgr.GetText("cleared"));
                     DebugLogger.Log($"Cleared {count} pinned recipes");
                 }
@@ -329,6 +445,7 @@ namespace ValheimRecipePinner
                     LocalizationMgr.LoadTranslations();
 
                     if (ObjectDB.instance != null) RecipeMgr.RefreshRecipeCache();
+                    UIMgr?.DestroyUI();
                 }
             }
 
@@ -338,6 +455,13 @@ namespace ValheimRecipePinner
                 {
                     UIMgr?.CyclePage();
                 }
+            }
+
+            // Gathering list toggle
+            if (Input.GetKeyDown(HotkeyGatheringList.Value) && !InputHelper.IsInputBlocked())
+            {
+                if (EnableGatheringList.Value)
+                    UIMgr?.ToggleGatheringList();
             }
         }
 
@@ -441,7 +565,7 @@ namespace ValheimRecipePinner
             public System.Func<string, object> StrToObj;
         }
 
-        // ==================== HARMONY PATCHES ====================
+        //HARMONY PATCHES
 
         [HarmonyPatch(typeof(Game), "SavePlayerProfile")]
         [HarmonyPostfix]
@@ -449,7 +573,7 @@ namespace ValheimRecipePinner
         {
             if (Player.m_localPlayer != null && Instance != null)
             {
-                DebugLogger.Log("Auto-saving pins on profile save");
+                DebugLogger.Log("Auto-saving pins");
                 Instance.DataMgr.SavePins();
             }
         }
@@ -499,6 +623,9 @@ namespace ValheimRecipePinner
                     }
 
                     Instance.RecipeMgr.RefreshRecipeCache();
+
+                    if (Instance.RecipeMgr.PinnedRecipes.Count < 2)
+                        Instance.UIMgr.CloseGatheringList();
                 }
             }
         }
@@ -537,6 +664,9 @@ namespace ValheimRecipePinner
                 }
 
                 Instance.RecipeMgr.RefreshRecipeCache();
+
+                if (Instance.RecipeMgr.PinnedRecipes.Count < 2)
+                    Instance.UIMgr.CloseGatheringList();
             }
         }
     }

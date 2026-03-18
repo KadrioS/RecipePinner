@@ -1,3 +1,17 @@
+### 1.2.0
+- ⚠️ IMPORTANT: The configuration structure has been heavily overhauled. Please delete your old com.Kadrio.RecipePinner.cfg file before launching the game!
+- 🌍 LOCALIZATION UPDATE: Added new translation keys for the Gathering List (`gathering_title`, `gathering_opened`, `gathering_closed`, `gathering_empty`, `gathering_hint`). The 13 default languages are already updated, but if you use a custom language file, please update it!
+- Added a new 'Gathering List' panel (Toggle: F8) that aggregates total required materials across all pinned recipes.
+- Added automatic visibility logic for the Gathering List (auto-opens when 2+ recipes are pinned, auto-closes when below 2).
+- Added a 'Craft Readiness Indicator' to pins, displaying a colored accent bar (green = ready to craft, red = missing materials).
+- Added Auto-Unpin functionality that automatically removes recipes from the screen after crafting or building them.
+- Inventory/Chest Awareness: When opening your inventory or a chest, the pins will now automatically temporarily switch to the existing 'Bottom Right Horizontal' layout so they don't block the screen.
+- The Gathering List will also reposition itself next to the chest panel for easy comparison.
+- Implemented real-time live-updating for the Gathering List while interacting with chest contents.
+- Improved UI aesthetics by dynamically aligning all pin heights on each page to match the longest panel, preventing jagged layouts and ensuring a clean, uniform look.
+- Optimized overall performance by significantly reducing unnecessary UI rebuilds and per-frame calls.
+- Improved general codebase stability through extensive cleanup.
+
 ### 1.1.4
 - In the 1.1.3 update, I put in an old DLL lol (sorry).
 

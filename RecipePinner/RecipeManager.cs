@@ -1,4 +1,4 @@
-﻿using HarmonyLib;
+using HarmonyLib;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -26,17 +26,14 @@ namespace ValheimRecipePinner
 
         public void Cleanup()
         {
-            DebugLogger.Log("RecipeManager cleanup started");
-            if (_fakeRecipeCache != null)
+            DebugLogger.Log("RecipeManager cleanup");
+            int count = _fakeRecipeCache.Count;
+            foreach (var recipe in _fakeRecipeCache.Values)
             {
-                int count = _fakeRecipeCache.Count;
-                foreach (var recipe in _fakeRecipeCache.Values)
-                {
-                    if (recipe != null) UnityEngine.Object.Destroy(recipe);
-                }
-                _fakeRecipeCache.Clear();
-                DebugLogger.Log($"Cleaned up {count} fake recipes");
+                if (recipe != null) UnityEngine.Object.Destroy(recipe);
             }
+            _fakeRecipeCache.Clear();
+            DebugLogger.Log($"Cleaned {count} fake recipes");
 
             _cachedRecipeFields.Clear();
             _cachedRecipeProps.Clear();
@@ -46,12 +43,12 @@ namespace ValheimRecipePinner
 
         public void RefreshRecipeCache()
         {
-            DebugLogger.Verbose("Refreshing recipe cache...");
+            DebugLogger.Verbose("Refreshing cache");
             CachedPins.Clear();
 
             if (ObjectDB.instance == null)
             {
-                DebugLogger.Warning("Cannot refresh recipe cache - ObjectDB.instance is null");
+                DebugLogger.Warning("ObjectDB null, can't refresh");
                 return;
             }
 
@@ -149,7 +146,7 @@ namespace ValheimRecipePinner
                 }
             }
 
-            DebugLogger.Log($"Recipe cache refreshed: {successCount} successful, {failCount} failed");
+            DebugLogger.Log($"Cache refreshed: {successCount} ok, {failCount} failed");
 
             if (Player.m_localPlayer != null && RecipePinnerPlugin.Instance != null)
                 RecipePinnerPlugin.Instance.UIMgr.UpdateUI(true);
@@ -278,7 +275,7 @@ namespace ValheimRecipePinner
                 return;
             }
 
-            DebugLogger.Log("Validating pinned recipes...");
+            DebugLogger.Log("Validating pins");
             List<string> keysToRemove = new List<string>();
             foreach (var recipeName in PinnedRecipes.Keys)
             {
@@ -295,11 +292,11 @@ namespace ValheimRecipePinner
 
                 RecipePinnerPlugin.Instance?.DataMgr.SavePins();
 
-                DebugLogger.Log($"Validation complete: {keysToRemove.Count} invalid recipes removed");
+                DebugLogger.Log($"Removed {keysToRemove.Count} invalid pins");
             }
             else
             {
-                DebugLogger.Log("All pinned recipes are valid");
+                DebugLogger.Log("All pins valid");
             }
         }
 
