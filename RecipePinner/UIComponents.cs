@@ -10,6 +10,7 @@ namespace ValheimRecipePinner
         public Image IconImage;
         public Text HeaderText;
         public Transform ResourceListRoot;
+        public Image AccentBar;
 
         public PinnedRecipeData CurrentData;
 

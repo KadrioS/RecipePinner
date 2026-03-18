@@ -6,9 +6,7 @@ namespace ValheimRecipePinner
     {
         private const string Prefix = "[RecipePinner]";
 
-        /// <summary>
-        /// Log general information (only when debug mode is enabled)
-        /// </summary>
+        // Log general information (only when debug mode is enabled)
         public static void Log(string message)
         {
             if (IsDebugEnabled())
@@ -17,33 +15,24 @@ namespace ValheimRecipePinner
             }
         }
 
-        /// <summary>
-        /// Log warnings (always shown)
-        /// </summary>
         public static void Warning(string message)
         {
             Debug.LogWarning($"{Prefix} {message}");
         }
 
-        /// <summary>
-        /// Log errors (always shown)
-        /// </summary>
+        // Log errors (always shown)
         public static void Error(string message)
         {
             Debug.LogError($"{Prefix} {message}");
         }
 
-        /// <summary>
-        /// Log exceptions (always shown)
-        /// </summary>
+        // Log exceptions (always shown)
         public static void Error(string message, System.Exception ex)
         {
             Debug.LogError($"{Prefix} {message}\nException: {ex.Message}\nStackTrace: {ex.StackTrace}");
         }
 
-        /// <summary>
-        /// Log detailed information for troubleshooting (only when debug mode is enabled)
-        /// </summary>
+        // Log detailed information for troubleshooting (only when debug mode is enabled)
         public static void Verbose(string message)
         {
             if (IsDebugEnabled())

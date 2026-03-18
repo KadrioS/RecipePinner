@@ -192,6 +192,7 @@
     <Compile Include="RecipeManager.cs" />
     <Compile Include="RecipePinner.cs" />
     <Compile Include="ReflectionHelper.cs" />
+    <Compile Include="GatheringListUI.cs" />
     <Compile Include="UIBuilder.cs" />
     <Compile Include="UIComponents.cs" />
     <Compile Include="UIManager.cs" />

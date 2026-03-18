@@ -1,4 +1,4 @@
-﻿using HarmonyLib;
+using HarmonyLib;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -24,7 +24,7 @@ namespace ValheimRecipePinner
 
         public void InitializeContainers()
         {
-            DebugLogger.Log("Initializing container tracking...");
+            DebugLogger.Log("Init containers");
 
             lock (ContainerLock)
             {
@@ -45,7 +45,7 @@ namespace ValheimRecipePinner
                         }
                     }
 
-                    DebugLogger.Log($"Initialized tracking for {AllContainers.Count} existing containers");
+                    DebugLogger.Log($"Tracking {AllContainers.Count} containers");
                 }
             }
         }
