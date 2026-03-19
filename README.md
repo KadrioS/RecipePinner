@@ -134,11 +134,11 @@ Auto-detected based on your game language.
       "cleared": "Pinned Recipes Cleared",
       "max_level": "Max Level Reached",
       "no_upgrade_cost": "No upgrade cost found",
-      "shopping_title": "GATHERING LIST",
-      "shopping_opened": "Gathering List Opened",
-      "shopping_closed": "Gathering List Closed",
-      "shopping_empty": "No Recipes Pinned",
-      "shopping_hint": "Open/Close: {0}"
+      "gathering_title": "GATHERING LIST",
+      "gathering_opened": "Gathering List Opened",
+      "gathering_closed": "Gathering List Closed",
+      "gathering_empty": "No Recipes Pinned",
+      "gathering_hint": "Open/Close: {0}"
     }
     ```
 4.  Translate the sentences on the right side.
