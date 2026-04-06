@@ -148,10 +148,17 @@ Auto-detected based on your game language.
 
 ---
 
+## 🚀 Work in Progress
+I've been working hard in the background on a massive Quality-of-Life update, and it's almost ready to drop! Here is a sneak peek of what's coming very soon:
+* 📋 **"My Pins" Management Interface:** A brand-new, Vanilla-friendly UI panel accessible directly from your inventory. It will allow you to view all your active pins, easily adjust quantities (+/-), and manage them all in one place!
+* 🧩 **Project Grouping (Group Pins):** Planning a big build or a full armor set? You'll be able to select multiple pins and merge them into a single "Group Pin" with a combined material cost and a dynamic segmented progress bar!
+
 ## 🔮 Future Plans & Roadmap
-I’m actively thinking about how I can make this mode even better! Here are some features I’m considering adding in future updates:
+Beyond the upcoming update, here are some other features I’m considering adding:
+* 🎉 **Material Gathered Notification:** Get a satisfying center-screen message the exact moment you've collected all the required materials for a pinned recipe.
+* 🔄 **Auto-Sort Pins:** A smart quality-of-life improvement where fully craftable (green) pins will automatically move to the top of your pinned list for quick and easy access.
 * 📦 **Visual Chest Highlighting:** If the Chest Scanner is enabled, visually highlight or mark the specific chests in your base that contain the pinned materials, so you know exactly which box to open!
-* **VNEI Compatibility**
+* 🤝 **VNEI Compatibility**
 
 ---
 

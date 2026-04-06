@@ -1,5 +1,10 @@
+### 1.2.2
+- Optimized memory usage and eliminated unnecessary log outputs by ensuring the game's containers are no longer tracked in the background when the Chest Scanner feature is disabled.
+- A new “Work in Progress” section and new features for “Future Plans” have been added to the README file.
+- No need to delete config file.
+
 ### 1.2.1
-- README.md fixed only. No need to delete config file.
+- README file fixed only. No need to delete config file.
 
 ### 1.2.0
 - ⚠️ IMPORTANT: The configuration structure has been heavily overhauled. Please delete your old com.Kadrio.RecipePinner.cfg file before launching the game!
@@ -15,6 +20,7 @@
 - Optimized overall performance by significantly reducing unnecessary UI rebuilds and per-frame calls.
 - Improved general codebase stability through extensive cleanup.
 
+**<details><summary>OLD VERSIONS</summary>**
 ### 1.1.4
 - In the 1.1.3 update, I put in an old DLL lol (sorry).
 
@@ -52,3 +58,4 @@
 
 ### 1.0.0
 - Initial Release
+</details>

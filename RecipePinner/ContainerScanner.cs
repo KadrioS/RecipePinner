@@ -24,6 +24,8 @@ namespace ValheimRecipePinner
 
         public void InitializeContainers()
         {
+            if (!RecipePinnerPlugin.EnableChestScanning.Value) return;
+
             DebugLogger.Log("Init containers");
 
             lock (ContainerLock)
@@ -175,7 +177,9 @@ namespace ValheimRecipePinner
         [HarmonyPostfix]
         public static void TrackContainerAwake(Container __instance)
         {
-            if (__instance != null)
+            if (__instance == null) return;
+            if (RecipePinnerPlugin.EnableChestScanning == null || !RecipePinnerPlugin.EnableChestScanning.Value) return;
+
             {
                 lock (ContainerLock)
                 {
@@ -205,7 +209,8 @@ namespace ValheimRecipePinner
 
         private void OnDestroy()
         {
-            if (ContainerScanner.AllContainers != null && MyContainer != null)
+            if (ContainerScanner.AllContainers != null && MyContainer != null &&
+                RecipePinnerPlugin.EnableChestScanning != null && RecipePinnerPlugin.EnableChestScanning.Value)
             {
                 lock (ContainerScanner.ContainerLock)
                 {
