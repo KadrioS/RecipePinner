@@ -1,3 +1,13 @@
+### 1.2.3
+⚠️ **IMPORTANT NOTE FOR EXISTING USERS:** Due to layout improvements, the default position for the Gathering List while a chest is open has changed. Please delete your old .cfg file or manually update the InventoryGatheringListPosition setting to x: -400, y: 320 in the config file properly align it.
+
+**Developer Note:** When I released version 1.2.0, I didn’t have the chance to thoroughly test the mod, and while trying to fix some issues, I ended up breaking other things. If you encounter any bugs, please don’t hesitate to report them via Discord (kadrio) or GitHub. Thank you for your patience!
+- Fixed Gathering List incorrectly multiplying material amounts when the same recipe was pinned multiple times.
+- Fixed Gathering List opening empty on the first pin instead of waiting for 2+ pins.
+- Fixed Gathering List not clearing its data when all pins were removed.
+- Fixed an issue where the Gathering List's position while a chest is open.
+- Please report bugs. 
+
 ### 1.2.2
 - Optimized memory usage and eliminated unnecessary log outputs by ensuring the game's containers are no longer tracked in the background when the Chest Scanner feature is disabled.
 - A new “Work in Progress” section and new features for “Future Plans” have been added to the README file.

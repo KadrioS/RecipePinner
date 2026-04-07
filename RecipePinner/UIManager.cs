@@ -42,6 +42,9 @@ namespace ValheimRecipePinner
                 _gatheringListPanel = null;
             }
 
+            _gatheringListVisible = false;
+            _gatheringData.Clear();
+            _gatheringAggregator.Clear();
             _lastHintKey = null;
             _previousPinCount = 0;
 
@@ -109,6 +112,18 @@ namespace ValheimRecipePinner
         {
             _gatheringListVisible = false;
             _gatheringListPanel?.SetActive(false);
+
+            _gatheringData.Clear();
+            _gatheringAggregator.Clear();
+
+            if (_gatheringListPanel != null)
+            {
+                foreach (var slot in _gatheringListPanel.ItemSlots)
+                {
+                    if (slot != null && slot.gameObject.activeSelf)
+                        slot.SetActive(false);
+                }
+            }
         }
 
         public void UpdateUI(bool isVisible)
@@ -179,6 +194,7 @@ namespace ValheimRecipePinner
 
                 if (_gatheringListRepositioned)
                 {
+                    RestoreGatheringListParent();
                     _gatheringListRepositioned = false;
                 }
 
@@ -193,13 +209,14 @@ namespace ValheimRecipePinner
             {
                 if (_gatheringListRepositioned && _gatheringListPanel != null)
                 {
+                    RestoreGatheringListParent();
                     _gatheringListRepositioned = false;
                     _gatheringListPanel.SetActive(_gatheringListVisible);
                 }
                 return;
             }
 
-            if (isInventoryOpen && _gatheringListPanel != null && recipeMgr.CachedPins.Count > 0)
+            if (isInventoryOpen && _gatheringListPanel != null && recipeMgr.CachedPins.Count > 0 && _gatheringListVisible)
             {
                 bool isChestOpen = ReflectionHelper.GetCurrentContainer(InventoryGui.instance) != null;
                 _gatheringListPanel.SetActive(true);
@@ -210,6 +227,7 @@ namespace ValheimRecipePinner
             }
             else if (_gatheringListRepositioned && _gatheringListPanel != null)
             {
+                RestoreGatheringListParent();
                 _gatheringListRepositioned = false;
                 _gatheringListPanel.SetActive(_gatheringListVisible);
             }
@@ -234,18 +252,6 @@ namespace ValheimRecipePinner
                 DebugLogger.Log("Gathering list auto-closed (less than 2 pins)");
             }
             _previousPinCount = currentPinCount;
-
-            if (_gatheringListPanel != null && _gatheringListPanel.HintText != null)
-            {
-                string keyName = RecipePinnerPlugin.HotkeyGatheringList.Value.ToString();
-                if (_lastHintKey != keyName)
-                {
-                    _lastHintKey = keyName;
-                    var locMgr = RecipePinnerPlugin.Instance?.LocalizationMgr;
-                    string hintTemplate = locMgr?.GetText("gathering_hint") ?? "Open/Close: {0}";
-                    _gatheringListPanel.HintText.text = string.Format(hintTemplate, keyName);
-                }
-            }
 
             _reusableInvCounts.Clear();
             foreach (var item in pInv.GetAllItems())
@@ -712,6 +718,12 @@ namespace ValheimRecipePinner
         {
             if (_gatheringListPanel == null) return;
 
+            Transform hudRoot = Hud.instance?.m_rootObject?.transform;
+            if (hudRoot != null && _gatheringListPanel.transform.parent != hudRoot)
+            {
+                _gatheringListPanel.transform.SetParent(hudRoot, false);
+            }
+
             LayoutElement le = _gatheringListPanel.GetComponent<LayoutElement>()
                 ?? _gatheringListPanel.gameObject.AddComponent<LayoutElement>();
             le.ignoreLayout = true;
@@ -723,11 +735,26 @@ namespace ValheimRecipePinner
 
             panelRect.anchorMin = new Vector2(0.5f, 0.5f);
             panelRect.anchorMax = new Vector2(0.5f, 0.5f);
-            panelRect.pivot = new Vector2(0.5f, 0.5f);
+            panelRect.pivot = new Vector2(0.5f, 1f);
             panelRect.anchoredPosition = offset;
             panelRect.sizeDelta = new Vector2(columnWidth, panelRect.sizeDelta.y);
+            panelRect.localScale = Vector3.one * RecipePinnerPlugin.UIScale.Value;
 
             _gatheringListRepositioned = true;
+        }
+
+        private void RestoreGatheringListParent()
+        {
+            if (_gatheringListPanel == null || _pinListRoot == null) return;
+
+            if (_gatheringListPanel.transform.parent != _pinListRoot)
+            {
+                _gatheringListPanel.transform.SetParent(_pinListRoot, false);
+                _gatheringListPanel.transform.localScale = Vector3.one;
+            }
+
+            LayoutElement le = _gatheringListPanel.GetComponent<LayoutElement>();
+            if (le != null) le.ignoreLayout = false;
         }
 
         private void UpdateHorizontalLayout(RectTransform rootRect, bool isBottomRightMode)
@@ -813,7 +840,9 @@ namespace ValheimRecipePinner
 
         private void UpdateGatheringList()
         {
-            if (_gatheringListPanel == null || (!_gatheringListVisible && !_gatheringListRepositioned)) return;
+            if (_gatheringListPanel == null) return;
+            bool panelActive = _gatheringListPanel.gameObject.activeSelf;
+            if (!_gatheringListVisible && !_gatheringListRepositioned && !panelActive) return;
 
             if (_gatheringListPanel.BgImage != null)
             {
@@ -832,15 +861,11 @@ namespace ValheimRecipePinner
 
             foreach (var pin in recipeMgr.CachedPins)
             {
-                int pinCount = 1;
-                if (recipeMgr.PinnedRecipes.TryGetValue(pin.RawName, out int c))
-                    pinCount = Mathf.Max(1, c);
-
                 foreach (var res in pin.Resources)
                 {
                     if (_gatheringAggregator.TryGetValue(res.ItemName, out GatheringItemData existing))
                     {
-                        existing.TotalRequired += res.RequiredAmount * pinCount;
+                        existing.TotalRequired += res.RequiredAmount;
                     }
                     else
                     {
@@ -849,7 +874,7 @@ namespace ValheimRecipePinner
                             ItemName = res.ItemName,
                             DisplayName = res.CachedName ?? res.ItemName,
                             Icon = res.Icon,
-                            TotalRequired = res.RequiredAmount * pinCount
+                            TotalRequired = res.RequiredAmount
                         };
                         _gatheringAggregator[res.ItemName] = item;
                         _gatheringData.Add(item);
@@ -903,8 +928,18 @@ namespace ValheimRecipePinner
                 }
             }
 
-            if (panel.ItemSlots.Count == _gatheringData.Count)
-                panel.HintText?.transform.SetAsLastSibling();
+            if (panel.HintText != null)
+            {
+                string keyName = RecipePinnerPlugin.HotkeyGatheringList.Value.ToString();
+                if (_lastHintKey != keyName)
+                {
+                    _lastHintKey = keyName;
+                    var locMgr = RecipePinnerPlugin.Instance?.LocalizationMgr;
+                    string hintTemplate = locMgr?.GetText("gathering_hint") ?? "Open/Close: {0}";
+                    panel.HintText.text = string.Format(hintTemplate, keyName);
+                }
+                panel.HintText.transform.SetAsLastSibling();
+            }
 
             panel.RefreshLayout();
         }

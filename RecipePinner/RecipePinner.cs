@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace ValheimRecipePinner
 {
-    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.2.2")]
+    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.2.3")]
     public class RecipePinnerPlugin : BaseUnityPlugin
     {
         public static RecipePinnerPlugin Instance;
@@ -342,7 +342,7 @@ namespace ValheimRecipePinner
                 new ConfigurationManagerAttributes { Order = 97 }));
 
             // Inventory Behavior
-            InventoryGatheringListPosition = Config.Bind("1 - General", "InventoryGatheringListPosition", new Vector2(-1680f, 1150f),
+            InventoryGatheringListPosition = Config.Bind("1 - General", "InventoryGatheringListPosition", new Vector2(-400f, 320f),
                 new ConfigDescription("Gathering list position offset (X, Y) when inventory/chest is open.", null,
                 new ConfigurationManagerAttributes { Order = 91 }));
 
