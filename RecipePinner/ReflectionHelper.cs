@@ -164,13 +164,6 @@ namespace ValheimRecipePinner
                     DebugLogger.Warning("✗ Container.CheckAccess not found");
                 }
 
-                DebugLogger.Log($"Reflection done: {successCount} ok, {failCount} failed");
-
-                if (failCount > 0)
-                {
-                    DebugLogger.Warning("Some reflection targets failed");
-                }
-
                 // Player - Build Pieces (PieceTable)
                 _f_buildPieces = AccessTools.Field(typeof(Player), "m_buildPieces");
                 if (_f_buildPieces != null)
@@ -182,6 +175,13 @@ namespace ValheimRecipePinner
                 {
                     failCount++;
                     DebugLogger.Warning("✗ Player.m_buildPieces not found");
+                }
+
+                DebugLogger.Log($"Reflection done: {successCount} ok, {failCount} failed");
+
+                if (failCount > 0)
+                {
+                    DebugLogger.Warning("Some reflection targets failed");
                 }
             }
             catch (Exception ex)

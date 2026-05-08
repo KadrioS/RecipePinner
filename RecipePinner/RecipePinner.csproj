@@ -196,6 +196,7 @@
     <Compile Include="UIBuilder.cs" />
     <Compile Include="UIComponents.cs" />
     <Compile Include="UIManager.cs" />
+    <Compile Include="UIManager.GatheringList.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

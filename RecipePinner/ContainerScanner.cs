@@ -180,19 +180,17 @@ namespace ValheimRecipePinner
             if (__instance == null) return;
             if (RecipePinnerPlugin.EnableChestScanning == null || !RecipePinnerPlugin.EnableChestScanning.Value) return;
 
+            lock (ContainerLock)
             {
-                lock (ContainerLock)
+                if (_containerSet.Add(__instance))
                 {
-                    if (_containerSet.Add(__instance))
-                    {
-                        AllContainers.Add(__instance);
+                    AllContainers.Add(__instance);
 
-                        ContainerTracker tracker = __instance.gameObject.GetComponent<ContainerTracker>()
-                            ?? __instance.gameObject.AddComponent<ContainerTracker>();
-                        tracker.MyContainer = __instance;
+                    ContainerTracker tracker = __instance.gameObject.GetComponent<ContainerTracker>()
+                        ?? __instance.gameObject.AddComponent<ContainerTracker>();
+                    tracker.MyContainer = __instance;
 
-                        DebugLogger.Verbose($"New container tracked: {__instance.name} (Total: {AllContainers.Count})");
-                    }
+                    DebugLogger.Verbose($"New container tracked: {__instance.name} (Total: {AllContainers.Count})");
                 }
             }
         }

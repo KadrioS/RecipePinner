@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace ValheimRecipePinner
 {
-    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.2.3")]
+    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.2.4")]
     public class RecipePinnerPlugin : BaseUnityPlugin
     {
         public static RecipePinnerPlugin Instance;
@@ -230,22 +230,22 @@ namespace ValheimRecipePinner
                 new ConfigurationManagerAttributes { Order = 98 }));
 
             FontSizeRecipeName = Config.Bind("4 - Appearance", "FontSizeRecipeName", 16,
-                new ConfigDescription("Recipe name font size.", null,
+                new ConfigDescription("Recipe name font size.", new AcceptableValueRange<int>(8, 40),
                 new ConfigurationManagerAttributes { Order = 97 }));
             FontSizeRecipeName.SettingChanged += (s, e) => RecipeMgr?.RefreshRecipeCache();
 
             FontSizeMaterials = Config.Bind("4 - Appearance", "FontSizeMaterials", 15,
-                new ConfigDescription("Material font size.", null,
+                new ConfigDescription("Material font size.", new AcceptableValueRange<int>(8, 40),
                 new ConfigurationManagerAttributes { Order = 96 }));
             FontSizeMaterials.SettingChanged += (s, e) => RecipeMgr?.RefreshRecipeCache();
 
             GatheringListFontSizeTitle = Config.Bind("4 - Appearance", "GatheringListFontSizeTitle", 20,
-                new ConfigDescription("Gathering list title font size.", null,
+                new ConfigDescription("Gathering list title font size.", new AcceptableValueRange<int>(8, 40),
                 new ConfigurationManagerAttributes { Order = 95 }));
             GatheringListFontSizeTitle.SettingChanged += (s, e) => UIMgr?.DestroyUI();
 
             GatheringListFontSizeMaterials = Config.Bind("4 - Appearance", "GatheringListFontSizeMaterials", 15,
-                new ConfigDescription("Gathering list material font size.", null,
+                new ConfigDescription("Gathering list material font size.", new AcceptableValueRange<int>(8, 40),
                 new ConfigurationManagerAttributes { Order = 94 }));
             GatheringListFontSizeMaterials.SettingChanged += (s, e) => UIMgr?.DestroyUI();
 
@@ -483,11 +483,8 @@ namespace ValheimRecipePinner
 
                 _currentSessionPlayer = activePlayerName;
 
-                if (!string.IsNullOrEmpty(activePlayerName))
-                {
-                    DataMgr.LoadPins();
-                    RecipeMgr.RefreshRecipeCache();
-                }
+                DataMgr.LoadPins();
+                RecipeMgr.RefreshRecipeCache();
             }
 
             UIMgr.UpdateUI(_isUiVisible);
@@ -543,7 +540,7 @@ namespace ValheimRecipePinner
             }
             catch (System.Exception ex)
             {
-                Debug.LogWarning($"[RecipePinner] Error reading MyLittleUI config: {ex.Message}");
+                DebugLogger.Error($"Error reading MyLittleUI config", ex);
             }
         }
 

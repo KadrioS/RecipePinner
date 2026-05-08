@@ -1,3 +1,15 @@
+### 1.2.4
+- Fixed Gathering List positioning issues across all layout modes when pins are hidden via toggle (F7).
+- Fixed Gathering List not repositioning to chest location when pins are hidden and a chest is opened.
+- Fixed Gathering List visibility being reset when changing config settings while only the Gathering List is visible.
+- Fixed an issue where the Gathering List wouldn't update inventory amounts while pins were hidden (F7 mode).
+- Fixed a potential bug where clearing all pins while a chest is open could cause the Gathering List panel to remain orphaned on the screen.
+- Fixed reflection initialization log reporting inaccurate success/fail counts.
+- Fixed inconsistent logging in MyLittleUI config reader.
+- Added value range (8-40) to font size config entries to prevent invalid values.
+- Removed dead code and cleaned up leftover code artifacts.
+- Refactored UIManager into partial classes for better code organization.
+
 ### 1.2.3
 ⚠️ **IMPORTANT NOTE FOR EXISTING USERS:** Due to layout improvements, the default position for the Gathering List while a chest is open has changed. Please delete your old .cfg file or manually update the InventoryGatheringListPosition setting to x: -400, y: 320 in the config file properly align it.
 

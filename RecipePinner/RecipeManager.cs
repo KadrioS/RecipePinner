@@ -15,7 +15,6 @@ namespace ValheimRecipePinner
         private readonly Dictionary<string, Recipe> _fakeRecipeCache = new Dictionary<string, Recipe>();
 
         private static readonly Regex CleanNameRegex = new Regex("<.*?>", RegexOptions.Compiled);
-        private static readonly Regex ShadowCleanRegex = new Regex("<color=.*?>|</color>", RegexOptions.Compiled);
         private static readonly Regex AmountSuffixRegex = new Regex(@"\s*[xX]?\s*\d+$", RegexOptions.Compiled);
         private static readonly Regex UpgradeStarRegex = new Regex(@"\s*★(\d+)$", RegexOptions.Compiled);
 
@@ -98,8 +97,7 @@ namespace ValheimRecipePinner
                         Match starMatch = UpgradeStarRegex.Match(recipeName);
                         if (starMatch.Success)
                         {
-                            string baseName = data.RawName;
-                            if (Localization.instance != null) baseName = Localization.instance.Localize(data.RawName);
+                            string baseName = Localization.instance.Localize(data.RawName);
                             displayName = baseName + starMatch.Value;
                         }
                         else
@@ -114,7 +112,6 @@ namespace ValheimRecipePinner
                     if (count > 1) displayName = $"{count}x {displayName}";
 
                     data.CachedHeader = displayName;
-                    data.CachedShadowHeader = displayName;
 
                     foreach (var res in r.m_resources)
                     {
@@ -133,7 +130,6 @@ namespace ValheimRecipePinner
                         if (Localization.instance != null) matName = Localization.instance.Localize(resData.ItemName);
                         matName = matName.Replace("\r", "").Replace("\n", "");
                         resData.CachedName = matName;
-                        resData.CachedShadowName = ShadowCleanRegex.Replace(matName, string.Empty);
                         data.Resources.Add(resData);
                     }
                     CachedPins.Add(data);

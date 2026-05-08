@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace ValheimRecipePinner
@@ -8,7 +8,6 @@ namespace ValheimRecipePinner
         public Recipe RecipeRef;
         public string RawName;
         public string CachedHeader;
-        public string CachedShadowHeader;
         public Sprite Icon;
         public int StackCount;
         public List<PinnedResData> Resources = new List<PinnedResData>();
@@ -19,7 +18,6 @@ namespace ValheimRecipePinner
     {
         public string ItemName;
         public string CachedName;
-        public string CachedShadowName;
         public Sprite Icon;
         public int RequiredAmount;
         public int LastKnownAmount;

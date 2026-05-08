@@ -149,7 +149,7 @@ Auto-detected based on your game language.
 ---
 
 ## 🚀 Work in Progress
-I've been working hard in the background on a massive Quality-of-Life update, and it's almost ready to drop! Here is a sneak peek of what's coming very soon:
+I'm currently working on a major Quality-of-Life update, and hopefully it will be ready in about a month! Here is a sneak peek of what I'm working on:
 * 📋 **"My Pins" Management Interface:** A brand-new, Vanilla-friendly UI panel accessible directly from your inventory. It will allow you to view all your active pins, easily adjust quantities (+/-), and manage them all in one place!
 * 🧩 **Project Grouping (Group Pins):** Planning a big build or a full armor set? You'll be able to select multiple pins and merge them into a single "Group Pin" with a combined material cost and a dynamic segmented progress bar!
 
@@ -159,6 +159,20 @@ Beyond the upcoming update, here are some other features I’m considering addin
 * 🔄 **Auto-Sort Pins:** A smart quality-of-life improvement where fully craftable (green) pins will automatically move to the top of your pinned list for quick and easy access.
 * 📦 **Visual Chest Highlighting:** If the Chest Scanner is enabled, visually highlight or mark the specific chests in your base that contain the pinned materials, so you know exactly which box to open!
 * 🤝 **VNEI Compatibility**
+
+---
+
+## ☕ Support My Work
+
+If you enjoy using Recipe Pinner and it makes your Valheim life easier, consider buying me a coffee! Your support helps keep me fueled for bug fixes and massive upcoming features.
+
+[![Buy Me A Coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://buymeacoffee.com/kadrio)
+
+<br>
+
+**Or scan the QR Code:**
+<br>
+<img src="https://github.com/KadrioS/RecipePinner/blob/main/Images/BMC_QRCode.png?raw=true" alt="Buy Me A Coffee QR" width="150">
 
 ---
 
