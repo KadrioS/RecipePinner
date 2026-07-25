@@ -1,0 +1,57 @@
+name: Bug report
+description: Report something that is broken or behaving unexpectedly.
+labels: [bug]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Recipe Pinner version
+      placeholder: "1.3.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install
+    attributes:
+      label: How did you install it?
+      options:
+        - Thunderstore / r2modman
+        - Hexium
+        - Nexus Mods / Vortex
+        - Manual (GitHub Release)
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you expect, and what happened instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Pin a recipe at the workbench
+        2. Open a chest
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: log
+    attributes:
+      label: BepInEx log
+      description: >
+        Attach or paste `BepInEx/LogOutput.log`. Setting `EnableDebugLogs = true`
+        in the config makes the log much more useful.
+      render: text
+
+  - type: textarea
+    id: other-mods
+    attributes:
+      label: Other mods installed
+      description: Especially UI mods such as MyLittleUI, or mods that add recipes.

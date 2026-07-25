@@ -1,0 +1,41 @@
+<Project>
+
+  <!--
+    Valheim / BepInEx installation paths.
+
+    A standard Steam installation is assumed by default. If Valheim lives
+    somewhere else, do ONE of the following:
+
+      1. Create "Directory.Build.props.user" in the repository root (gitignored):
+
+           <Project>
+             <PropertyGroup>
+               <ValheimDir>D:\Games\Valheim</ValheimDir>
+             </PropertyGroup>
+           </Project>
+
+      2. Or define the VALHEIM_DIR environment variable.
+
+      3. Or pass it on the command line:
+         dotnet build -p:ValheimDir="D:\Games\Valheim"
+  -->
+
+  <!--
+    The user override is imported FIRST.
+    Order matters: the derived paths (ValheimManagedDir / BepInExCoreDir) are
+    built from ValheimDir. If this import came after them, setting only
+    ValheimDir would have no effect, because the derived paths would already
+    have been computed from the default Steam location.
+  -->
+  <Import Project="$(MSBuildThisFileDirectory)Directory.Build.props.user"
+          Condition="Exists('$(MSBuildThisFileDirectory)Directory.Build.props.user')" />
+
+  <PropertyGroup>
+    <ValheimDir Condition="'$(ValheimDir)' == '' AND '$(VALHEIM_DIR)' != ''">$(VALHEIM_DIR)</ValheimDir>
+    <ValheimDir Condition="'$(ValheimDir)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Valheim</ValheimDir>
+
+    <ValheimManagedDir Condition="'$(ValheimManagedDir)' == ''">$(ValheimDir)\Valheim_Data\Managed</ValheimManagedDir>
+    <BepInExCoreDir Condition="'$(BepInExCoreDir)' == ''">$(ValheimDir)\BepInEx\core</BepInExCoreDir>
+  </PropertyGroup>
+
+</Project>

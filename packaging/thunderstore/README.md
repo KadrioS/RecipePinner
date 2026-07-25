@@ -3,7 +3,6 @@
 ### Your crafting companion for Valheim
 
 [![Version](https://img.shields.io/badge/version-1.3.0-brightgreen?style=for-the-badge)](https://thunderstore.io/c/valheim/p/KadrioS/RecipePinner/)
-[![Thunderstore](https://img.shields.io/badge/Thunderstore-Download-blue?style=for-the-badge)](https://thunderstore.io/c/valheim/p/KadrioS/RecipePinner/)
 [![Hexium](https://img.shields.io/badge/Hexium-Download-purple?style=for-the-badge)](https://valheim.hexium.gg/mods/Kadrio/RecipePinner)
 [![NexusMods](https://img.shields.io/badge/NexusMods-Download-orange?style=for-the-badge)](https://www.nexusmods.com/valheim/mods/3195)
 
@@ -189,7 +188,7 @@ Placed under the minimap. Good for vanilla UI. This is what the default Auto-Det
 
 ### Horizontal Mode
 
-Useful for MyLittleUI users. Places pins near the map side.
+Useful for MyLittleUI users. Places pins near the map side. When the layout setting is left on Auto-Detect and MyLittleUI is installed, this layout is triggered automatically.
 
 ![Horizontal Layout Screenshot](https://github.com/KadrioS/RecipePinner/blob/main/assets/images/Horizontal.jpg?raw=true)
 
@@ -505,35 +504,8 @@ If Recipe Pinner makes your Valheim life easier, you can support development her
 
 ## 🔗 Mirrors
 
-* [Thunderstore](https://thunderstore.io/c/valheim/p/KadrioS/RecipePinner/)
 * [Hexium](https://valheim.hexium.gg/mods/Kadrio/RecipePinner)
 * [NexusMods](https://www.nexusmods.com/valheim/mods/3195)
-
----
-
-## 📄 Documentation
-
-* [Changelog](docs/CHANGELOG.md) — full version history
-
-### Building From Source
-
-Requires the .NET SDK and a Valheim install with BepInEx.
-
-```
-dotnet build src/RecipePinner/RecipePinner.csproj -c Release
-```
-
-Output lands in `src/RecipePinner/bin/Release/` as `RecipePinner.dll` plus the
-`RecipePinner_languages/` folder. If Valheim is not in the default Steam
-location, create `Directory.Build.props.user` in the repository root:
-
-```xml
-<Project>
-  <PropertyGroup>
-    <ValheimDir>D:\Games\Valheim</ValheimDir>
-  </PropertyGroup>
-</Project>
-```
 
 ---
 

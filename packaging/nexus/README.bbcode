@@ -1,0 +1,500 @@
+[center][size=6][b]Recipe Pinner[/b][/size][/center]
+
+[size=4][b]Your crafting companion for Valheim[/b][/size]
+
+[url=https://thunderstore.io/c/valheim/p/KadrioS/RecipePinner/][img]https://img.shields.io/badge/version-1.3.0-brightgreen?style=for-the-badge[/img][/url]
+[url=https://thunderstore.io/c/valheim/p/KadrioS/RecipePinner/][img]https://img.shields.io/badge/Thunderstore-Download-blue?style=for-the-badge[/img][/url]
+[url=https://valheim.hexium.gg/mods/Kadrio/RecipePinner][img]https://img.shields.io/badge/Hexium-Download-purple?style=for-the-badge[/img][/url]
+
+[b]Pin recipes. Track materials. Group projects. Craft smarter.[/b]
+
+Stop running back and forth between chests just to remember how much Iron, Wood, Resin, or Black Metal you still need.
+
+[hr]
+
+[size=5][b]📌 What Is Recipe Pinner?[/b][/size]
+
+Recipe Pinner is a quality-of-life mod for Valheim that lets you pin crafting recipes and building pieces directly to your HUD.
+
+It tracks required materials in real time, shows what you already have, can include nearby chest contents, and gives you a clean overview of everything you are trying to craft or build.
+
+With Recipe Pinner, you can:
+
+[list]
+[*]Pin crafting recipes and Hammer building pieces to your HUD.
+[*]Track required materials from your inventory.
+[*]Optionally include nearby chest contents with Chest Scanner.
+[*]See a combined Gathering List for all pinned recipes.
+[*]Group multiple pins into named projects.
+[*]Manage all pins from the new My Pins panel.
+[*]Automatically unpin recipes after crafting or building.
+[*]Customize layout, colors, icon sizes, hotkeys, and more.
+[/list]
+
+Less menu checking. Less guessing. More building, crafting, and exploring.
+
+[hr]
+
+[size=5][b]🔄 Updating From Older Versions[/b][/size]
+
+If you are updating from an older version, especially 1.2.x, please review your config after launching the game.
+
+Version 1.3.0 reorganizes config categories to make settings easier to understand. Because the category names changed, some existing config values may need to be re-applied.
+
+Recommended:
+
+[list]
+[*]Launch the game once after updating.
+[*]Open the config with Configuration Manager.
+[*]Review layout, hotkeys, Chest Scanner, and Gathering List settings.
+[*]Make sure the [font=Courier New]RecipePinner_languages[/font] folder is next to [font=Courier New]RecipePinner.dll[/font].
+[/list]
+
+Your existing pinned recipe data is still supported, and 1.3.0 adds new saved data for groups and ordering.
+
+[hr]
+
+[size=5][b]⭐ Key Features[/b][/size]
+
+[size=4][b]📍 Pin Recipes And Building Pieces[/b][/size]
+
+Hover over a crafting recipe or Hammer build piece and press the Pin hotkey.
+
+By default:
+
+[list]
+[*][font=Courier New]Mouse Wheel Click[/font] pins or increases count.
+[*][font=Courier New]Left Shift + Mouse Wheel Click[/font] decreases or removes a pin.
+[/list]
+
+The unpin modifier is now configurable with [font=Courier New]HotkeyUnpin[/font].
+
+[size=4][b]🧩 My Pins And Pin Groups[/b][/size]
+
+Version 1.3.0 adds a new [b]My Pins[/b] panel and [b]Pin Groups[/b].
+
+Use them to view active pins, remove pins, select multiple pins, create named groups, expand groups, adjust member counts, and disband groups back into individual pins.
+
+Groups are ideal for armor sets, building projects, portal kits, food prep, and other multi-recipe goals. A group appears as one HUD pin with a merged material list and a stacked-cards group icon.
+
+Duplicate pins can also be split between groups or kept as individual pins, so one recipe can belong to more than one project.
+
+When a group needs many different materials, its HUD pin switches to a compact grid to save space. If the list is still too long, the remaining materials collapse into a [font=Courier New]+N[/font] cell. A group pinned on its own always shows every material, which turns it into a permanent gathering list. Both limits are configurable.
+
+[size=4][b]📋 Gathering List And Chest Scanner[/b][/size]
+
+The Gathering List shows the combined total of all materials required by your active pins.
+
+Chest Scanner can include nearby chest contents in material counts.
+
+Color meaning:
+
+[list]
+[*]Green: enough materials in your inventory.
+[*]Yellow: enough materials when nearby chests are included.
+[*]Red: missing materials.
+[/list]
+
+Default Gathering List key: [font=Courier New]F8[/font]
+
+Chest Scanner is disabled by default and only reads nearby chest contents. It does not move items.
+
+[size=4][b]🖥️ Smart HUD Layout[/b][/size]
+
+Each pin can show a colored accent bar so you can quickly tell whether the recipe is ready to craft.
+
+Recipe Pinner can reposition pins depending on what you are doing.
+
+[list]
+[*]Normal HUD layout while exploring.
+[*]Bottom-right layout while inventory or containers are open.
+[*]Horizontal layout support for MyLittleUI users.
+[*]Better placement while sailing.
+[*]Automatic pages when you pin more recipes than fit on one HUD page.
+[/list]
+
+[size=4][b]💾 Safer Saves And Ordering[/b][/size]
+
+Pinned recipes, Pin Groups, group member counts, and pin/group order are saved together. Version 1.3.0 also improves save reliability with safer temp-file replacement and backup behavior.
+
+[size=4][b]🌍 Languages And Customization[/b][/size]
+
+Recipe Pinner includes language files for every Valheim-supported language. Some translations were AI-assisted, so please report incorrect or awkward translations.
+
+Almost everything is configurable: hotkeys, layout mode and position, HUD scale, fonts, colors, background opacity, recipe/material/group icon sizes, pin limit and pins per page, compact group behavior, Gathering List columns, My Pins panel size and position, Chest Scanner range and interval, and whether recipes auto-unpin after crafting or building.
+
+[hr]
+
+[size=5][b]🕹️ How To Use[/b][/size]
+
+[size=4][b]Pin Something[/b][/size]
+
+[list=1]
+[*]Open a crafting station or Hammer build menu.
+[*]Hover over a recipe or building piece.
+[*]Press [font=Courier New]Mouse Wheel Click[/font].
+[/list]
+
+The recipe appears on your HUD with its required materials.
+
+[size=4][b]Add More Of The Same Recipe[/b][/size]
+
+Press the Pin hotkey again on the same recipe.
+
+Recipe Pinner increases the count and updates the required materials.
+
+[size=4][b]Decrease Or Remove A Pin[/b][/size]
+
+Hold [font=Courier New]Left Shift[/font] and press [font=Courier New]Mouse Wheel Click[/font] over the recipe or building piece.
+
+You can change [font=Courier New]Left Shift[/font] in the config with [font=Courier New]HotkeyUnpin[/font].
+
+[size=4][b]Create A Group[/b][/size]
+
+[list=1]
+[*]Open your inventory.
+[*]Open the My Pins panel.
+[*]Click [b]Group[/b].
+[*]Select at least two pins.
+[*]Confirm and enter a group name.
+[/list]
+
+The selected pins become one grouped project with a merged material list.
+
+[size=4][b]Manage A Group[/b][/size]
+
+In the My Pins panel, expand a group to view its members.
+
+You can adjust member counts, remove members, delete the group, or disband it back into individual pins.
+
+[hr]
+
+[size=5][b]🎮 Controls[/b][/size]
+
+Default controls are configurable.
+
+[table]
+[tr][th]Action[/th][th]Default[/th][/tr]
+[tr][td]Pin recipe / add count[/td][td][font=Courier New]Mouse Wheel Click[/font][/td][/tr]
+[tr][td]Decrease / remove pin[/td][td][font=Courier New]Left Shift[/font] + [font=Courier New]Mouse Wheel Click[/font][/td][/tr]
+[tr][td]Toggle HUD overlay[/td][td][font=Courier New]F7[/font][/td][/tr]
+[tr][td]Toggle Gathering List[/td][td][font=Courier New]F8[/font][/td][/tr]
+[tr][td]Cycle HUD pages[/td][td][font=Courier New]Left Alt[/font][/td][/tr]
+[tr][td]Clear all pins[/td][td][font=Courier New]P[/font] (press twice)[/td][/tr]
+[tr][td]Open My Pins panel[/td][td]Inventory screen button[/td][/tr]
+[/table]
+
+Clearing all pins asks for confirmation: press the key once to arm it, then again within two seconds.
+
+The My Pins panel also includes an info button that shows current keybindings in-game.
+
+[hr]
+
+[size=5][b]🖼️ Layouts And Screenshots[/b][/size]
+
+[spoiler=Click to expand screenshots]
+
+[size=4][b]Vertical Mode[/b][/size]
+
+Placed under the minimap. Good for vanilla UI. This is what the default Auto-Detect mode uses when MyLittleUI is not installed.
+
+[center][img]https://github.com/KadrioS/RecipePinner/blob/main/assets/images/Vertical.jpg?raw=true[/img][/center]
+
+[size=4][b]Horizontal Mode[/b][/size]
+
+Useful for MyLittleUI users. Places pins near the map side.
+
+[center][img]https://github.com/KadrioS/RecipePinner/blob/main/assets/images/Horizontal.jpg?raw=true[/img][/center]
+
+[size=4][b]Bottom Right Horizontal Mode[/b][/size]
+
+Keeps the top of the screen cleaner and works well when inventory or containers are open.
+
+[center][img]https://github.com/KadrioS/RecipePinner/blob/main/assets/images/BottomRightHorizontal.jpg?raw=true[/img][/center]
+
+[size=4][b]My Pins Panel[/b][/size]
+
+Manage, remove, group, disband, and inspect your active pins from the inventory screen.
+
+[center][img]https://github.com/KadrioS/RecipePinner/blob/main/assets/images/MyPinsPanel.jpg?raw=true[/img][/center]
+
+[size=4][b]Pin Groups[/b][/size]
+
+Group multiple recipes into one named project with a merged material list.
+
+[center][img]https://github.com/KadrioS/RecipePinner/blob/main/assets/images/PinGroups.jpg?raw=true[/img][/center]
+
+[size=4][b]Expanded Group Members[/b][/size]
+
+Expand a group in My Pins to manage individual members and group claim counts.
+
+[center][img]https://github.com/KadrioS/RecipePinner/blob/main/assets/images/GroupMembers.jpg?raw=true[/img][/center]
+
+[size=4][b]Compact Group Layout[/b][/size]
+
+When a group needs many different materials, its HUD pin switches to a compact grid to save space.
+
+[center][img]https://github.com/KadrioS/RecipePinner/blob/main/assets/images/GroupCompactPin.jpg?raw=true[/img][/center]
+
+[size=4][b]Overflow Cell[/b][/size]
+
+If a compact group is still too long, the remaining materials collapse into a single [font=Courier New]+N[/font] cell.
+
+[center][img]https://github.com/KadrioS/RecipePinner/blob/main/assets/images/GroupPinN.jpg?raw=true[/img][/center]
+
+[size=4][b]Controls Info Panel[/b][/size]
+
+View current keybindings and basic usage instructions from inside the My Pins panel.
+
+[center][img]https://github.com/KadrioS/RecipePinner/blob/main/assets/images/ControlsInfo.jpg?raw=true[/img][/center]
+
+[size=4][b]MyLittleUI Compatibility[/b][/size]
+
+Recipe Pinner can automatically adjust its layout when MyLittleUI is installed.
+
+[center][img]https://github.com/KadrioS/RecipePinner/blob/main/assets/images/MyLittleUI.jpg?raw=true[/img][/center]
+
+[size=4][b]Inventory Open[/b][/size]
+
+When inventory is open, pins can move to a cleaner bottom-right layout.
+
+[center][img]https://github.com/KadrioS/RecipePinner/blob/main/assets/images/Inventory.jpg?raw=true[/img][/center]
+
+[size=4][b]Gathering List[/b][/size]
+
+The Gathering List shows combined material requirements across all pins.
+
+[center][img]https://github.com/KadrioS/RecipePinner/blob/main/assets/images/GatheringList.jpg?raw=true[/img][/center]
+
+[size=4][b]Chest-Side Gathering List[/b][/size]
+
+The Gathering List snaps next to an open chest, so you can see what you still need while moving items around.
+
+[center][img]https://github.com/KadrioS/RecipePinner/blob/main/assets/images/Chest.jpg?raw=true[/img][/center]
+
+[size=4][b]Chest Scanner[/b][/size]
+
+When Chest Scanner is enabled, nearby chest materials can be included in the displayed counts.
+
+[center][img]https://github.com/KadrioS/RecipePinner/blob/main/assets/images/ChestScanner.jpg?raw=true[/img][/center]
+
+[size=4][b]HUD Pages[/b][/size]
+
+When you pin more recipes than fit at once, they split into pages. Cycle through them with the page hotkey.
+
+[center][img]https://github.com/KadrioS/RecipePinner/blob/main/assets/images/Pages.jpg?raw=true[/img][/center]
+
+[size=4][b]Sailing[/b][/size]
+
+Recipe Pinner can move pins while sailing to reduce HUD overlap.
+
+[center][img]https://github.com/KadrioS/RecipePinner/blob/main/assets/images/Sailing.jpg?raw=true[/img][/center]
+
+[/spoiler]
+
+[hr]
+
+[size=5][b]⚙️ Configuration[/b][/size]
+
+Using Configuration Manager is strongly recommended.
+
+Recommended config manager:
+
+[url=https://valheim.thunderstore.io/package/Azumatt/Official_BepInEx_ConfigurationManager/]Official BepInEx ConfigurationManager[/url]
+
+Press [font=Courier New]F1[/font] in-game to edit settings.
+
+[center][img]https://github.com/KadrioS/RecipePinner/blob/main/assets/images/ConfigurationManager.jpg?raw=true[/img][/center]
+
+[hr]
+
+[size=5][b]🔧 Installation[/b][/size]
+
+[size=4][b]Mod Manager[/b][/size]
+
+Install with Thunderstore Mod Manager or r2modman.
+
+This is the easiest option and handles dependencies automatically.
+
+[size=4][b]Manual Installation[/b][/size]
+
+[list=1]
+[*]Install [url=https://valheim.thunderstore.io/package/denikson/BepInExPack_Valheim/]BepInExPack Valheim[/url].
+[*]Download Recipe Pinner.
+[*]Place [font=Courier New]RecipePinner.dll[/font] inside your [font=Courier New]Valheim/BepInEx/plugins/RecipePinner/[/font] folder.
+[*]Place the [font=Courier New]RecipePinner_languages[/font] folder next to [font=Courier New]RecipePinner.dll[/font].
+[*]Launch the game.
+[/list]
+
+Your folder should look like this:
+
+[code]
+BepInEx/
+└── plugins/
+    └── RecipePinner/
+        ├── RecipePinner.dll
+        └── RecipePinner_languages/
+            ├── English.json
+            ├── Turkish.json
+            └── ...
+[/code]
+
+Important: [font=Courier New]RecipePinner_languages[/font] must stay next to [font=Courier New]RecipePinner.dll[/font].
+
+[hr]
+
+[size=5][b]🌍 Languages[/b][/size]
+
+Recipe Pinner auto-detects your Valheim language.
+
+You can also force a language with the [font=Courier New]LanguageOverride[/font] config option.
+
+Version 1.3.0 includes language files for every Valheim-supported language.
+
+Note: Some translations may be imperfect because they were AI-assisted. If you find a bad translation, please report it.
+
+You can also fix one yourself: open the matching [font=Courier New].json[/font] file in [font=Courier New]BepInEx/plugins/RecipePinner/RecipePinner_languages/[/font], edit the text on the right side of each line, and save. Leave placeholders like [font=Courier New]{0}[/font] untouched, since they are replaced with numbers and key names at runtime.
+
+[hr]
+
+[size=5][b]❓ FAQ[/b][/size]
+
+[size=4][b]Does Recipe Pinner craft items automatically?[/b][/size]
+
+No. Recipe Pinner only tracks recipes and materials. You still craft and build normally.
+
+[size=4][b]Does Chest Scanner move items from chests?[/b][/size]
+
+No. It only reads nearby chest contents and includes them in the displayed material counts.
+
+[size=4][b]Is Chest Scanner enabled by default?[/b][/size]
+
+No. Chest Scanner is disabled by default. You can enable it from the config if you want nearby chest contents to count toward requirements.
+
+[size=4][b]Can I pin building pieces?[/b][/size]
+
+Yes. Hammer build pieces can be pinned like crafting recipes.
+
+[size=4][b]What happens if I pin the same recipe again?[/b][/size]
+
+The pin count increases, and the displayed material requirements update for the new count.
+
+[size=4][b]How do I remove or decrease a pin?[/b][/size]
+
+By default, hold [font=Courier New]Left Shift[/font] and press [font=Courier New]Mouse Wheel Click[/font] over the recipe or build piece. You can change the modifier with [font=Courier New]HotkeyUnpin[/font].
+
+[size=4][b]How do I open My Pins?[/b][/size]
+
+Open your inventory and use the My Pins button. From there, you can view, remove, group, disband, and manage pins.
+
+[size=4][b]Can I group pins?[/b][/size]
+
+Yes. Starting with 1.3.0, you can create named Pin Groups from the My Pins panel.
+
+[size=4][b]Can a recipe belong to more than one group?[/b][/size]
+
+Yes. Recipe Pinner supports per-group member claim counts, so duplicate pins can be split between groups or kept as individual pins.
+
+[size=4][b]Can I remove a group without losing the recipes?[/b][/size]
+
+Yes. Use Disband to turn group members back into individual pins.
+
+[size=4][b]Why does my group pin show "+N" instead of all materials?[/b][/size]
+
+Groups with many different materials switch to a compact grid, and that grid is capped so one large group cannot stretch every pin next to it. The materials that do not fit are collapsed into a [font=Courier New]+N[/font] cell.
+
+You can raise the row cap with [font=Courier New]GroupCompactMaxRows[/font], or change when compact mode starts with [font=Courier New]GroupCompactThreshold[/font]. Both apply immediately. A group pinned on its own never shows [font=Courier New]+N[/font].
+
+[size=4][b]Are pins shared between my characters?[/b][/size]
+
+No. Each character has its own pins, saved separately. Switching characters loads that character's own list.
+
+[size=4][b]Does Recipe Pinner work with MyLittleUI?[/b][/size]
+
+Yes. AutoDetect can adjust the HUD layout when MyLittleUI is installed to reduce overlap with other UI elements.
+
+[size=4][b]Can I change the controls?[/b][/size]
+
+Yes. Hotkeys can be changed from the config. Using Configuration Manager is recommended.
+
+[size=4][b]Why did some config settings reset after updating?[/b][/size]
+
+Version 1.3.0 reorganized config categories. If a setting moved to a new category, you may need to review or reapply it.
+
+[size=4][b]Why are some translations imperfect?[/b][/size]
+
+Version 1.3.0 includes language files for every Valheim-supported language, but some translations were AI-assisted. Please report incorrect or awkward translations.
+
+[hr]
+
+[size=5][b]🧭 Future Ideas[/b][/size]
+
+These are features I may consider for future updates:
+
+[list]
+[*][b]Group readiness bar:[/b] split a group's accent bar into one segment per member, so a single glance tells you which recipes in the project are already craftable. The third recipe in the group lights up the third segment.
+[*][b]Chest Scanner support in the readiness bar:[/b] turn the accent bar yellow when a recipe is craftable only with nearby chest contents, matching how material counts already behave.
+[*][b]Pinned recipe highlight:[/b] draw a border around pinned recipes inside the crafting panel so you can see what is already pinned at a glance. This one may not be feasible.
+[*][b]Hold-to-pin quantity preview:[/b] hold the Pin hotkey to see how many copies you are about to pin before releasing.
+[*][b]Pin keybind hint:[/b] show the Pin control in the crafting menu's hint bar, next to Move and Use, so new players can discover the pin key without opening the config.
+[*]Material gathered notification.
+[*]Auto-sorting craftable pins to the top.
+[*]Visual chest highlighting for required materials.
+[*]More compatibility improvements with other UI and crafting mods.
+[*]VNEI compatibility.
+[/list]
+
+[hr]
+
+[size=5][b]🤖 AI-Assisted Development[/b][/size]
+
+Starting with version 1.3.0, I want to be transparent that Recipe Pinner was developed with significant AI assistance. In practice, I think [b]AI-Assisted[/b] describes the situation more accurately than [b]AI-Generated[/b].
+
+Earlier versions also used AI assistance, but in a much more limited way: mainly to help locate the relevant parts of the Valheim/BepInEx APIs and referenced Valheim game DLLs, understand which classes or methods were useful for the mod, investigate possible bugs, and reason about edge cases.
+
+Version 1.3.0 was different. I originally tried to build the new systems without heavy AI help, but I could not get them to a release-ready state on my own. In the Work in Progress section, I had said the update might be released within about a month; it is now close to three months, and this is the main reason it took longer. Development started well, but as My Pins, Pin Groups, expanded group management, save/order handling, and release-blocker fixes grew more complex, I started getting stuck and chose to rely on AI assistance much more than before.
+
+That does not mean the mod was released without human review. The final decisions, testing, in-game validation, release judgment, and responsibility for the mod are still mine. I reviewed the changes, tested the behavior in Valheim, and validated the release manually before publishing.
+
+Thank you for using Recipe Pinner.
+
+[hr]
+
+[size=5][b]☕ Support My Work[/b][/size]
+
+If Recipe Pinner makes your Valheim life easier, you can support development here:
+
+[url=https://buymeacoffee.com/kadrio][img]https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png[/img][/url]
+
+
+
+[center][img]https://github.com/KadrioS/RecipePinner/blob/main/assets/images/BMC_QRCode.png?raw=true[/img][/center]
+
+[hr]
+
+[size=5][b]🔗 Mirrors[/b][/size]
+
+[list]
+[*][url=https://thunderstore.io/c/valheim/p/KadrioS/RecipePinner/]Thunderstore[/url]
+[*][url=https://valheim.hexium.gg/mods/Kadrio/RecipePinner]Hexium[/url]
+[/list]
+
+[hr]
+
+[size=5][b]💬 Support And Feedback[/b][/size]
+
+Found a bug, translation issue, or compatibility problem?
+
+Contact me on Discord:
+
+[b]kadrio[/b]
+
+Or create an issue on GitHub:
+
+[url=https://github.com/KadrioS/RecipePinner/issues]GitHub Issues[/url]
+
+[hr]
+
+[b]Pin it. Group it. Gather it. Build it.[/b]
+
+See you in Valheim.

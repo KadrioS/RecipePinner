@@ -416,3 +416,24 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# ---------------------------------------------------------------
+# RecipePinner project-specific
+# ---------------------------------------------------------------
+
+# Local archive: old release zips and build output.
+# These belong on GitHub Releases, not in the repository.
+_archive/
+
+# Packaging workspace (so zips staged here are never committed)
+packaging/out/
+
+# The compiled mod DLL is never committed
+packaging/**/plugins/*.dll
+packaging/**/*.zip
+
+# Machine-specific override for the Valheim install path
+Directory.Build.props.user
+
+# Personal release notes, kept locally
+docs/RELEASING.md

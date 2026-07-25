@@ -4,7 +4,6 @@
 
 [![Version](https://img.shields.io/badge/version-1.3.0-brightgreen?style=for-the-badge)](https://thunderstore.io/c/valheim/p/KadrioS/RecipePinner/)
 [![Thunderstore](https://img.shields.io/badge/Thunderstore-Download-blue?style=for-the-badge)](https://thunderstore.io/c/valheim/p/KadrioS/RecipePinner/)
-[![Hexium](https://img.shields.io/badge/Hexium-Download-purple?style=for-the-badge)](https://valheim.hexium.gg/mods/Kadrio/RecipePinner)
 [![NexusMods](https://img.shields.io/badge/NexusMods-Download-orange?style=for-the-badge)](https://www.nexusmods.com/valheim/mods/3195)
 
 **Pin recipes. Track materials. Group projects. Craft smarter.**
@@ -189,7 +188,7 @@ Placed under the minimap. Good for vanilla UI. This is what the default Auto-Det
 
 ### Horizontal Mode
 
-Useful for MyLittleUI users. Places pins near the map side.
+Useful for MyLittleUI users. Places pins near the map side. When the layout setting is left on Auto-Detect and MyLittleUI is installed, this layout is triggered automatically.
 
 ![Horizontal Layout Screenshot](https://github.com/KadrioS/RecipePinner/blob/main/assets/images/Horizontal.jpg?raw=true)
 
@@ -287,7 +286,7 @@ Using Configuration Manager is strongly recommended.
 
 Recommended config manager:
 
-[Official BepInEx ConfigurationManager](https://valheim.thunderstore.io/package/Azumatt/Official_BepInEx_ConfigurationManager/)
+[Official BepInEx ConfigurationManager](https://valheim.hexium.gg/mods/Azumatt/Official_BepInEx_ConfigurationManager)
 
 Press `F1` in-game to edit settings.
 
@@ -305,7 +304,7 @@ This is the easiest option and handles dependencies automatically.
 
 ### Manual Installation
 
-1. Install [BepInExPack Valheim](https://valheim.thunderstore.io/package/denikson/BepInExPack_Valheim/).
+1. Install [BepInExPack Valheim](https://valheim.hexium.gg/mods/denikson/BepInExPack_Valheim).
 2. Download Recipe Pinner.
 3. Place `RecipePinner.dll` inside your `Valheim/BepInEx/plugins/RecipePinner/` folder.
 4. Place the `RecipePinner_languages` folder next to `RecipePinner.dll`.
@@ -479,7 +478,7 @@ These are features I may consider for future updates:
 
 ## 🤖 AI-Assisted Development
 
-Starting with version 1.3.0, Recipe Pinner is marked as **AI-Generated** on Thunderstore for transparency. In practice, I think **AI-Assisted** describes the situation more accurately, but the 1.3.0 update used enough AI-assisted coding that the Thunderstore label felt like the more honest choice.
+Starting with version 1.3.0, I want to be transparent that Recipe Pinner was developed with significant AI assistance. In practice, I think **AI-Assisted** describes the situation more accurately than **AI-Generated**.
 
 Earlier versions also used AI assistance, but in a much more limited way: mainly to help locate the relevant parts of the Valheim/BepInEx APIs and referenced Valheim game DLLs, understand which classes or methods were useful for the mod, investigate possible bugs, and reason about edge cases.
 
@@ -506,34 +505,7 @@ If Recipe Pinner makes your Valheim life easier, you can support development her
 ## 🔗 Mirrors
 
 * [Thunderstore](https://thunderstore.io/c/valheim/p/KadrioS/RecipePinner/)
-* [Hexium](https://valheim.hexium.gg/mods/Kadrio/RecipePinner)
 * [NexusMods](https://www.nexusmods.com/valheim/mods/3195)
-
----
-
-## 📄 Documentation
-
-* [Changelog](docs/CHANGELOG.md) — full version history
-
-### Building From Source
-
-Requires the .NET SDK and a Valheim install with BepInEx.
-
-```
-dotnet build src/RecipePinner/RecipePinner.csproj -c Release
-```
-
-Output lands in `src/RecipePinner/bin/Release/` as `RecipePinner.dll` plus the
-`RecipePinner_languages/` folder. If Valheim is not in the default Steam
-location, create `Directory.Build.props.user` in the repository root:
-
-```xml
-<Project>
-  <PropertyGroup>
-    <ValheimDir>D:\Games\Valheim</ValheimDir>
-  </PropertyGroup>
-</Project>
-```
 
 ---
 

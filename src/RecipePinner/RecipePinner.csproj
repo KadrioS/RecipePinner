@@ -1,0 +1,130 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <AssemblyName>RecipePinner</AssemblyName>
+    <RootNamespace>RecipePinner</RootNamespace>
+    <Version>1.3.0</Version>
+    <LangVersion>latest</LangVersion>
+    <Deterministic>true</Deterministic>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <Authors>Kadrio</Authors>
+    <Product>Recipe Pinner</Product>
+    <Description>Pin crafting recipes and building pieces to your Valheim HUD.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- net472 reference assemblies, so "dotnet build" works without Visual Studio -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- Language files: copied next to the DLL as RecipePinner_languages/ -->
+  <ItemGroup>
+    <None Include="Localization\*.json">
+      <Link>RecipePinner_languages\%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <!--
+    The pin icon is embedded into the DLL; UIBuilder.Shared.cs reads it via
+    GetManifestResourceStream("RecipePinner.pinIcon.png").
+    LogicalName is required: the file lives under assets/, so the default
+    resource name would differ and the code would not find the icon (it would
+    silently fall back to a text label).
+  -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\assets\images\pinIcon.png">
+      <LogicalName>RecipePinner.pinIcon.png</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <!-- BepInEx / Harmony -->
+  <ItemGroup>
+    <Reference Include="BepInEx">
+      <HintPath>$(BepInExCoreDir)\BepInEx.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(BepInExCoreDir)\0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- Valheim game assemblies -->
+  <ItemGroup>
+    <Reference Include="assembly_valheim">
+      <HintPath>$(ValheimManagedDir)\assembly_valheim.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="assembly_utils">
+      <HintPath>$(ValheimManagedDir)\assembly_utils.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="assembly_guiutils">
+      <HintPath>$(ValheimManagedDir)\assembly_guiutils.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- Required for GuiInputField (UIBuilder.Shared.cs) -->
+    <Reference Include="gui_framework">
+      <HintPath>$(ValheimManagedDir)\gui_framework.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- Unity -->
+  <ItemGroup>
+    <Reference Include="UnityEngine">
+      <HintPath>$(ValheimManagedDir)\UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(ValheimManagedDir)\UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>$(ValheimManagedDir)\UnityEngine.UI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UIModule">
+      <HintPath>$(ValheimManagedDir)\UnityEngine.UIModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>$(ValheimManagedDir)\UnityEngine.IMGUIModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.InputLegacyModule">
+      <HintPath>$(ValheimManagedDir)\UnityEngine.InputLegacyModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.PhysicsModule">
+      <HintPath>$(ValheimManagedDir)\UnityEngine.PhysicsModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>$(ValheimManagedDir)\UnityEngine.TextRenderingModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>$(ValheimManagedDir)\Unity.TextMeshPro.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="netstandard">
+      <HintPath>$(ValheimManagedDir)\netstandard.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- Fail with a clear message when the reference DLLs cannot be found -->
+  <Target Name="ValidateValheimPaths" BeforeTargets="BeforeBuild">
+    <Error Condition="!Exists('$(ValheimManagedDir)')"
+           Text="Valheim Managed folder not found: $(ValheimManagedDir) -- Create Directory.Build.props.user in the repository root and set ValheimDir, or define the VALHEIM_DIR environment variable." />
+    <Error Condition="!Exists('$(BepInExCoreDir)')"
+           Text="BepInEx core folder not found: $(BepInExCoreDir) -- Make sure BepInEx is installed in your Valheim directory." />
+  </Target>
+
+</Project>

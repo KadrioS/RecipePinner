@@ -1,0 +1,23 @@
+name: Feature request
+description: Suggest an idea for Recipe Pinner.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like to see?
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would it solve?
+      description: What are you doing today that this would make easier?
+
+  - type: checkboxes
+    id: roadmap
+    attributes:
+      label: Roadmap check
+      options:
+        - label: I checked the Roadmap section in the README and this is not already listed.
