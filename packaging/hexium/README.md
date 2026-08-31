@@ -2,7 +2,7 @@
 
 ### Your crafting companion for Valheim
 
-[![Version](https://img.shields.io/badge/version-1.3.0-brightgreen?style=for-the-badge)](https://thunderstore.io/c/valheim/p/KadrioS/RecipePinner/)
+[![Version](https://img.shields.io/badge/version-1.3.1-brightgreen?style=for-the-badge)](https://thunderstore.io/c/valheim/p/KadrioS/RecipePinner/)
 [![Thunderstore](https://img.shields.io/badge/Thunderstore-Download-blue?style=for-the-badge)](https://thunderstore.io/c/valheim/p/KadrioS/RecipePinner/)
 [![NexusMods](https://img.shields.io/badge/NexusMods-Download-orange?style=for-the-badge)](https://www.nexusmods.com/valheim/mods/3195)
 
@@ -47,6 +47,13 @@ Recommended:
 * Make sure the `RecipePinner_languages` folder is next to `RecipePinner.dll`.
 
 Your existing pinned recipe data is still supported, and 1.3.0 adds new saved data for groups and ordering.
+
+### Coming from 1.3.0
+
+Two things are worth knowing, and neither needs any action from most players:
+
+* **`ContainerGatheringListPosition` changed meaning.** It now sets the gap between the chest window's corner and the Gathering List, rather than an offset from the screen centre. Values saved under the old meaning are recognised automatically and replaced by the new default, so the panel does not move on you. Adjust it only if you want different spacing.
+* **Recipes that share an internal name now pin separately.** Jewelcrafting gems are the clearest case. If you already had such a pin, unpin it and pin it again once to split it into its separate recipes. Every other pin loads unchanged.
 
 ---
 

@@ -8,17 +8,13 @@ namespace ValheimRecipePinner
     {
         public RectTransform PanelRect;
         public Image BgImage;
-        public Text TitleText;
         public Transform PinListRoot;
-        public ScrollRect ScrollView;
         public Button GroupButton;
         public Button ConfirmButton;
         public Button CancelButton;
         public Button ClearButton;
         public Button CloseButton;
-        public Button InfoButton;
         public ControlsInfoPanel ControlsPanel;
-        public Text GroupButtonText;
         public Text EmptyText;
 
         public List<MyPinItemUI> PinItems = new List<MyPinItemUI>();

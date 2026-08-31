@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,7 +10,10 @@ namespace ValheimRecipePinner
         private Transform _pinListRoot;
         private readonly List<PinSlotUI> _pinPool = new List<PinSlotUI>();
         private Font _cachedFont;
+        private bool _warnedNoHud = false;
         private readonly Dictionary<string, int> _reusableInvCounts = new Dictionary<string, int>();
+        private int _invCountsSignature = 0;
+        private bool _invCountsBuilt = false;
 
         private const float DefaultVerticalPositionX = -40f;
         private const float DefaultVerticalPositionY = -250f;
@@ -45,7 +49,14 @@ namespace ValheimRecipePinner
             _gatheringData.Clear();
             _gatheringAggregator.Clear();
             _lastHintKey = null;
+            _lastGatheringSlotCount = -1;
+            _gatheringStamp = 0;
+            // Required by the one-time setup guard in RepositionGatheringListForInventory: the
+            // panel this flag refers to has just been destroyed, so the next one must be reparented
+            // and configured again rather than inheriting a stale "already done".
+            _gatheringListRepositioned = false;
             _previousPinCount = 0;
+            _invCountsBuilt = false;
 
             // NOTE: DestroyMyPinsUI is NOT called here on purpose.
             // My Pins panel lives on the InventoryGui and is independent of the HUD overlay rebuild.
@@ -81,6 +92,46 @@ namespace ValheimRecipePinner
             UpdateUI(RecipePinnerPlugin.IsUiVisible);
         }
 
+        /// <summary>
+        /// Refreshes _reusableInvCounts from the player's inventory, skipping the rebuild when the
+        /// inventory is unchanged. Called every frame, so the cheap walk stays but the string
+        /// hashing and dictionary writes do not. The signature combines each item's shared-data
+        /// identity with its stack count, so any real change forces a rebuild; a reorder forces a
+        /// harmless one.
+        /// </summary>
+        private void RefreshInventoryCounts(Inventory inv)
+        {
+            if (inv == null) return;
+
+            var items = inv.GetAllItems();
+
+            int signature = 17;
+            for (int i = 0; i < items.Count; i++)
+            {
+                var item = items[i];
+                if (item == null || item.m_shared == null) continue;
+                signature = signature * 31 + RuntimeHelpers.GetHashCode(item.m_shared);
+                signature = signature * 31 + item.m_stack;
+            }
+
+            if (_invCountsBuilt && signature == _invCountsSignature) return;
+
+            _invCountsSignature = signature;
+            _invCountsBuilt = true;
+
+            _reusableInvCounts.Clear();
+            for (int i = 0; i < items.Count; i++)
+            {
+                var item = items[i];
+                if (item == null || item.m_shared == null) continue;
+                string iName = item.m_shared.m_name;
+                if (_reusableInvCounts.TryGetValue(iName, out int existing))
+                    _reusableInvCounts[iName] = existing + item.m_stack;
+                else
+                    _reusableInvCounts[iName] = item.m_stack;
+            }
+        }
+
         public void UpdateUI(bool isVisible)
         {
             if (Player.m_localPlayer == null || Player.m_localPlayer.IsDead())
@@ -100,7 +151,7 @@ namespace ValheimRecipePinner
             var recipeMgr = instance.RecipeMgr;
             var containerMgr = instance.ContainerMgr;
 
-            if (_pinPool.Count != RecipePinnerPlugin.MaximumPins.Value)
+            if (_pinListRoot != null && _pinPool.Count != RecipePinnerPlugin.MaximumPins.Value)
             {
                 DebugLogger.Log($"Pin limit changed ({_pinPool.Count} -> {RecipePinnerPlugin.MaximumPins.Value}), rebuilding");
                 ResetPage();
@@ -207,19 +258,7 @@ namespace ValheimRecipePinner
                     panelRect.anchoredPosition = Vector2.zero;
                 }
 
-                Inventory glInv = Player.m_localPlayer.GetInventory();
-                if (glInv != null)
-                {
-                    _reusableInvCounts.Clear();
-                    foreach (var item in glInv.GetAllItems())
-                    {
-                        string iName = item.m_shared.m_name;
-                        if (_reusableInvCounts.TryGetValue(iName, out int existing))
-                            _reusableInvCounts[iName] = existing + item.m_stack;
-                        else
-                            _reusableInvCounts[iName] = item.m_stack;
-                    }
-                }
+                RefreshInventoryCounts(Player.m_localPlayer.GetInventory());
 
                 UpdateGatheringList();
                 return;
@@ -257,15 +296,7 @@ namespace ValheimRecipePinner
 
             // Auto-open/close logic already handled above (before early returns)
 
-            _reusableInvCounts.Clear();
-            foreach (var item in pInv.GetAllItems())
-            {
-                string iName = item.m_shared.m_name;
-                if (_reusableInvCounts.TryGetValue(iName, out int existing))
-                    _reusableInvCounts[iName] = existing + item.m_stack;
-                else
-                    _reusableInvCounts[iName] = item.m_stack;
-            }
+            RefreshInventoryCounts(pInv);
 
             int activePinCount = recipeMgr.CachedPins.Count;
             int perPage = Mathf.Min(RecipePinnerPlugin.PinsPerPage.Value, _pinPool.Count);
@@ -584,9 +615,17 @@ namespace ValheimRecipePinner
 
             if (Hud.instance == null || Hud.instance.m_rootObject == null)
             {
-                DebugLogger.Warning("Cannot create canvas - Hud.instance is null");
+                // UpdateUI reaches this every frame, and Warning ignores the debug-logging setting,
+                // so log the first occurrence only. Cleared below once the HUD is available again.
+                if (!_warnedNoHud)
+                {
+                    _warnedNoHud = true;
+                    DebugLogger.Warning("Cannot create canvas - Hud.instance is null");
+                }
                 return;
             }
+
+            _warnedNoHud = false;
 
             if (_cachedFont == null)
                 _cachedFont = GetGameFont();

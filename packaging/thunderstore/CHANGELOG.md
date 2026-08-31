@@ -1,3 +1,31 @@
+### 1.3.1
+
+#### Added
+
+* Added a `group_name_empty` localization key for the empty-group-name message, translated in all 36 shipped language files.
+
+#### Changed
+
+* `ContainerGatheringListPosition` now sets the gap between the chest window's top-right corner and the Gathering List's top-left corner, instead of an offset from the screen centre. The default is `(90, 2)`.
+
+  * Note: Values saved under the old meaning have a negative X. Those are recognised and replaced by the new default, so the panel does not move for anyone updating. Set a positive X to choose your own spacing.
+
+* Reduced the work done every frame while the Gathering List is open. The material list, its colours and text, its layout rebuilds, its placement setup and the inventory tally behind every pin's material counts are now recalculated only when something actually changes.
+
+#### Fixed
+
+* Fixed recipes that share an internal name pinning as a single entry whose counter simply climbed instead of pinning separately. Jewelcrafting gems are the clearest case: a gem's separate recipes now pin as separate entries, each with its own materials and its own auto-unpin.
+
+  * Note: gem pins saved before this update need to be unpinned and pinned again once to separate them. Every other pin is unaffected and loads unchanged.
+
+* Fixed the Gathering List sitting in the wrong place beside an open chest at any game UI scale other than 80 — drifting away from the chest window at smaller scales, and ending up behind the inventory panel at larger ones. It is now placed from the chest window itself and follows it at every scale and resolution.
+* Fixed opening or closing the inventory sending the pinned-recipe HUD back to page 1. The same cause was also tearing the HUD down twice every time it was rebuilt.
+* Fixed the Confirm button doing nothing at all when the group name field was left empty. It now says the name cannot be empty and keeps the dialog open with what you typed.
+* Fixed an upgrade recipe with no item data throwing an error out of the crafting hook. Such a recipe is now refused, both when pinning and when auto-unpinning, instead of producing a pin with an empty name.
+* Fixed the layout width and spacing settings accepting zero or negative values, which left the HUD unusable with no explanation. Widths now accept 50-1000 and spacings 0-200.
+* Fixed the Controls ("i") button playing its click sound twice.
+* Fixed a "Cannot create canvas" warning that could repeat every frame while the game HUD was unavailable.
+
 ### 1.3.0
 
 #### Added

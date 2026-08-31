@@ -10,7 +10,6 @@ namespace ValheimRecipePinner
 
         private static Sprite _cachedUiSprite;
         private static bool _spriteSearchDone = false;
-        private static Font _cachedNorseFont;
 
         private static Sprite _cachedPinIcon;
         private static bool _pinIconLoadAttempted = false;

@@ -51,7 +51,6 @@ namespace ValheimRecipePinner
             headerText.alignment = TextAnchor.MiddleCenter;
             headerText.color = RecipePinnerPlugin.ColorHeader?.Value ?? ValheimOrange;
             headerText.text = title;
-            panel.TitleText = headerText;
 
             LayoutElement leHeader = headerObj.AddComponent<LayoutElement>();
             leHeader.minHeight = 24;
@@ -151,14 +150,5 @@ namespace ValheimRecipePinner
 
             return slot;
         }
-
-        // ============================================================
-        // My Pins Panel Builder Methods
-        // ============================================================
-
-        /// <summary>
-        /// Tries to extract the background sprite and material from the trophies panel.
-        /// Checks both the root object's Image and a child named "background".
-        /// </summary>
     }
 }

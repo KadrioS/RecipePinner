@@ -8,6 +8,9 @@ namespace ValheimRecipePinner
     {
         public Image Icon;
         public Text AmountText;
+        public int LastHave = int.MinValue;
+        public int LastRequired = int.MinValue;
+        public bool LastComplete;
 
         public void SetActive(bool active) => gameObject.SetActive(active);
     }
@@ -16,7 +19,6 @@ namespace ValheimRecipePinner
     {
         public RectTransform PanelRect;
         public Image BgImage;
-        public Text TitleText;
         public Transform ItemListRoot;
         public Text HintText;
         public List<GatheringItemUI> ItemSlots = new List<GatheringItemUI>();
@@ -80,24 +82,15 @@ namespace ValheimRecipePinner
                 grid.constraintCount = cols;
             }
         }
-
-        /// <summary>
-        /// Returns the panel width needed for the given number of columns.
-        /// </summary>
-        public static float CalculateWidthForColumns(int cols)
-        {
-            float cellW = 58f, spaceW = 4f, padH = 22f;
-            return cols * (cellW + spaceW) - spaceW + padH;
-        }
     }
 
     public class GatheringItemData
     {
         public string ItemName;
-        public string DisplayName;
         public Sprite Icon;
         public int TotalRequired;
         public int TotalHave;
         public bool IsComplete;
+        public int Stamp;
     }
 }

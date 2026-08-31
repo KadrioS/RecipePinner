@@ -318,8 +318,8 @@ namespace ValheimRecipePinner
                 new ConfigurationManagerAttributes { Order = 95 }));
             GatheringListFontSizeMaterials.SettingChanged += (s, e) => UIMgr?.DestroyUI();
 
-            ContainerGatheringListPosition = Config.Bind("07 - Gathering List", "ContainerGatheringListPosition", new Vector2(-400f, 320f),
-                new ConfigDescription("Gathering List position offset (X, Y) when a container (chest/inventory) is open.", null,
+            ContainerGatheringListPosition = Config.Bind("07 - Gathering List", "ContainerGatheringListPosition", new Vector2(90f, 2f),
+                new ConfigDescription("Gap between the container window's top-right corner and the Gathering List's top-left corner, when a chest is open. X is to the right, Y is up. Values with a negative X are from the pre-1.3.1 screen-centre scheme and are ignored in favour of the default.", null,
                 new ConfigurationManagerAttributes { Order = 94 }));
 
             // ── 08 - Groups ───────────────────────────────────────────────
@@ -376,10 +376,10 @@ namespace ValheimRecipePinner
 
             // ── 10 - Layout (Vertical Mode) ───────────────────────────────
             VerticalListWidth = Config.Bind("10 - Layout (Vertical Mode)", "ListWidth", 265f,
-                new ConfigDescription("Width of the pin list panel.", null,
+                new ConfigDescription("Width of the pin list panel.", new AcceptableValueRange<float>(50f, 1000f),
                 new ConfigurationManagerAttributes { Order = 99 }));
             VerticalPinSpacing = Config.Bind("10 - Layout (Vertical Mode)", "PinSpacing", 10f,
-                new ConfigDescription("Vertical spacing between pin cards.", null,
+                new ConfigDescription("Vertical spacing between pin cards.", new AcceptableValueRange<float>(0f, 200f),
                 new ConfigurationManagerAttributes { Order = 98 }));
             VerticalPosition = Config.Bind("10 - Layout (Vertical Mode)", "Position", new Vector2(-40f, -250f),
                 new ConfigDescription("Anchor position offset (X, Y).", null,
@@ -387,10 +387,10 @@ namespace ValheimRecipePinner
 
             // ── 11 - Layout (Horizontal - Map Side) ──────────────────────
             HorizontalColumnWidth = Config.Bind("11 - Layout (Horizontal - Map Side)", "ColumnWidth", 265f,
-                new ConfigDescription("Width of each pin column.", null,
+                new ConfigDescription("Width of each pin column.", new AcceptableValueRange<float>(50f, 1000f),
                 new ConfigurationManagerAttributes { Order = 99 }));
             HorizontalPinSpacing = Config.Bind("11 - Layout (Horizontal - Map Side)", "PinSpacing", 10f,
-                new ConfigDescription("Spacing between pin cards in the column.", null,
+                new ConfigDescription("Spacing between pin cards in the column.", new AcceptableValueRange<float>(0f, 200f),
                 new ConfigurationManagerAttributes { Order = 98 }));
             HorizontalPosition = Config.Bind("11 - Layout (Horizontal - Map Side)", "Position", new Vector2(-250f, -40f),
                 new ConfigDescription("Anchor position offset (X, Y).", null,
@@ -398,10 +398,10 @@ namespace ValheimRecipePinner
 
             // ── 12 - Layout (Horizontal - Bottom Right) ───────────────────
             BottomRightColumnWidth = Config.Bind("12 - Layout (Horizontal - Bottom Right)", "ColumnWidth", 265f,
-                new ConfigDescription("Width of each pin column.", null,
+                new ConfigDescription("Width of each pin column.", new AcceptableValueRange<float>(50f, 1000f),
                 new ConfigurationManagerAttributes { Order = 99 }));
             BottomRightPinSpacing = Config.Bind("12 - Layout (Horizontal - Bottom Right)", "PinSpacing", 10f,
-                new ConfigDescription("Spacing between pin cards in the column.", null,
+                new ConfigDescription("Spacing between pin cards in the column.", new AcceptableValueRange<float>(0f, 200f),
                 new ConfigurationManagerAttributes { Order = 98 }));
             BottomRightPosition = Config.Bind("12 - Layout (Horizontal - Bottom Right)", "Position", new Vector2(-40f, 40f),
                 new ConfigDescription("Anchor position offset (X, Y).", null,

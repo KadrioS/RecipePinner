@@ -8,7 +8,6 @@ namespace ValheimRecipePinner
         public RectTransform DialogRect;
         public Image BgImage;
         public Image OverlayBg;  // semi-transparent fullscreen background
-        public Text PromptText;
         public InputField NameInput;
         public Button ConfirmButton;
         public Button CancelButton;
@@ -113,6 +112,13 @@ namespace ValheimRecipePinner
                 {
                     ClearInput();
                 }
+            }
+            else
+            {
+                var locMgr = RecipePinnerPlugin.Instance?.LocalizationMgr;
+                string msg = locMgr?.GetText("group_name_empty") ?? "Group name cannot be empty";
+                if (Player.m_localPlayer != null)
+                    Player.m_localPlayer.Message(MessageHud.MessageType.Center, msg);
             }
         }
 

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace ValheimRecipePinner
 {
-    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.3.0")]
+    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.3.1")]
     public partial class RecipePinnerPlugin : BaseUnityPlugin
     {
         public static RecipePinnerPlugin Instance;
@@ -421,7 +421,7 @@ namespace ValheimRecipePinner
                 if (isUpgrade)
                 {
                     ItemDrop.ItemData upgradeItem = ReflectionHelper.GetCraftUpgradeItem(__instance);
-                    if (upgradeItem != null)
+                    if (upgradeItem != null && craftedRecipe.m_item != null)
                     {
                         string prefabName = craftedRecipe.m_item.name;
                         int currentReadingLevel = upgradeItem.m_quality;
@@ -432,7 +432,7 @@ namespace ValheimRecipePinner
                     }
                 }
                 else
-                    keyToRemove = craftedRecipe.name;
+                    keyToRemove = Instance.RecipeMgr.BuildRecipeKey(craftedRecipe);
 
                 if (keyToRemove != null && Instance.RecipeMgr.PinnedRecipes.TryGetValue(keyToRemove, out int currentCount))
                 {

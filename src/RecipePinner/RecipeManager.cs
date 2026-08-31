@@ -88,7 +88,6 @@ namespace ValheimRecipePinner
                 grp.MemberPins.Clear();
                 grp.MergedResources.Clear();
                 grp.MemberIcons.Clear();
-                grp.IsDirty = true;
 
                 Dictionary<string, PinnedResData> mergedMap = new Dictionary<string, PinnedResData>();
 
@@ -142,7 +141,6 @@ namespace ValheimRecipePinner
                     RawName = grp.GroupName,
                     CachedHeader = grp.GroupName,
                     Icon = grp.MemberIcons.Count > 0 ? grp.MemberIcons[0] : null,
-                    StackCount = 1,
                     Resources = grp.MergedResources,
                     IsGroup = true,
                     GroupRef = grp
@@ -297,6 +295,36 @@ namespace ValheimRecipePinner
             }
         }
 
+        /// <summary>
+        /// The persistent key for a recipe. Recipe.name is not unique - some mods register several
+        /// recipes under one name - so a "#N" ordinal is appended, but only when the name really is
+        /// shared. A name owned by one recipe returns unchanged, which keeps every existing key and
+        /// save file byte-identical.
+        /// </summary>
+        public string BuildRecipeKey(Recipe r)
+        {
+            if (r == null) return null;
+
+            ObjectDB odb = ObjectDB.instance;
+            if (odb == null || odb.m_recipes == null) return r.name;
+
+            int sameName = 0;
+            int ordinal = -1;
+            for (int i = 0; i < odb.m_recipes.Count; i++)
+            {
+                Recipe candidate = odb.m_recipes[i];
+                if (candidate == null || candidate.name != r.name) continue;
+                if (candidate == r) ordinal = sameName;
+                sameName++;
+            }
+
+            // ordinal < 0 means this recipe is not in m_recipes at all - a fake upgrade or piece
+            // recipe. Those already carry a unique key of their own, so leave them alone.
+            if (sameName <= 1 || ordinal < 0) return r.name;
+
+            return $"{r.name}#{ordinal}";
+        }
+
         public Recipe GetRecipeByName(string name)
         {
             if (ObjectDB.instance == null) return null;
@@ -305,6 +333,36 @@ namespace ValheimRecipePinner
             {
                 DebugLogger.Verbose($"Found cached fake recipe: {name}");
                 return foundCachedRecipe;
+            }
+
+            // A "#N" suffix is only ever produced by BuildRecipeKey, and only for a name several
+            // recipes share. Resolve it to the Nth recipe carrying that name.
+            int hashIndex = name.LastIndexOf('#');
+            if (hashIndex > 0 && int.TryParse(name.Substring(hashIndex + 1), out int wantedOrdinal))
+            {
+                string collidingName = name.Substring(0, hashIndex);
+                Recipe firstNamed = null;
+                int seenSoFar = 0;
+
+                foreach (var cr in ObjectDB.instance.m_recipes)
+                {
+                    if (cr == null || cr.name != collidingName) continue;
+                    if (firstNamed == null) firstNamed = cr;
+                    if (seenSoFar == wantedOrdinal)
+                    {
+                        DebugLogger.Verbose($"Resolved colliding recipe key: {name}");
+                        return cr;
+                    }
+                    seenSoFar++;
+                }
+
+                if (firstNamed != null)
+                {
+                    DebugLogger.Warning($"Recipe key '{name}' is out of range - only {seenSoFar} recipe(s) named '{collidingName}'. Falling back to the first.");
+                    return firstNamed;
+                }
+                // No recipe by that base name: fall through to the lookups below, which will
+                // report it properly rather than returning a silent null here.
             }
 
             // Upgrade Check
@@ -635,6 +693,12 @@ namespace ValheimRecipePinner
                                                 return;
                                             }
 
+                                            if (r.m_item == null)
+                                            {
+                                                DebugLogger.Warning($"Cannot pin upgrade: recipe '{r.name}' has no item.");
+                                                return;
+                                            }
+
                                             string prefabName = r.m_item.name;
                                             string upgradeId = $"{prefabName} ★{nextQ}";
 
@@ -661,12 +725,13 @@ namespace ValheimRecipePinner
                                     }
                                     else
                                     {
-                                        if (IsUnpinHotkeyHeld() && !PinnedRecipes.ContainsKey(r.name)) return;
+                                        string pinKey = BuildRecipeKey(r);
+                                        if (IsUnpinHotkeyHeld() && !PinnedRecipes.ContainsKey(pinKey)) return;
 
                                         DebugLogger.Verbose("Attempting to pin hovered recipe...");
                                         DebugLogger.Verbose($"Hovered: '{pureName}' (UpgradeTab: {isUpgradeTab})");
                                         DebugLogger.Log($"Matched recipe: {r.name}");
-                                        TogglePin(r.name);
+                                        TogglePin(pinKey);
                                     }
                                     return;
                                 }
@@ -1017,8 +1082,7 @@ namespace ValheimRecipePinner
             PinnedRecipeData data = new PinnedRecipeData
             {
                 IsDirty = true,
-                RecipeRef = r,
-                StackCount = count
+                RecipeRef = r
             };
 
             if (r.m_item != null && r.m_item.m_itemData != null)

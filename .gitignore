@@ -437,3 +437,6 @@ Directory.Build.props.user
 
 # Personal release notes, kept locally
 docs/RELEASING.md
+
+# Local release tooling, kept alongside docs/RELEASING.md
+build-release.ps1

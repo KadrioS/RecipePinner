@@ -9,7 +9,6 @@ namespace ValheimRecipePinner
         public string RawName;
         public string CachedHeader;
         public Sprite Icon;
-        public int StackCount;
         public List<PinnedResData> Resources = new List<PinnedResData>();
         public bool IsDirty = true;
         public bool IsGroup = false;
@@ -39,6 +38,5 @@ namespace ValheimRecipePinner
         public List<PinnedRecipeData> MemberPins = new List<PinnedRecipeData>();
         public List<PinnedResData> MergedResources = new List<PinnedResData>();
         public List<Sprite> MemberIcons = new List<Sprite>();
-        public bool IsDirty = true;
     }
 }

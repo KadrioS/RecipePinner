@@ -134,7 +134,6 @@ namespace ValheimRecipePinner
                 DebugLogger.Log($"Using Norse font: '{norseBold.name}'");
             else
                 DebugLogger.Warning("Norse font not found, using fallback game font");
-            _cachedNorseFont = norseBold;
             titleText.font = norseBold ?? font;
             titleText.fontSize = 28;
             titleText.fontStyle = norseBold != null ? FontStyle.Normal : FontStyle.Bold;
@@ -142,7 +141,6 @@ namespace ValheimRecipePinner
             titleText.color = new Color(1f, 0.718f, 0.357f, 1f); // #ffb75b
             string title = RecipePinnerPlugin.Instance?.LocalizationMgr?.GetText("mypins_title") ?? "MY PINS";
             titleText.text = title;
-            panel.TitleText = titleText;
 
             Outline titleOutline = titleObj.AddComponent<Outline>();
             titleOutline.effectColor = Color.black;
@@ -170,7 +168,6 @@ namespace ValheimRecipePinner
             Button grpBtn = CreateVanillaButton(topBtnRow.transform, grpLabel, minHeight: 47);
             grpBtn.gameObject.name = "GroupButton";
             panel.GroupButton = grpBtn;
-            panel.GroupButtonText = grpBtn.GetComponentInChildren<Text>();
             Text grpTxt = grpBtn.GetComponentInChildren<Text>();
             if (grpTxt != null) grpTxt.fontSize = 20;
             LayoutElement leGrpBtn = grpBtn.GetComponent<LayoutElement>();
@@ -291,7 +288,6 @@ namespace ValheimRecipePinner
 
             scrollRect.content = contentRect;
             panel.PinListRoot = contentObj.transform;
-            panel.ScrollView = scrollRect;
 
             GameObject emptyObj = new GameObject("EmptyText", typeof(RectTransform)) { layer = 5 };
             emptyObj.transform.SetParent(contentObj.transform, false);
@@ -375,9 +371,7 @@ namespace ValheimRecipePinner
             infoBtn.onClick.AddListener(() =>
             {
                 panel.ControlsPanel?.Show();
-                PlayButtonSFX();
             });
-            panel.InfoButton = infoBtn;
 
             // Pass the same Norse font so the controls overlay title matches MY PINS.
             ControlsInfoPanel controlsPanel = CreateControlsInfoPanel(go.transform, font, norseBold ?? font);

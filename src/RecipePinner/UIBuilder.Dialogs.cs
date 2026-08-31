@@ -202,7 +202,6 @@ namespace ValheimRecipePinner
             promptText.color = ValheimOrange;
             string prompt = RecipePinnerPlugin.Instance?.LocalizationMgr?.GetText("group_name_prompt") ?? "Enter group name:";
             promptText.text = prompt;
-            dialog.PromptText = promptText;
 
             LayoutElement lePrompt = promptObj.AddComponent<LayoutElement>();
             lePrompt.minHeight = 24;
@@ -299,55 +298,6 @@ namespace ValheimRecipePinner
 
             DebugLogger.Log("Group Name Dialog created");
             return dialog;
-        }
-
-        /// <summary>
-        /// Creates a horizontal row of icons for group pins.
-        /// Limited to maxIcons to prevent UI overflow.
-        /// </summary>
-        public static void CreateGroupIconRow(Transform iconRoot, System.Collections.Generic.List<Sprite> icons, int maxIcons = 4)
-        {
-            if (iconRoot == null) return;
-
-            // Clear dynamic group icons while preserving the default single-icon child.
-            for (int i = iconRoot.childCount - 1; i >= 0; i--)
-            {
-                GameObject child = iconRoot.GetChild(i).gameObject;
-                if (child.name == "Icon")
-                {
-                    child.SetActive(false);
-                    continue;
-                }
-                Object.DestroyImmediate(child);
-            }
-
-            int count = Mathf.Min(icons != null ? icons.Count : 0, maxIcons);
-
-            if (count == 0) return;
-
-            float iconSize = count <= 2 ? 24f : (count <= 3 ? 20f : 16f);
-
-            LayoutElement rootLe = iconRoot.GetComponent<LayoutElement>();
-            if (rootLe != null)
-            {
-                rootLe.preferredWidth = (iconSize + 2) * count;
-                rootLe.minWidth = rootLe.preferredWidth;
-            }
-
-            for (int i = 0; i < count; i++)
-            {
-                GameObject iconObj = new GameObject($"GroupIcon_{i}", typeof(RectTransform)) { layer = 5 };
-                iconObj.transform.SetParent(iconRoot, false);
-                Image iconImg = iconObj.AddComponent<Image>();
-                iconImg.raycastTarget = false;
-                iconImg.preserveAspect = true;
-                iconImg.sprite = icons[i];
-
-                RectTransform iconRect = iconObj.GetComponent<RectTransform>();
-                iconRect.sizeDelta = new Vector2(iconSize, iconSize);
-            }
-
-            DebugLogger.Verbose($"Created group icon row with {count} icons (max {maxIcons})");
         }
 
         /// <summary>

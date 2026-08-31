@@ -15,7 +15,6 @@ namespace ValheimRecipePinner
         private static readonly HashSet<int> _processedIDs = new HashSet<int>();
         private readonly List<Container> _snapshotBuffer = new List<Container>();
         private Vector3 _lastScanPos;
-        private int _lastItemCount = 0;
         private float _scanTimer = 0f;
         private float _moveScanCooldown = 0f;
 
@@ -107,18 +106,8 @@ namespace ValheimRecipePinner
             float dynamicInterval = isContainerOpen ? 0.5f : RecipePinnerPlugin.ChestScanInterval.Value;
             bool timerExpired = _scanTimer >= dynamicInterval;
 
-            // Only iterate inventory items when a scan trigger is already pending.
-            // This avoids a per-frame GetAllItems() allocation in the common (idle) case.
             if (!playerMoved && !timerExpired) return;
 
-            int currentCount = 0;
-            foreach (var item in Player.m_localPlayer.GetInventory().GetAllItems())
-                currentCount += item.m_stack;
-
-            bool inventoryChanged = currentCount != _lastItemCount;
-            _lastItemCount = currentCount;
-
-            DebugLogger.Verbose($"Scanning containers - Moved: {playerMoved}, InvChanged: {inventoryChanged}, Interval: {timerExpired}");
             _scanTimer = 0f;
             if (playerMoved) _moveScanCooldown = 0f;
             UpdateContainerCache();

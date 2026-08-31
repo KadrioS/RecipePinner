@@ -32,9 +32,6 @@ namespace ValheimRecipePinner
             return _cachedUiSprite;
         }
 
-        /// <summary>Returns the cached background UI sprite — publicly accessible for other UI components.</summary>
-        public static Sprite GetUISpritePublic() => GetBackgroundSprite();
-
         /// <summary>
         /// Plays Valheim's native button click sound; the prefab is cached after the first lookup.
         /// </summary>
