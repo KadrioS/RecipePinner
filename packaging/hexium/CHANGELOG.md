@@ -1,3 +1,22 @@
+### 1.3.2
+
+#### Added
+
+* Pin a recipe more than once and each material row now also shows what a single one costs, in brackets. Ten stone axes need fifty wood, so the row reads `8/50(5)` — the total stays red while `(5)` turns green as soon as you can afford one axe. Turn it off with `ShowSingleUnitRequirement`.
+* Hovering the My Pins button now shows its name above it, the way Valheim's own Compendium, Skills and Trophies buttons do.
+
+#### Changed
+
+* The My Pins button has moved. It used to sit in the crafting panel's header, on top of the crafting station's own picture; it now sits to the left of the tab row, and its default size is 30 rather than 40.
+
+  * Note: if you never changed `MyPinsButtonPosition` or `MyPinsButtonSize`, the new placement is applied for you once, on your first launch after updating. If you had set either one yourself, nothing moves. Either setting puts the button wherever you want it, including back where it was.
+
+#### Fixed
+
+* Fixed the delete button on a pinned recipe removing a group instead, when a group had been given exactly the same name as that recipe. Both buttons now always act on the row they belong to, and group names stay unrestricted.
+* Fixed a language file the mod cannot read failing silently. When fewer than half the expected lines are read, it now warns with the file name and the count, so a broken translation no longer looks exactly like a working one.
+* Fixed every launch reloading the translations, the recipe cache and the UI once at the main menu, because startup registered a language change that had not happened.
+
 ### 1.3.1
 
 #### Added

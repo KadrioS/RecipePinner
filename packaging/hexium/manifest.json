@@ -1,6 +1,6 @@
 {
     "name": "RecipePinner",
-    "version_number": "1.3.1",
+    "version_number": "1.3.2",
     "website_url": "https://github.com/KadrioS/RecipePinner",
     "description": "Pin any recipe or build piece to your HUD and track the materials you still need in real time. Group pins into named projects, manage them from the My Pins panel, and optionally count nearby chests.",
     "dependencies": [

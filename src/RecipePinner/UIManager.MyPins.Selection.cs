@@ -242,7 +242,7 @@ namespace ValheimRecipePinner
                 _confirmDialog.Show(message, () =>
                 {
                     DebugLogger.Log($"OnPinDelete confirmed: {key}");
-                    recipeMgr.RemovePinFromMyPinsPanel(key);
+                    recipeMgr.RemovePinFromMyPinsPanel(key, isGroup);
                     if (isGroup) _expandedGroups.Remove(key);
                     RefreshMyPinsList();
                 });
@@ -250,7 +250,7 @@ namespace ValheimRecipePinner
             else
             {
                 // Fallback: no dialog available, delete directly
-                recipeMgr.RemovePinFromMyPinsPanel(key);
+                recipeMgr.RemovePinFromMyPinsPanel(key, isGroup);
                 if (isGroup) _expandedGroups.Remove(key);
                 RefreshMyPinsList();
             }

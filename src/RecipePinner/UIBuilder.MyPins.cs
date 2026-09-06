@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace ValheimRecipePinner
@@ -63,6 +64,93 @@ namespace ValheimRecipePinner
                 if (txt != null) txt.fontSize = 16;
                 DebugLogger.Log("My Pins button: text fallback mode");
             }
+
+            // Hover label above the button, in the font Valheim's own button tooltips use. Those
+            // draw with TextMeshPro, so a UnityEngine.UI.Text can never match them; the font asset
+            // is read off the prefab they render with - the same "Tooltip" prefab the Compendium,
+            // Skills and Trophies buttons point at. UITooltip is used only to find that prefab. No
+            // UITooltip component is added and none of its shared statics are touched: an exception
+            // inside that class stops every tooltip in the game, which is exactly what happened
+            // when this feature was first built on top of it. (U14)
+            TMP_FontAsset labelFont = null;
+            float labelFontSize = 16f;
+            Color labelColor = Color.white;
+            foreach (UITooltip donor in Resources.FindObjectsOfTypeAll<UITooltip>())
+            {
+                if (donor == null || donor.m_tooltipPrefab == null || donor.m_tooltipPrefab.name != "Tooltip")
+                    continue;
+
+                TMP_Text sample = donor.m_tooltipPrefab.GetComponentInChildren<TMP_Text>(true);
+                if (sample == null || sample.font == null)
+                    continue;
+
+                labelFont = sample.font;
+                labelFontSize = sample.fontSize;
+                labelColor = sample.color;
+                DebugLogger.Log($"My Pins button: hover label font '{labelFont.name}' size {labelFontSize}");
+                break;
+            }
+
+            GameObject labelGo = new GameObject("MyPinsHoverLabel", typeof(RectTransform)) { layer = 5 };
+            labelGo.transform.SetParent(btn.transform, false);
+
+            // Switched off before the text component is added, not after. TextMeshPro looks for its
+            // own default font asset in Awake, and Valheim does not ship the TMP Essentials that
+            // asset comes from - so adding the component to a live object logs "The LiberationSans
+            // SDF Font Asset was not found" once per launch, in every player's log, before our own
+            // font assignment on the next line ever runs. An inactive object does not Awake, and by
+            // the time HoverLabel switches it on the font is set. The label starts hidden anyway,
+            // so this only moves the line; do not tidy it back down.
+            labelGo.SetActive(false);
+
+            // Anchored to the button's top-left corner and pivoted at its own bottom-left, so the
+            // text sits directly above the button - clear of the pointer - and grows to the right,
+            // into the panel rather than off its left edge.
+            RectTransform labelRect = labelGo.GetComponent<RectTransform>();
+            labelRect.anchorMin = new Vector2(0f, 1f);
+            labelRect.anchorMax = new Vector2(0f, 1f);
+            labelRect.pivot = new Vector2(0f, 0f);
+            labelRect.anchoredPosition = new Vector2(0f, 4f);
+            labelRect.sizeDelta = new Vector2(200f, 22f);
+
+            string labelText = RecipePinnerPlugin.Instance?.LocalizationMgr?.GetText("mypins_title") ?? "MY PINS";
+
+            if (labelFont != null)
+            {
+                TextMeshProUGUI labelTmp = labelGo.AddComponent<TextMeshProUGUI>();
+                labelTmp.raycastTarget = false;
+                labelTmp.font = labelFont;
+                labelTmp.fontSize = labelFontSize;
+                labelTmp.color = labelColor;
+                labelTmp.alignment = TextAlignmentOptions.MidlineLeft;
+                labelTmp.textWrappingMode = TextWrappingModes.NoWrap;
+                labelTmp.overflowMode = TextOverflowModes.Overflow;
+                labelTmp.text = labelText;
+            }
+            else
+            {
+                // Nothing to copy from: fall back to the mod's own button font so the label still
+                // appears, just not identical to vanilla's.
+                Text labelTxt = labelGo.AddComponent<Text>();
+                labelTxt.raycastTarget = false;
+                labelTxt.alignment = TextAnchor.MiddleLeft;
+                labelTxt.horizontalOverflow = HorizontalWrapMode.Overflow;
+                labelTxt.verticalOverflow = VerticalWrapMode.Overflow;
+                labelTxt.color = Color.white;
+                labelTxt.text = labelText;
+                labelTxt.font = _vanillaBtnFont ?? Resources.GetBuiltinResource<Font>("Arial.ttf");
+                labelTxt.fontSize = _vanillaBtnFont != null ? _vanillaBtnFontSize : 16;
+                labelTxt.fontStyle = _vanillaBtnFont != null ? _vanillaBtnFontStyle : FontStyle.Bold;
+
+                Outline labelOutline = labelGo.AddComponent<Outline>();
+                labelOutline.effectColor = Color.black;
+                labelOutline.effectDistance = new Vector2(1f, -1f);
+
+                DebugLogger.Log("My Pins button: no vanilla tooltip font found, hover label uses the mod's button font");
+            }
+
+            btn.gameObject.AddComponent<HoverLabel>().Label = labelGo;
+            DebugLogger.Log($"My Pins button: hover label '{labelText}'");
 
             DebugLogger.Log("My Pins button created");
             return btn;

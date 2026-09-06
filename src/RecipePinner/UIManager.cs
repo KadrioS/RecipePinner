@@ -557,6 +557,26 @@ namespace ValheimRecipePinner
                     string hexColor = "#" + ColorUtility.ToHtmlStringRGBA(targetColor);
                     string newString = $"<color={hexColor}>{total}/{res.RequiredAmount}</color>";
 
+                    // U12: a recipe pinned more than once turns its totals red long before a single
+                    // unit is out of reach, which reads as "I cannot craft even one". Append what one
+                    // unit costs and color that bracket by the same three-way rule, so the answer is
+                    // one glance instead of mental arithmetic. RequiredAmount != SingleAmount is the
+                    // "pinned more than once" test; SingleAmount is 0 on group rows, which have no
+                    // single-unit cost, so groups never reach this branch.
+                    if (RecipePinnerPlugin.ShowSingleUnitRequirement.Value
+                        && res.SingleAmount > 0
+                        && res.RequiredAmount != res.SingleAmount)
+                    {
+                        Color singleColor = (invCount >= res.SingleAmount) ?
+                                       RecipePinnerPlugin.ColorEnoughInInventory.Value :
+                                       (total >= res.SingleAmount) ?
+                                       RecipePinnerPlugin.ColorEnoughWithChests.Value :
+                                       RecipePinnerPlugin.ColorMissing.Value;
+
+                        string singleHex = "#" + ColorUtility.ToHtmlStringRGBA(singleColor);
+                        newString += $"<color={singleHex}>({res.SingleAmount})</color>";
+                    }
+
                     if (res.CachedAmountString != newString)
                     {
                         res.CachedAmountString = newString;

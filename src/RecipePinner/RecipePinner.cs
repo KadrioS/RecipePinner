@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace ValheimRecipePinner
 {
-    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.3.1")]
+    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.3.2")]
     public partial class RecipePinnerPlugin : BaseUnityPlugin
     {
         public static RecipePinnerPlugin Instance;
@@ -85,6 +85,15 @@ namespace ValheimRecipePinner
             DebugLogger.Log("Start()");
 
             LocalizationMgr.LoadTranslations();
+
+            // Record the language the translations were just loaded for. Without this the change
+            // detection in Update() sees "" on its first frame and fires a language change that
+            // never happened, reloading everything once per launch (C17). Only when Localization
+            // is up: if it is not, LoadTranslations fell back to English and the detection should
+            // still fire once the real language becomes available.
+            if (Localization.instance != null)
+                _lastLanguage = Localization.instance.GetSelectedLanguage();
+
             ReadMyLittleUIConfig();
 
             // InitializeContainers only runs if EnableChestScanning is true (guarded internally)

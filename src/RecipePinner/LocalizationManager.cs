@@ -140,6 +140,14 @@ namespace ValheimRecipePinner
                     }
                 }
 
+                // A file the parser cannot read still falls back to English, silently. Warn when the
+                // result is far below the expected key count - that is what a format it does not
+                // understand looks like (see C14). Warning is not gated by EnableDebugLogging.
+                if (loadedCount < _defaultEnglish.Count / 2)
+                {
+                    DebugLogger.Warning($"Only {loadedCount} of {_defaultEnglish.Count} translations were read from {safeLang}.json - the file format may not be supported (one \"key\": \"value\" pair per line is expected). The missing texts fall back to English.");
+                }
+
                 DebugLogger.Log($"Loaded {loadedCount} translations from: {targetLang}.json");
             }
             catch (System.Exception ex)

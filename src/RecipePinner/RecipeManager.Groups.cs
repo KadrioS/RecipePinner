@@ -201,15 +201,24 @@ namespace ValheimRecipePinner
         }
 
         /// <summary>
-        /// Removes a pin or group from the My Pins panel.
-        /// If key matches a group name, removes the group and all its member pins.
-        /// If key is a regular pin, removes it and also from any group containing it.
+        /// Removes a pin or group from the My Pins panel. The caller states which one through
+        /// isGroup; it is never inferred from the key, because a group name and a pin key can be
+        /// the same string.
+        /// When isGroup is true, removes the group and releases its claim on every member pin.
+        /// When isGroup is false, removes the individual pin, keeping any claims groups hold on it.
         /// </summary>
-        public void RemovePinFromMyPinsPanel(string key)
+        public void RemovePinFromMyPinsPanel(string key, bool isGroup)
         {
-            // Check if it's a group
-            if (PinGroups.TryGetValue(key, out PinGroupData group))
+            // The caller knows which row was clicked. Never infer it from the key: a group name is
+            // free text and a pin key is a prefab name, but they share one string space, so a group
+            // named exactly like a pinned recipe used to swallow that pin's delete button. (N1)
+            if (isGroup)
             {
+                if (!PinGroups.TryGetValue(key, out PinGroupData group))
+                {
+                    DebugLogger.Warning($"RemovePinFromMyPinsPanel: group '{key}' not found");
+                    return;
+                }
                 // Remove group's claim (1 each) from member pins, but preserve excess
                 foreach (string memberKey in group.MemberRecipeKeys)
                 {
@@ -279,7 +288,12 @@ namespace ValheimRecipePinner
                 return;
             }
 
-            // Determine minimum: total group claims (same semantics as TogglePin)
+            // Floor: one free copy above the group claims - deliberately one higher than TogglePin's,
+            // which stops at claimCount exactly. This is the My Pins "-" button, and it sits next to a
+            // delete button with a confirmation dialog, so counting down must never delete the row.
+            // RefreshMyPinsList hides "-" at an individual count of 1, so the clamp below is the
+            // backstop, not the visible behaviour. The hotkey has no separate delete affordance and
+            // therefore must be able to remove the last copy. Do not "unify" these two. (E4, N4)
             int claimCount = GetGroupClaimCount(key);
             int minCount = claimCount > 0 ? (claimCount + 1) : 1;
 

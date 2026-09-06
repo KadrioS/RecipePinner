@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace ValheimRecipePinner
@@ -250,6 +251,41 @@ namespace ValheimRecipePinner
                 if (ResAmount != null)
                     ResAmount.fontSize = newSize;
             }
+        }
+    }
+
+    /// <summary>
+    /// Shows a label while the pointer is over this object, and hides it again on the way out.
+    /// Deliberately not Valheim's UITooltip: that one drives a single tooltip object held in a
+    /// static field shared by the whole game, so one exception raised inside it stopped every
+    /// tooltip in Valheim until the game was restarted. This owns its label and can only break
+    /// itself. (U14)
+    /// </summary>
+    public class HoverLabel : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+    {
+        public GameObject Label;
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            if (Label != null)
+                Label.SetActive(true);
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            if (Label != null)
+                Label.SetActive(false);
+        }
+
+        /// <summary>
+        /// A pointer never reports leaving an object that was switched off underneath it, so a
+        /// label left visible when the inventory closes would still be visible when the button
+        /// comes back. Hiding it here covers that.
+        /// </summary>
+        private void OnDisable()
+        {
+            if (Label != null)
+                Label.SetActive(false);
         }
     }
 }

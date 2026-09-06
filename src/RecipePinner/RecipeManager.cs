@@ -118,6 +118,9 @@ namespace ValheimRecipePinner
                         }
                         else
                         {
+                            // SingleAmount is deliberately left at 0 here. A merged group row sums
+                            // several different recipes, so it has no single-unit cost, and 0 is what
+                            // suppresses the (1x) bracket in UpdatePinSlot. Do not copy it over.
                             mergedMap[res.ItemName] = new PinnedResData
                             {
                                 ItemName = res.ItemName,
@@ -1157,6 +1160,7 @@ namespace ValheimRecipePinner
                     ItemName = res.m_resItem.m_itemData.m_shared?.m_name,
                     Icon = res.m_resItem.m_itemData.GetIcon(),
                     RequiredAmount = res.m_amount * count,
+                    SingleAmount = res.m_amount,
                     LastKnownAmount = -1,
                     LastKnownInvAmount = -1
                 };

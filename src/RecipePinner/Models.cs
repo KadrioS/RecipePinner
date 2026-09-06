@@ -21,6 +21,12 @@ namespace ValheimRecipePinner
         public string CachedName;
         public Sprite Icon;
         public int RequiredAmount;
+        /// <summary>
+        /// What one unit of the recipe costs, before the pinned count multiplies it. 0 means
+        /// "no meaningful single-unit value" — group rows leave it 0 on purpose, because a
+        /// group's RequiredAmount sums several different recipes.
+        /// </summary>
+        public int SingleAmount;
         public int LastKnownAmount;
         public int LastKnownInvAmount;
         public string CachedAmountString;

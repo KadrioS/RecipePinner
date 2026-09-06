@@ -40,6 +40,7 @@ namespace ValheimRecipePinner
         public static ConfigEntry<int> HudMaterialIconSize;
         public static ConfigEntry<int> HudGroupIconSize;
         public static ConfigEntry<bool> EnableCraftReadiness;
+        public static ConfigEntry<bool> ShowSingleUnitRequirement;
 
         // ── 05 - Colors ─────────────────────────────────────────
         public static ConfigEntry<Color> ColorHeader;
@@ -75,6 +76,7 @@ namespace ValheimRecipePinner
         public static ConfigEntry<Color> ButtonTextColor;
         public static ConfigEntry<Vector2> MyPinsButtonPosition;
         public static ConfigEntry<int> MyPinsButtonSize;
+        public static ConfigEntry<int> ConfigVersion;
 
         // ── 10 - Layout: Vertical ────────────────────────────────
         public static ConfigEntry<float> VerticalListWidth;
@@ -239,6 +241,11 @@ namespace ValheimRecipePinner
                 new ConfigurationManagerAttributes { Order = 92 }));
             EnableCraftReadiness.SettingChanged += (s, e) => RecipeMgr?.RefreshRecipeCache();
 
+            ShowSingleUnitRequirement = Config.Bind("04 - HUD Appearance", "ShowSingleUnitRequirement", true,
+                new ConfigDescription("On a recipe pinned more than once, append what one unit costs in brackets, e.g. 8/50(5). The bracket is colored on its own, so it turns green as soon as a single unit is affordable.", null,
+                new ConfigurationManagerAttributes { Order = 91 }));
+            ShowSingleUnitRequirement.SettingChanged += (s, e) => RecipeMgr?.RefreshRecipeCache();
+
             // ── 05 - Colors ───────────────────────────────────────────────
             ColorHeader = Config.Bind("05 - Colors", "ColorHeader", new Color(1f, 0.808f, 0f, 1f),
                 new ConfigDescription("Recipe/group name text color.", null,
@@ -362,12 +369,12 @@ namespace ValheimRecipePinner
                 new ConfigurationManagerAttributes { Order = 96 }));
             ButtonTextColor.SettingChanged += (s, e) => UIMgr?.DestroyMyPinsUI();
 
-            MyPinsButtonPosition = Config.Bind("09 - My Pins Panel", "MyPinsButtonPosition", new Vector2(-500f, 570f),
+            MyPinsButtonPosition = Config.Bind("09 - My Pins Panel", "MyPinsButtonPosition", new Vector2(-520f, 507f),
                 new ConfigDescription("Position offset (X, Y) of the My Pins button from the inventory.", null,
                 new ConfigurationManagerAttributes { Order = 95 }));
             MyPinsButtonPosition.SettingChanged += (s, e) => UIMgr?.DestroyMyPinsUI();
 
-            MyPinsButtonSize = Config.Bind("09 - My Pins Panel", "MyPinsButtonSize", 40,
+            MyPinsButtonSize = Config.Bind("09 - My Pins Panel", "MyPinsButtonSize", 30,
                 new ConfigDescription("Size of the My Pins icon button in pixels.",
                 new AcceptableValueRange<int>(20, 200),
                 new ConfigurationManagerAttributes { Order = 94 }));
@@ -411,6 +418,30 @@ namespace ValheimRecipePinner
             EnableDebugLogging = Config.Bind("13 - Debug", "EnableDebugLogging", false,
                 new ConfigDescription("Enable verbose debug logging to the BepInEx console.", null,
                 new ConfigurationManagerAttributes { Order = 99 }));
+
+            // ── 14 - Internal ─────────────────────────────────────────────
+            ConfigVersion = Config.Bind("14 - Internal", "ConfigVersion", 0,
+                new ConfigDescription("Records which one-time config migrations have already run. Not meant to be edited.", null,
+                new ConfigurationManagerAttributes { Browsable = false, Order = 1 }));
+
+            // Migration 1 - the My Pins button placement (U11). Its old default sat on top of the
+            // crafting station's own picture, but BepInEx writes the config file on a player's
+            // first run, so a changed default reaches nobody who has already played. Move only the
+            // players still on both old defaults: someone who picked a position of their own gets
+            // left alone, and someone who picked the old one deliberately keeps it, because this
+            // runs once and then records that it has. Position and size travel together - the new
+            // position was chosen with the smaller button.
+            if (ConfigVersion.Value < 1)
+            {
+                if (MyPinsButtonPosition.Value == new Vector2(-500f, 570f) && MyPinsButtonSize.Value == 40)
+                {
+                    MyPinsButtonPosition.Value = new Vector2(-520f, 507f);
+                    MyPinsButtonSize.Value = 30;
+                    DebugLogger.Log("Config migration 1: moved the My Pins button off the crafting station icon (U11)");
+                }
+
+                ConfigVersion.Value = 1;
+            }
 
             DebugLogger.Log("Config loaded");
         }
