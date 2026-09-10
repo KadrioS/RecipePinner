@@ -2,7 +2,7 @@
 
 ### Your crafting companion for Valheim
 
-[![Version](https://img.shields.io/badge/version-1.3.2-brightgreen?style=for-the-badge)](https://thunderstore.io/c/valheim/p/KadrioS/RecipePinner/)
+[![Version](https://img.shields.io/badge/version-1.4.0-brightgreen?style=for-the-badge)](https://thunderstore.io/c/valheim/p/KadrioS/RecipePinner/)
 [![Hexium](https://img.shields.io/badge/Hexium-Download-purple?style=for-the-badge)](https://valheim.hexium.gg/mods/Kadrio/RecipePinner)
 [![NexusMods](https://img.shields.io/badge/NexusMods-Download-orange?style=for-the-badge)](https://www.nexusmods.com/valheim/mods/3195)
 
@@ -22,11 +22,12 @@ Less menu checking. Less guessing. More building, crafting, and exploring.
 
 ---
 
-## ✅ Requirements And Compatibility
+## ✅ Requirements and Compatibility
 
 | | |
 | :--- | :--- |
-| **Needs** | [BepInExPack Valheim](https://valheim.thunderstore.io/package/denikson/BepInExPack_Valheim/), and nothing else. |
+| **Game version** | **Valheim 1.0 or newer.** This build cannot run on 0.221.x - if you are still on an older game version, stay on Recipe Pinner 1.3.2. |
+| **Needs** | [BepInExPack Valheim](https://valheim.thunderstore.io/package/denikson/BepInExPack_Valheim/) 5.4.2350 or newer, and nothing else. |
 | **Install on** | Your own game only. Recipe Pinner draws a HUD and reads your own inventory - it sends nothing over the network, so it works in multiplayer whether or not anyone else has it, and a dedicated server does not need it. |
 | **Optional** | [Configuration Manager](https://valheim.thunderstore.io/package/Azumatt/Official_BepInEx_ConfigurationManager/), to change any of the sixty settings in-game. |
 | **Other UI mods** | The horizontal HUD layout exists for MyLittleUI users, and the My Pins button can be moved out of another mod's way. If something fights with it, please report it and name the other mod. |
@@ -475,6 +476,13 @@ If you are coming from 1.2.x, it is worth launching once, opening the config, an
 Version 1.3.0 includes language files for every Valheim-supported language, but some translations were AI-assisted. Please report incorrect or awkward translations.
 
 </details>
+
+---
+
+## 🐞 Known Issues
+
+* Pinning an upgrade at the **Forge of Potential** shows the ordinary crafting materials instead of the idol.
+* Pressing **Caps Lock** while typing a group name starts your character auto-running.
 
 ---
 

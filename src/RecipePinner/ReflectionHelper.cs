@@ -3,6 +3,7 @@ using System;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 namespace ValheimRecipePinner
 {
@@ -291,6 +292,50 @@ namespace ValheimRecipePinner
             return false;
         }
 
+
+        /// <summary>
+        /// Returns the build-menu piece currently under the mouse pointer, or null.
+        ///
+        /// Valheim 1.0 feeds its hovered-piece state only from BuildUiPieceButton's
+        /// OnPointerEnter / OnPointerExit events, so a button that appears under a cursor
+        /// that has not moved never registers - when the build menu opens over the pointer,
+        /// or after toggling a favourite rebuilds the button list from its pool. Asking the
+        /// EventSystem what is under the pointer right now is correct whatever that cached
+        /// state happens to hold, and it respects scroll masks and draw order. See U18.
+        /// </summary>
+        public static Piece GetBuildMenuPieceUnderPointer()
+        {
+            try
+            {
+                EventSystem eventSystem = EventSystem.current;
+                if (eventSystem == null) return null;
+
+                _pointerRaycastData = _pointerRaycastData ?? new PointerEventData(eventSystem);
+                _pointerRaycastData.position = Input.mousePosition;
+
+                _pointerRaycastResults.Clear();
+                eventSystem.RaycastAll(_pointerRaycastData, _pointerRaycastResults);
+
+                foreach (RaycastResult hit in _pointerRaycastResults)
+                {
+                    if (hit.gameObject == null) continue;
+
+                    BuildUiPieceButton button = hit.gameObject.GetComponentInParent<BuildUiPieceButton>();
+                    if (button != null && button.Piece != null) return button.Piece;
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                DebugLogger.Warning($"GetBuildMenuPieceUnderPointer failed: {ex.Message}");
+                return null;
+            }
+        }
+
+        private static PointerEventData _pointerRaycastData;
+        private static readonly System.Collections.Generic.List<RaycastResult> _pointerRaycastResults =
+            new System.Collections.Generic.List<RaycastResult>();
     }
 
     public static class InputHelper

@@ -1,3 +1,16 @@
+### 1.4.0 — Valheim 1.0.7 compatibility
+
+**This version requires Valheim 1.0 or newer.** It cannot run on older game versions — if you are still on 0.221.x, stay on 1.3.2. It also needs BepInEx pack 5.4.2350 or newer.
+
+Valheim 1.0 changed enough that the mod stopped working entirely, and testing the rebuild turned up three more things the update had broken. All four are fixed below.
+
+#### Fixed
+
+* Fixed the mod doing nothing on Valheim 1.0. A game method the mod calls changed shape in 1.0, so the mod failed on every frame before it could draw anything — it loaded, and then nothing appeared. Rebuilt against 1.0.
+* Fixed pinned upgrades asking for too little from level 4 up. Valheim 1.0 changed how upgrade costs scale and the pin was still using the old maths — a stone axe level 4 pin asked for 6 stone where the game wanted 8. Levels 2 and 3 were always right.
+* Fixed the new War Idols showing as a required material on every pin. They are used only at the Forge of Potential, and only as an alternative to the ordinary upgrade materials, so pins no longer list them.
+* Fixed pinning a build piece not working on the first press, so you had to move off the piece and back on before it would pin. Valheim 1.0's rebuilt build menu only registers a piece as hovered when the cursor actually moves onto it, which never happened when the menu opened under your cursor or after the piece list refreshed. Pinning now works on the first press, wherever the cursor already is.
+
 ### 1.3.2
 
 #### Added

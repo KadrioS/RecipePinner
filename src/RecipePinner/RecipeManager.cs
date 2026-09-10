@@ -451,22 +451,26 @@ namespace ValheimRecipePinner
             fakeRecipe.m_item = baseRecipe.m_item;
             fakeRecipe.m_amount = 1;
 
-            int levelMultiplier = Mathf.Max(1, targetLevel - 1);
-
             List<Piece.Requirement> upgradeReqs = new List<Piece.Requirement>();
             foreach (var req in baseRecipe.m_resources)
             {
-                if (req.m_amountPerLevel > 0)
+                if (req == null) continue;
+
+                // Ask the game rather than re-deriving the curve. Valheim 1.0 made it non-linear
+                // above quality 3 and folds the upgrade-station material in here, so any local
+                // arithmetic goes stale the next time the game changes it.
+                int amount = req.GetAmount(targetLevel);
+                if (amount <= 0) continue;
+
+                Piece.Requirement newReq = new Piece.Requirement
                 {
-                    Piece.Requirement newReq = new Piece.Requirement
-                    {
-                        m_resItem = req.m_resItem,
-                        m_amount = req.m_amountPerLevel * levelMultiplier,
-                        m_amountPerLevel = 0,
-                        m_recover = req.m_recover
-                    };
-                    upgradeReqs.Add(newReq);
-                }
+                    m_resItem = req.m_resItem,
+                    m_amount = amount,
+                    m_amountPerLevel = 0,
+                    m_recover = req.m_recover,
+                    m_upgraderResource = req.m_upgraderResource
+                };
+                upgradeReqs.Add(newReq);
             }
 
             if (upgradeReqs.Count == 0)
@@ -747,16 +751,31 @@ namespace ValheimRecipePinner
 
         public void TryPinHoveredPiece()
         {
-            if (Hud.instance == null) return;
-            Piece targetPiece = ReflectionHelper.GetHoveredPiece(Hud.instance);
-            if (targetPiece != null && targetPiece.m_resources != null && targetPiece.m_resources.Length > 0)
+            if (Hud.instance == null)
             {
-                if (IsUnpinHotkeyHeld() && !PinnedRecipes.ContainsKey(targetPiece.name)) return;
-
-                DebugLogger.Verbose("Attempting to pin hovered piece...");
-                DebugLogger.Log($"Pinning piece: {targetPiece.name}");
-                TogglePin(targetPiece.name);
+                DebugLogger.Verbose("TryPinHoveredPiece: Hud.instance is null");
+                return;
             }
+
+            // Ask what is under the pointer first. Valheim 1.0's cached hover state is only
+            // updated by pointer enter/exit events, so it is empty on the first press after the
+            // build menu opens or after its button list is rebuilt - see U18 and section 24. The
+            // cached lookup stays as a fallback for anything the raycast cannot see.
+            Piece targetPiece = ReflectionHelper.GetBuildMenuPieceUnderPointer();
+            if (targetPiece == null)
+                targetPiece = ReflectionHelper.GetHoveredPiece(Hud.instance);
+
+            if (targetPiece == null || targetPiece.m_resources == null || targetPiece.m_resources.Length == 0)
+            {
+                DebugLogger.Verbose("TryPinHoveredPiece: no build piece under the pointer");
+                return;
+            }
+
+            if (IsUnpinHotkeyHeld() && !PinnedRecipes.ContainsKey(targetPiece.name)) return;
+
+            DebugLogger.Verbose("Attempting to pin hovered piece...");
+            DebugLogger.Log($"Pinning piece: {targetPiece.name}");
+            TogglePin(targetPiece.name);
         }
 
         private bool IsUnpinHotkeyHeld()
@@ -1145,6 +1164,20 @@ namespace ValheimRecipePinner
             foreach (var res in r.m_resources)
             {
                 if (res == null || res.m_amount <= 0)
+                {
+                    continue;
+                }
+
+                // Valheim 1.0's War Idols are flagged m_upgraderResource and are consumed only at
+                // the Forge of Potential. That is an *alternative* upgrade route, not a required
+                // one: IsValidUpgradeTarget refuses any level above the item's m_maxQuality, so
+                // every upgrade this mod can pin is reachable at an ordinary station with ordinary
+                // materials. Showing the idol would advertise a material the pin never needs.
+                //
+                // Mirroring vanilla's station-dependent rule here was tried and rejected on
+                // 2026-09-10: a pinned row then changed every time the player walked up to a Forge
+                // and back, which reads as the pin changing its mind. See CLAUDE_RAPOR.md §23.
+                if (res.m_upgraderResource)
                 {
                     continue;
                 }

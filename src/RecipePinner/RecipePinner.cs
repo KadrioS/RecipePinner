@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace ValheimRecipePinner
 {
-    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.3.2")]
+    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.4.0")]
     public partial class RecipePinnerPlugin : BaseUnityPlugin
     {
         public static RecipePinnerPlugin Instance;
