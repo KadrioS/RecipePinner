@@ -211,7 +211,7 @@ namespace ValheimRecipePinner
         {
             // The caller knows which row was clicked. Never infer it from the key: a group name is
             // free text and a pin key is a prefab name, but they share one string space, so a group
-            // named exactly like a pinned recipe used to swallow that pin's delete button. (N1)
+            // named exactly like a pinned recipe used to swallow that pin's delete button.
             if (isGroup)
             {
                 if (!PinGroups.TryGetValue(key, out PinGroupData group))
@@ -293,7 +293,7 @@ namespace ValheimRecipePinner
             // delete button with a confirmation dialog, so counting down must never delete the row.
             // RefreshMyPinsList hides "-" at an individual count of 1, so the clamp below is the
             // backstop, not the visible behaviour. The hotkey has no separate delete affordance and
-            // therefore must be able to remove the last copy. Do not "unify" these two. (E4, N4)
+            // therefore must be able to remove the last copy. Do not "unify" these two.
             int claimCount = GetGroupClaimCount(key);
             int minCount = claimCount > 0 ? (claimCount + 1) : 1;
 

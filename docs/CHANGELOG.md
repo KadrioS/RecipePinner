@@ -1,5 +1,14 @@
 # Changelog
 
+### 1.4.1
+
+#### Fixed
+
+* Fixed pressing Caps Lock while typing a group name starting your character auto-running. Typing in the mod's name box now stops the character, the same way typing in chat or the console does — and Caps Lock still types capitals.
+* Fixed not being able to walk while a confirmation dialog was open. Delete, disband and clear now leave you free to move, like Valheim's own Compendium and Skills panels. Only the group-name box stops the character.
+
+---
+
 ### 1.4.0 — Valheim 1.0.7 compatibility
 
 **This version requires Valheim 1.0 or newer.** It cannot run on older game versions — if you are still on 0.221.x, stay on 1.3.2. It also needs BepInEx pack 5.4.2350 or newer.
@@ -10,8 +19,10 @@ Valheim 1.0 changed enough that the mod stopped working entirely, and testing th
 
 * Fixed the mod doing nothing on Valheim 1.0. A game method the mod calls changed shape in 1.0, so the mod failed on every frame before it could draw anything — it loaded, and then nothing appeared. Rebuilt against 1.0.
 * Fixed pinned upgrades asking for too little from level 4 up. Valheim 1.0 changed how upgrade costs scale and the pin was still using the old maths — a stone axe level 4 pin asked for 6 stone where the game wanted 8. Levels 2 and 3 were always right.
-* Fixed the new War Idols showing as a required material on every pin. They are used only at the Forge of Potential, and only as an alternative to the ordinary upgrade materials, so pins no longer list them.
+* Fixed the new Idols showing as a required material on every pin. They are used only at the Forge of Potential, and only as an alternative to the ordinary upgrade materials, so pins no longer list them.
 * Fixed pinning a build piece not working on the first press, so you had to move off the piece and back on before it would pin. Valheim 1.0's rebuilt build menu only registers a piece as hovered when the cursor actually moves onto it, which never happened when the menu opened under your cursor or after the piece list refreshed. Pinning now works on the first press, wherever the cursor already is.
+
+---
 
 ### 1.3.2
 
@@ -31,6 +42,8 @@ Valheim 1.0 changed enough that the mod stopped working entirely, and testing th
 * Fixed the delete button on a pinned recipe removing a group instead, when a group had been given exactly the same name as that recipe. Both buttons now always act on the row they belong to, and group names stay unrestricted.
 * Fixed a language file the mod cannot read failing silently. When fewer than half the expected lines are read, it now warns with the file name and the count, so a broken translation no longer looks exactly like a working one.
 * Fixed every launch reloading the translations, the recipe cache and the UI once at the main menu, because startup registered a language change that had not happened.
+
+---
 
 ### 1.3.1
 
@@ -59,6 +72,8 @@ Valheim 1.0 changed enough that the mod stopped working entirely, and testing th
 * Fixed the layout width and spacing settings accepting zero or negative values, which left the HUD unusable with no explanation. Widths now accept 50-1000 and spacings 0-200.
 * Fixed the Controls ("i") button playing its click sound twice.
 * Fixed a "Cannot create canvas" warning that could repeat every frame while the game HUD was unavailable.
+
+---
 
 ### 1.3.0
 
@@ -128,11 +143,15 @@ Valheim 1.0 changed enough that the mod stopped working entirely, and testing th
 * Fixed inventory item count recalculation occurring every frame during Chest Scan; it is now only evaluated when a container scan trigger condition is met.
 * Fixed the `LanguageOverride` config value flowing into a file path without sanitizing.
 
+---
+
 ### 1.2.5
 
 * Updated the changelog structure for Hexium's version history.
 * Updated the internal plugin version to 1.2.5.
 * No gameplay, feature, or functional changes were made compared to version 1.2.4.
+
+---
 
 ### 1.2.4
 - Fixed Gathering List positioning issues across all layout modes when pins are hidden via toggle (F7).
@@ -146,6 +165,8 @@ Valheim 1.0 changed enough that the mod stopped working entirely, and testing th
 - Removed dead code and cleaned up leftover code artifacts.
 - Refactored UIManager into partial classes for better code organization.
 
+---
+
 ### 1.2.3
 ⚠️ **IMPORTANT NOTE FOR EXISTING USERS:** Due to layout improvements, the default position for the Gathering List while a chest is open has changed. Please delete your old .cfg file or manually update the InventoryGatheringListPosition setting to x: -400, y: 320 in the config file properly align it.
 
@@ -156,13 +177,19 @@ Valheim 1.0 changed enough that the mod stopped working entirely, and testing th
 - Fixed an issue where the Gathering List's position while a chest is open.
 - Please report bugs.
 
+---
+
 ### 1.2.2
 - Optimized memory usage and eliminated unnecessary log outputs by ensuring the game's containers are no longer tracked in the background when the Chest Scanner feature is disabled.
 - A new “Work in Progress” section and new features for “Future Plans” have been added to the README file.
 - No need to delete config file.
 
+---
+
 ### 1.2.1
 - README file fixed only. No need to delete config file.
+
+---
 
 ### 1.2.0
 - ⚠️ IMPORTANT: The configuration structure has been heavily overhauled. Please delete your old com.Kadrio.RecipePinner.cfg file before launching the game!
@@ -178,8 +205,12 @@ Valheim 1.0 changed enough that the mod stopped working entirely, and testing th
 - Optimized overall performance by significantly reducing unnecessary UI rebuilds and per-frame calls.
 - Improved general codebase stability through extensive cleanup.
 
+---
+
 ### 1.1.4
 - In the 1.1.3 update, I put in an old DLL lol (sorry).
+
+---
 
 ### 1.1.3
 - Fixed upgrade recipes (★3, ★4) showing incorrect material amounts — now correctly calculates costs based on upgrade level.
@@ -188,6 +219,8 @@ Valheim 1.0 changed enough that the mod stopped working entirely, and testing th
 - Improved dictionary access efficiency across TogglePin, AutoUnpinHook, and AutoUnpinBuildHook using TryGetValue pattern.
 - Removed unused legacy PinnedRecipe.cs file.
 
+---
+
 ### 1.1.2
 - Added full support for tracking Item Upgrades (pinning directly from the Upgrade tab).
 - Added smart auto-unpin logic to correctly distinguish between crafting new items and upgrading existing ones.
@@ -195,8 +228,12 @@ Valheim 1.0 changed enough that the mod stopped working entirely, and testing th
 - Optimized internal logic with reflection caching to improve performance and reduce overhead.
 - Note: Users with custom language files must update them to include new keys to avoid missing text.
 
+---
+
 ### 1.1.1
 - Updated installation instructions in README. No code changes.
+
+---
 
 ### 1.1.0
 - Added pagination system to handle large numbers of pins (configurable 'PinsPerPage').
@@ -207,11 +244,17 @@ Valheim 1.0 changed enough that the mod stopped working entirely, and testing th
 - Optimized UI rendering with dirty-check mechanism to improve performance.
 - Updated configuration handling.
 
+---
+
 ### 1.0.2
 - Fixed an issue where using the Middle Mouse Button to remove/deconstruct build pieces would accidentally pin the recipe. Pinning is now restricted to hovering over HUD icons only.
 
+---
+
 ### 1.0.1
 - Fixed README images
+
+---
 
 ### 1.0.0
 - Initial Release

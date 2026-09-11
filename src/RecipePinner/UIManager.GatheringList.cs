@@ -147,7 +147,7 @@ namespace ValheimRecipePinner
             Transform hudRoot = Hud.instance?.m_rootObject?.transform;
             RectTransform panelRect = _gatheringListPanel.PanelRect;
 
-            // C13: this method runs on every frame the chest stays open, so the parts that produce
+            // This method runs on every frame the chest stays open, so the parts that produce
             // the same result every time are done once. Reparenting, the LayoutElement lookup and
             // the column count cannot change while the chest is open. The positioning below is
             // deliberately left per-frame: the container window slides in when the chest opens, so

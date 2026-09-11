@@ -2,7 +2,7 @@
 
 ### Your crafting companion for Valheim
 
-[![Version](https://img.shields.io/badge/version-1.4.0-brightgreen?style=for-the-badge)](https://thunderstore.io/c/valheim/p/KadrioS/RecipePinner/)
+[![Version](https://img.shields.io/badge/version-1.4.1-brightgreen?style=for-the-badge)](https://thunderstore.io/c/valheim/p/KadrioS/RecipePinner/)
 [![Thunderstore](https://img.shields.io/badge/Thunderstore-Download-blue?style=for-the-badge)](https://thunderstore.io/c/valheim/p/KadrioS/RecipePinner/)
 [![Hexium](https://img.shields.io/badge/Hexium-Download-purple?style=for-the-badge)](https://valheim.hexium.gg/mods/Kadrio/RecipePinner)
 [![NexusMods](https://img.shields.io/badge/NexusMods-Download-orange?style=for-the-badge)](https://www.nexusmods.com/valheim/mods/3195)
@@ -483,7 +483,6 @@ Version 1.3.0 includes language files for every Valheim-supported language, but 
 ## 🐞 Known Issues
 
 * Pinning an upgrade at the **Forge of Potential** shows the ordinary crafting materials instead of the idol.
-* Pressing **Caps Lock** while typing a group name starts your character auto-running.
 
 ---
 

@@ -301,7 +301,7 @@ namespace ValheimRecipePinner
         /// that has not moved never registers - when the build menu opens over the pointer,
         /// or after toggling a favourite rebuilds the button list from its pool. Asking the
         /// EventSystem what is under the pointer right now is correct whatever that cached
-        /// state happens to hold, and it respects scroll masks and draw order. See U18.
+        /// state happens to hold, and it respects scroll masks and draw order.
         /// </summary>
         public static Piece GetBuildMenuPieceUnderPointer()
         {

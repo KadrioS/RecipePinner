@@ -70,8 +70,7 @@ namespace ValheimRecipePinner
             // is read off the prefab they render with - the same "Tooltip" prefab the Compendium,
             // Skills and Trophies buttons point at. UITooltip is used only to find that prefab. No
             // UITooltip component is added and none of its shared statics are touched: an exception
-            // inside that class stops every tooltip in the game, which is exactly what happened
-            // when this feature was first built on top of it. (U14)
+            // inside that class stops every tooltip in the game until the player restarts it.
             TMP_FontAsset labelFont = null;
             float labelFontSize = 16f;
             Color labelColor = Color.white;
@@ -125,6 +124,15 @@ namespace ValheimRecipePinner
                 labelTmp.alignment = TextAlignmentOptions.MidlineLeft;
                 labelTmp.textWrappingMode = TextWrappingModes.NoWrap;
                 labelTmp.overflowMode = TextOverflowModes.Overflow;
+
+                // TextMeshPro decodes escape sequences in the string it is given, so by default a
+                // translation containing a literal backslash-n would break the line here while the
+                // same text stays on one line everywhere else in this mod, which draws with
+                // UnityEngine.UI.Text. The language file has already been decoded once when it was
+                // read; a second pass here would be decoding the author's real backslash. Turning
+                // it off costs nothing - a translation that wants a line break carries a genuine
+                // newline character by then, and TextMeshPro still breaks on that.
+                labelTmp.parseCtrlCharacters = false;
                 labelTmp.text = labelText;
             }
             else

@@ -92,24 +92,20 @@ namespace ValheimRecipePinner
         {
             if (!gameObject.activeSelf) return;
 
-            // Cache shortcuts before ResetInputAxes(), which clears this frame's GetKeyDown states.
             bool escapeDown = Input.GetKeyDown(KeyCode.Escape);
             bool enterDown  = Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter);
 
-            // Dialogs should swallow residual game input even if Harmony blocking misses a path.
-            Input.ResetInputAxes();
-
+            // Movement is deliberately absent from the sweep below, and Input.ResetInputAxes() is
+            // deliberately not called. This dialog takes no typed text, so there is no reason for
+            // it to root the player: Valheim's own panels let the character keep walking while
+            // they are open, and clearing the movement buttons every frame made this dialog the
+            // one place that did not. Actions still stop, both here and through the
+            // Player.TakeInput patch. Only the name-entry dialog stops movement, because only it
+            // turns a movement key into a letter.
             try
             {
                 if (ZInput.instance != null)
                 {
-                    ZInput.ResetButtonStatus("Forward");
-                    ZInput.ResetButtonStatus("Backward");
-                    ZInput.ResetButtonStatus("Left");
-                    ZInput.ResetButtonStatus("Right");
-                    ZInput.ResetButtonStatus("Jump");
-                    ZInput.ResetButtonStatus("Crouch");
-                    ZInput.ResetButtonStatus("Run");
                     ZInput.ResetButtonStatus("Use");
                     ZInput.ResetButtonStatus("Attack");
                     ZInput.ResetButtonStatus("SecondAttack");

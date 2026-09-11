@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using UnityEngine;
 
 namespace ValheimRecipePinner
@@ -126,11 +127,7 @@ namespace ValheimRecipePinner
                         string key = parts[0].Trim(',', '"', ' ', '\t', '\r');
                         string val = parts[1].Trim(',', '"', ' ', '\t', '\r');
 
-                        // Unescape basic JSON escape sequences
-                        val = val.Replace("\\\"", "\"")
-                                 .Replace("\\n", "\n")
-                                 .Replace("\\t", "\t")
-                                 .Replace("\\\\", "\\");
+                        val = UnescapeValue(val);
 
                         if (!string.IsNullOrEmpty(key) && !string.IsNullOrEmpty(val))
                         {
@@ -142,7 +139,7 @@ namespace ValheimRecipePinner
 
                 // A file the parser cannot read still falls back to English, silently. Warn when the
                 // result is far below the expected key count - that is what a format it does not
-                // understand looks like (see C14). Warning is not gated by EnableDebugLogging.
+                // understand looks like. Warning is not gated by EnableDebugLogging.
                 if (loadedCount < _defaultEnglish.Count / 2)
                 {
                     DebugLogger.Warning($"Only {loadedCount} of {_defaultEnglish.Count} translations were read from {safeLang}.json - the file format may not be supported (one \"key\": \"value\" pair per line is expected). The missing texts fall back to English.");
@@ -154,6 +151,51 @@ namespace ValheimRecipePinner
             {
                 DebugLogger.Error($"Failed to load language file: {langPath}", ex);
             }
+        }
+
+        /// <summary>
+        /// Decodes the escape sequences a translation file may contain, in one pass.
+        ///
+        /// A chain of Replace calls cannot do this correctly in any order. Decoding \" then \n
+        /// then \\ means a file written as \\n - an escaped backslash followed by the letter n -
+        /// has its second backslash eaten by the \n step, leaving a stray backslash and a real
+        /// line break. Putting \\ first only moves the damage: a genuine \n then decodes to a
+        /// lone backslash before the newline step ever sees it. The problem is that each Replace
+        /// rescans what the previous one produced, so the only correct approach is to walk the
+        /// string once and never re-read what has already been written.
+        ///
+        /// Unrecognised escapes are passed through untouched, backslash and all, so a file that
+        /// uses a sequence this method does not know is left readable rather than silently
+        /// mangled. A trailing lone backslash is kept as-is for the same reason.
+        /// </summary>
+        private static string UnescapeValue(string raw)
+        {
+            if (string.IsNullOrEmpty(raw) || raw.IndexOf('\\') < 0)
+                return raw;
+
+            StringBuilder sb = new StringBuilder(raw.Length);
+
+            for (int i = 0; i < raw.Length; i++)
+            {
+                char c = raw[i];
+
+                if (c != '\\' || i + 1 >= raw.Length)
+                {
+                    sb.Append(c);
+                    continue;
+                }
+
+                switch (raw[i + 1])
+                {
+                    case '"':  sb.Append('"');  i++; break;
+                    case 'n':  sb.Append('\n'); i++; break;
+                    case 't':  sb.Append('\t'); i++; break;
+                    case '\\': sb.Append('\\'); i++; break;
+                    default:   sb.Append(c);         break;
+                }
+            }
+
+            return sb.ToString();
         }
 
         public string GetText(string key)

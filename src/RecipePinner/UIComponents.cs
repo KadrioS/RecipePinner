@@ -257,9 +257,9 @@ namespace ValheimRecipePinner
     /// <summary>
     /// Shows a label while the pointer is over this object, and hides it again on the way out.
     /// Deliberately not Valheim's UITooltip: that one drives a single tooltip object held in a
-    /// static field shared by the whole game, so one exception raised inside it stopped every
-    /// tooltip in Valheim until the game was restarted. This owns its label and can only break
-    /// itself. (U14)
+    /// static field shared by the whole game, so one exception raised inside it stops every
+    /// tooltip in Valheim until the game is restarted. This owns its label and can only break
+    /// itself.
     /// </summary>
     public class HoverLabel : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {

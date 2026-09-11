@@ -759,8 +759,8 @@ namespace ValheimRecipePinner
 
             // Ask what is under the pointer first. Valheim 1.0's cached hover state is only
             // updated by pointer enter/exit events, so it is empty on the first press after the
-            // build menu opens or after its button list is rebuilt - see U18 and section 24. The
-            // cached lookup stays as a fallback for anything the raycast cannot see.
+            // build menu opens or after its button list is rebuilt. The cached lookup stays as a
+            // fallback for anything the raycast cannot see.
             Piece targetPiece = ReflectionHelper.GetBuildMenuPieceUnderPointer();
             if (targetPiece == null)
                 targetPiece = ReflectionHelper.GetHoveredPiece(Hud.instance);
@@ -1168,15 +1168,15 @@ namespace ValheimRecipePinner
                     continue;
                 }
 
-                // Valheim 1.0's War Idols are flagged m_upgraderResource and are consumed only at
+                // Valheim 1.0's Battle Idols are flagged m_upgraderResource and are consumed only at
                 // the Forge of Potential. That is an *alternative* upgrade route, not a required
                 // one: IsValidUpgradeTarget refuses any level above the item's m_maxQuality, so
                 // every upgrade this mod can pin is reachable at an ordinary station with ordinary
                 // materials. Showing the idol would advertise a material the pin never needs.
                 //
-                // Mirroring vanilla's station-dependent rule here was tried and rejected on
-                // 2026-09-10: a pinned row then changed every time the player walked up to a Forge
-                // and back, which reads as the pin changing its mind. See CLAUDE_RAPOR.md §23.
+                // Deliberately not station-dependent. The game shows these only at an upgrade
+                // station, but a pin lives on the HUD permanently - matching that would make a
+                // pinned row change every time the player walks up to a Forge and back.
                 if (res.m_upgraderResource)
                 {
                     continue;

@@ -424,7 +424,7 @@ namespace ValheimRecipePinner
                 new ConfigDescription("Records which one-time config migrations have already run. Not meant to be edited.", null,
                 new ConfigurationManagerAttributes { Browsable = false, Order = 1 }));
 
-            // Migration 1 - the My Pins button placement (U11). Its old default sat on top of the
+            // Migration 1 - the My Pins button placement. Its old default sat on top of the
             // crafting station's own picture, but BepInEx writes the config file on a player's
             // first run, so a changed default reaches nobody who has already played. Move only the
             // players still on both old defaults: someone who picked a position of their own gets

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace ValheimRecipePinner
 {
-    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.4.0")]
+    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.4.1")]
     public partial class RecipePinnerPlugin : BaseUnityPlugin
     {
         public static RecipePinnerPlugin Instance;
@@ -88,9 +88,9 @@ namespace ValheimRecipePinner
 
             // Record the language the translations were just loaded for. Without this the change
             // detection in Update() sees "" on its first frame and fires a language change that
-            // never happened, reloading everything once per launch (C17). Only when Localization
-            // is up: if it is not, LoadTranslations fell back to English and the detection should
-            // still fire once the real language becomes available.
+            // never happened, reloading everything once per launch. Only when Localization is up:
+            // if it is not, LoadTranslations fell back to English and the detection should still
+            // fire once the real language becomes available.
             if (Localization.instance != null)
                 _lastLanguage = Localization.instance.GetSelectedLanguage();
 
@@ -547,9 +547,11 @@ namespace ValheimRecipePinner
         // ============================================================
 
         /// <summary>
-        /// Blocks ALL player input (movement, emotes, actions, etc.)
-        /// while a modal dialog (GroupNameDialog or ConfirmDialog) is open.
-        /// Player.TakeInput is the central input gate for the player character.
+        /// Blocks player input while a modal dialog (GroupNameDialog or ConfirmDialog)
+        /// or the My Pins panel is open.
+        ///
+        /// This gate does not cover movement. PlayerController has a TakeInput of its
+        /// own that never calls this one, so both patches are needed - see below.
         /// </summary>
         [HarmonyPatch(typeof(Player), "TakeInput")]
         [HarmonyPrefix]
@@ -560,6 +562,36 @@ namespace ValheimRecipePinner
 
             if (Instance?.UIMgr != null && Instance.UIMgr.IsMyPinsPanelOpen)
                 return false; // My Pins is modal; block player input behind the panel
+
+            return true;
+        }
+
+        /// <summary>
+        /// Blocks movement while the group-name dialog is taking text.
+        ///
+        /// PlayerController.FixedUpdate consults PlayerController.TakeInput before it
+        /// reads any movement input, and that method never calls Player.TakeInput -
+        /// the two gates are independent. Vanilla names its own text surfaces here
+        /// (chat, the console, the map's text input, the build menu's search field),
+        /// which is why typing in one of them does not walk the character. A field
+        /// this mod builds is in none of them, so without this patch a key bound to
+        /// movement still reaches the player while the field has focus - auto-run is
+        /// the case players hit, because it latches and keeps running.
+        ///
+        /// The test is whether the mod is swallowing keystrokes, not whether something
+        /// modal is on screen, so this is deliberately narrower than the
+        /// Player.TakeInput patch above. The My Pins panel and the confirm dialogs
+        /// (delete, disband, clear) take no typed text and do not appear here: like
+        /// Valheim's own Compendium, Skills and Trophies panels, they let the player
+        /// keep walking and auto-running. Only the group-name field, which turns a
+        /// movement key into a letter, has a reason to stop the character.
+        /// </summary>
+        [HarmonyPatch(typeof(PlayerController), "TakeInput")]
+        [HarmonyPrefix]
+        public static bool PlayerController_TakeInput_BlockDuringDialog()
+        {
+            if (GroupNameDialog.IsDialogOpen)
+                return false; // Skip original - no movement while the name field has focus
 
             return true;
         }
