@@ -1,6 +1,8 @@
 {
   "pinned": "Recette épinglée !",
   "unpinned": "Épingle supprimée",
+  "hint_pin": "Épingler",
+  "hint_unpin": "Désépingler",
   "list_full": "Liste pleine !",
   "added_more": "Plus ajouté : {0}x",
   "decreased": "Diminué : {0}x",
@@ -8,6 +10,7 @@
   "clear_confirm_hotkey": "Appuyez à nouveau pour effacer toutes les épingles",
   "max_level": "Niveau max atteint",
   "no_upgrade_cost": "Aucun coût d'amélioration trouvé",
+  "forge_route": "Idole",
   "gathering_title": "LISTE DE COLLECTE",
   "gathering_opened": "Liste de collecte ouverte",
   "gathering_closed": "Liste de collecte fermée",

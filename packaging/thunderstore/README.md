@@ -2,7 +2,7 @@
 
 ### Your crafting companion for Valheim
 
-[![Version](https://img.shields.io/badge/version-1.4.1-brightgreen?style=for-the-badge)](https://thunderstore.io/c/valheim/p/KadrioS/RecipePinner/)
+[![Version](https://img.shields.io/badge/version-1.5.0-brightgreen?style=for-the-badge)](https://thunderstore.io/c/valheim/p/KadrioS/RecipePinner/)
 [![Hexium](https://img.shields.io/badge/Hexium-Download-purple?style=for-the-badge)](https://valheim.hexium.gg/mods/Kadrio/RecipePinner)
 [![NexusMods](https://img.shields.io/badge/NexusMods-Download-orange?style=for-the-badge)](https://www.nexusmods.com/valheim/mods/3195)
 
@@ -40,15 +40,24 @@ Less menu checking. Less guessing. More building, crafting, and exploring.
 
 Hover over a crafting recipe or Hammer build piece and press the Pin hotkey. Press it again on the same recipe to raise the count, and every material total follows. Building pieces from the Hammer work exactly like crafting recipes. Defaults and rebinding are in the Controls section below.
 
+Valheim 1.0 gives one upgrade two prices: the ordinary materials at a normal station, or a single Idol at the **Forge of Potential**. Pin an upgrade while standing at the Forge of Potential and the pin asks for the idol; pin it anywhere else and you get the ordinary materials. Levels past an item's usual quality cap can only be reached at the Forge of Potential, and they can be pinned now too.
+
+Your pin and unpin keys also appear in Valheim's own button-hint bar, alongside Move and Use, and follow your keys if you rebind them.
+
 Pin the same recipe more than once and each material row also shows what a **single one** costs, in brackets. Ten stone axes need fifty wood, so the row reads `8/50(5)` - the total stays red because fifty is out of reach, while `(5)` turns green the moment you can afford one axe. No mental arithmetic to find out whether you can craft one right now. Turn it off with `ShowSingleUnitRequirement`.
 
 ### 🧩 My Pins And Pin Groups
 
-Version 1.3.0 adds a new **My Pins** panel and **Pin Groups**.
+The **My Pins** panel lists everything you have pinned, and every row carries its own materials underneath the name, with the same have/required numbers and colours the HUD uses. A row tells you whether you can make that thing right now, rather than just naming it.
 
-Use them to view active pins, remove pins, select multiple pins, create named groups, expand groups, adjust member counts, and disband groups back into individual pins.
+From the panel you can:
 
-Groups are ideal for armor sets, building projects, portal kits, food prep, and other multi-recipe goals. A group appears as one HUD pin with a merged material list and a stacked-cards group icon.
+* Remove pins, or change how many copies of a recipe you want.
+* Select several pins and combine them into a named **group**.
+* Expand a group to see its members, each with its own materials.
+* Adjust a member's count, or disband the group back into individual pins.
+
+Groups are ideal for armor sets, building projects, portal kits, food prep, and other multi-recipe goals. A group appears as one HUD pin with a merged material list and a stacked-cards group icon. The group's own row shows no materials - open it, and each member shows its own, which answers the question a merged list cannot: **which one of these can I craft right now?**
 
 Duplicate pins can also be split between groups or kept as individual pins, so one recipe can belong to more than one project.
 
@@ -84,7 +93,7 @@ Recipe Pinner can reposition pins depending on what you are doing.
 
 ### 💾 Safer Saves And Ordering
 
-Pinned recipes, Pin Groups, group member counts, and pin/group order are saved together. Version 1.3.0 also improves save reliability with safer temp-file replacement and backup behavior.
+Pinned recipes, Pin Groups, group member counts, and pin/group order are saved together, with safer temp-file replacement and backup behavior.
 
 ### 🌍 Languages And Customization
 
@@ -261,7 +270,7 @@ Recipe Pinner can move pins while sailing to reduce HUD overlap.
 
 ## ⚙️ Configuration
 
-Sixty settings across thirteen sections, and **almost every one applies the moment you change it** - no restart, no reload. Open the config while the HUD is on screen and you can watch a slider move the pins.
+Sixty-five settings across thirteen sections, and **almost every one applies the moment you change it** - no restart, no reload. Open the config while the HUD is on screen and you can watch a slider move the pins.
 
 Install [Official BepInEx ConfigurationManager](https://valheim.thunderstore.io/package/Azumatt/Official_BepInEx_ConfigurationManager/) and press `F1` in-game. Editing `BepInEx/config/com.Kadrio.RecipePinner.cfg` by hand works too; deleting that file restores every default on the next launch.
 
@@ -275,10 +284,10 @@ Install [Official BepInEx ConfigurationManager](https://valheim.thunderstore.io/
 | **Pagination** | Page dot size, spacing, color and inactive opacity |
 | **Gathering List** | Turn it on, open it automatically, column count, font sizes, and where it sits beside an open chest |
 | **Groups** | When a group switches to the compact grid, how many rows it may use, and the group icon's font size |
-| **My Pins Panel** | Panel width, height and position, plus the button's position, size and icon color |
+| **My Pins Panel** | Panel width, height and position, the button's position, size and icon color, and the size of the materials shown on each row |
 | **Layout (Vertical)** | List width, pin spacing, position |
 | **Layout (Horizontal - Map Side)** | Column width, pin spacing, position |
-| **Layout (Horizontal - Bottom Right)** | Column width, pin spacing, position |
+| **Layout (Horizontal - Bottom Right)** | Column width, pin spacing, position, and whether the list lifts clear of Valheim's button-hint bar |
 | **Debug** | Verbose logging. Off by default; turn it on before reporting a bug |
 
 <details>
@@ -294,7 +303,7 @@ Install [Official BepInEx ConfigurationManager](https://valheim.thunderstore.io/
 
 ### Mod Manager
 
-Install with [Thunderstore Mod Manager](https://www.overwolf.com/app/thunderstore-thunderstore_mod_manager), [r2modman](https://thunderstore.io/c/valheim/p/ebkr/r2modman/) or [Gale](https://thunderstore.io/c/valheim/p/Kesomannen/GaleModManager/).
+Install with [Thunderstore Mod Manager](https://www.overwolf.com/app/thunderstore-thunderstore_mod_manager), [r2modman](https://thunderstore.io/c/valheim/p/ebkr/r2modman/) or Recommended [Gale](https://thunderstore.io/c/valheim/p/Kesomannen/GaleModManager/).
 
 This is the easiest option and handles dependencies automatically.
 
@@ -335,7 +344,7 @@ Recipe Pinner auto-detects your Valheim language.
 
 You can also force a language with the `LanguageOverride` config option.
 
-Version 1.3.0 includes language files for every Valheim-supported language.
+Recipe Pinner includes language files for every Valheim-supported language.
 
 Note: Some translations may be imperfect because they were AI-assisted. If you find a bad translation, please report it.
 
@@ -473,7 +482,22 @@ If you are coming from 1.2.x, it is worth launching once, opening the config, an
 <details>
 <summary><b>Why are some translations imperfect?</b></summary>
 
-Version 1.3.0 includes language files for every Valheim-supported language, but some translations were AI-assisted. Please report incorrect or awkward translations.
+Recipe Pinner includes language files for every Valheim-supported language, but some translations were AI-assisted. Please report incorrect or awkward translations.
+
+</details>
+
+<details>
+<summary><b>Will this mod disable my achievements?</b></summary>
+
+Valheim switches achievements off while **any** mod is installed. That is the game's own check and every mod trips it, Recipe Pinner included - but it is not permanent, and it is not something the mod does to you. The modded flag only exists in the running game, so removing your mods turns achievements back on.
+
+What *is* permanent is the game's own cheat marking: console cheats are recorded on your character, spawned items stay marked as cheated for as long as you keep them, and world modifiers are recorded on the world. Recipe Pinner does none of these - it reads your inventory and draws a HUD. It runs no console commands, spawns nothing and changes no world setting.
+
+Since Valheim 1.0.12 you can also opt back in while still modded. With the console enabled, run:
+
+`yesiuseddevcommandsbutiwantmyachievementsanyway 1`
+
+The setting is saved on your character, so once is enough.
 
 </details>
 
@@ -481,7 +505,9 @@ Version 1.3.0 includes language files for every Valheim-supported language, but 
 
 ## 🐞 Known Issues
 
-* Pinning an upgrade at the **Forge of Potential** shows the ordinary crafting materials instead of the idol.
+Nothing outstanding at the moment. If you run into something, please report it - see **Support And Feedback** below.
+
+The mod's own shortcuts are keyboard and mouse only, so controller players will not see them in Valheim's button-hint bar. Gamepad support is on the ideas list rather than the bug list, since the mod has never bound controller input.
 
 ---
 
@@ -492,8 +518,12 @@ These are features I may consider for future updates:
 * **Group readiness bar:** split a group's accent bar into one segment per member, so a single glance tells you which recipes in the project are already craftable. The third recipe in the group lights up the third segment.
 * **Chest Scanner support in the readiness bar:** turn the accent bar yellow when a recipe is craftable only with nearby chest contents, matching how material counts already behave.
 * **Pinned recipe highlight:** draw a border around pinned recipes inside the crafting panel so you can see what is already pinned at a glance. This one may not be feasible.
-* **Hold-to-pin quantity preview:** hold the Pin hotkey to see how many copies you are about to pin before releasing.
-* **Pin keybind hint:** show the Pin control in the crafting menu's hint bar, next to Move and Use, so new players can discover the pin key without opening the config.
+* **Hold-to-pin quantity preview:** hold the Pin hotkey to choose how many copies to pin - a slider and a typed number, with cancel and confirm - instead of pressing the key once per copy.
+* ✅ ~~**Pin keybind hint:** show the Pin control in the crafting menu's hint bar, next to Move and Use, so new players can discover the pin key without opening the config.~~ Added in 1.5.0.
+* **Station requirement on the pin:** show which crafting station a recipe needs and at what level, so a pin can tell you that the materials are ready but the station is not.
+* **Ready-made pin sets:** a button in My Pins that pins a whole set at once - an iron kit, a bronze kit - without picking the recipes one by one.
+* **Share a group to chat:** send a group's material list into the chat window, so the rest of a co-op party knows what to collect.
+* **Gamepad support:** the mod's shortcuts are keyboard and mouse only today, so its hints do not appear for controller players either.
 * Material gathered notification.
 * Auto-sorting craftable pins to the top.
 * Visual chest highlighting for required materials.

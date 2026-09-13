@@ -6,12 +6,34 @@ namespace ValheimRecipePinner
 {
     public partial class UIManager
     {
+        // Allocated once and cleared per refresh. A fresh dictionary here would be garbage on
+        // every selection click, and this panel refreshes from more than a dozen handlers.
+        private readonly Dictionary<string, PinnedRecipeData> _reusablePinLookup = new Dictionary<string, PinnedRecipeData>();
+
         public void RefreshMyPinsList()
         {
             if (_myPinsPanel == null || !_myPinsPanel.gameObject.activeSelf) return;
 
             var recipeMgr = RecipePinnerPlugin.Instance?.RecipeMgr;
             if (recipeMgr == null) return;
+
+            // The HUD cache holds every pin, not just the page being drawn, so it is the right
+            // source for a panel that lists them all. Keyed by the pin key rather than the
+            // recipe's own name: a name two recipes share carries a "#N" ordinal that the name
+            // alone would lose.
+            _reusablePinLookup.Clear();
+            foreach (var cached in recipeMgr.CachedPins)
+            {
+                if (cached == null || cached.IsGroup) continue;
+                if (string.IsNullOrEmpty(cached.PinKey)) continue;
+                _reusablePinLookup[cached.PinKey] = cached;
+            }
+
+            Player amountPlayer = Player.m_localPlayer;
+            if (amountPlayer != null)
+                RefreshInventoryCounts(amountPlayer.GetInventory());
+
+            ContainerScanner amountContainers = RecipePinnerPlugin.Instance.ContainerMgr;
 
             List<MyPinDisplayItem> displayItems = new List<MyPinDisplayItem>();
 
@@ -81,10 +103,22 @@ namespace ValheimRecipePinner
 
                                 if (memberData != null)
                                 {
-                                    memberName = string.IsNullOrEmpty(memberData.CachedHeader) ? memberKey : memberData.CachedHeader;
-                                    string countPrefix = memberCount + "x ";
-                                    if (memberName.StartsWith(countPrefix))
-                                        memberName = memberName.Substring(countPrefix.Length);
+                                    if (string.IsNullOrEmpty(memberData.CachedHeader))
+                                    {
+                                        memberName = memberKey;
+                                    }
+                                    else
+                                    {
+                                        memberName = memberData.CachedHeader;
+                                        string countPrefix = memberCount + "x ";
+                                        if (memberName.StartsWith(countPrefix))
+                                            memberName = memberName.Substring(countPrefix.Length);
+
+                                        // CachedHeader is built for the HUD, which leaves the
+                                        // route off. My Pins has the width to spell it out.
+                                        memberName += RecipeManager.BuildUpgradeRouteSuffix(memberKey);
+                                    }
+
                                     memberIcon = memberData.Icon;
                                 }
                                 else
@@ -95,7 +129,9 @@ namespace ValheimRecipePinner
                                         memberIcon = memberRecipe.m_item.m_itemData.GetIcon();
                                         string rawToken = memberRecipe.m_item.m_itemData.m_shared != null ? memberRecipe.m_item.m_itemData.m_shared.m_name : null;
                                         if (Localization.instance != null && !string.IsNullOrEmpty(rawToken))
-                                            memberName = Localization.instance.Localize(rawToken);
+                                            memberName = Localization.instance.Localize(rawToken)
+                                                + RecipeManager.BuildUpgradeLevelSuffix(memberKey)
+                                                + RecipeManager.BuildUpgradeRouteSuffix(memberKey);
 
                                         if (memberRecipe.m_amount > 1) memberName += $" (x{memberRecipe.m_amount})";
                                     }
@@ -105,7 +141,7 @@ namespace ValheimRecipePinner
                                         {
                                             if (!cached.IsGroup && cached.RecipeRef != null && cached.RecipeRef.name == memberKey)
                                             {
-                                                memberName = cached.CachedHeader;
+                                                memberName = cached.CachedHeader + RecipeManager.BuildUpgradeRouteSuffix(memberKey);
                                                 memberIcon = cached.Icon;
                                                 break;
                                             }
@@ -122,8 +158,12 @@ namespace ValheimRecipePinner
                                     IsGroup = false,
                                     IsSubItem = true,
                                     ParentGroupName = groupName,
-                                    GroupData = null
+                                    GroupData = null,
+                                    Resources = memberData != null ? memberData.Resources : null
                                 });
+
+                                if (memberData != null)
+                                    RefreshResourceAmountStrings(memberData, amountContainers);
                             }
                         }
                     }
@@ -146,8 +186,14 @@ namespace ValheimRecipePinner
                 {
                     icon = recipe.m_item.m_itemData.GetIcon();
                     string rawToken = recipe.m_item.m_itemData.m_shared != null ? recipe.m_item.m_itemData.m_shared.m_name : null;
+
+                    // The upgrade level and its route live in the key, not in the item name, so
+                    // two upgrade pins of one item would otherwise draw as identical rows. The HUD
+                    // shows only the level; here there is width for the route as well.
                     if (Localization.instance != null && !string.IsNullOrEmpty(rawToken))
-                        displayName = Localization.instance.Localize(rawToken);
+                        displayName = Localization.instance.Localize(rawToken)
+                            + RecipeManager.BuildUpgradeLevelSuffix(entry)
+                            + RecipeManager.BuildUpgradeRouteSuffix(entry);
 
                     // Same suffix the HUD uses, so a 1x and a 5x recipe of the same item are
                     // not two identical-looking rows.
@@ -159,12 +205,17 @@ namespace ValheimRecipePinner
                     {
                         if (!cached.IsGroup && cached.RecipeRef != null && cached.RecipeRef.name == entry)
                         {
-                            displayName = cached.CachedHeader;
+                            displayName = cached.CachedHeader + RecipeManager.BuildUpgradeRouteSuffix(entry);
                             icon = cached.Icon;
                             break;
                         }
                     }
                 }
+
+                PinnedRecipeData rowPinData;
+                if (!_reusablePinLookup.TryGetValue(entry, out rowPinData)) rowPinData = null;
+                if (rowPinData != null)
+                    RefreshResourceAmountStrings(rowPinData, amountContainers);
 
                 displayItems.Add(new MyPinDisplayItem
                 {
@@ -175,7 +226,8 @@ namespace ValheimRecipePinner
                     IsGroup = false,
                     IsSubItem = false,
                     ParentGroupName = null,
-                    GroupData = null
+                    GroupData = null,
+                    Resources = rowPinData != null ? rowPinData.Resources : null
                 });
             }
 
@@ -249,6 +301,36 @@ namespace ValheimRecipePinner
                             slot.Icon.sprite = data.Icon;
                         }
                     }
+
+                    // Cells are pooled per row: grown once, hidden when surplus, never destroyed.
+                    // A group row passes null Resources on purpose and ends up with no strip.
+                    int matCount = (data.Resources != null) ? data.Resources.Count : 0;
+
+                    if (slot.MaterialsRoot != null)
+                    {
+                        for (int m = slot.MaterialCells.Count; m < matCount; m++)
+                            slot.MaterialCells.Add(UIBuilder.CreateMyPinMaterialCell(slot.MaterialsRoot, _cachedFont));
+
+                        for (int m = 0; m < slot.MaterialCells.Count; m++)
+                        {
+                            MyPinMaterialUI cell = slot.MaterialCells[m];
+                            if (cell == null) continue;
+
+                            if (m < matCount)
+                            {
+                                PinnedResData res = data.Resources[m];
+                                if (!cell.gameObject.activeSelf) cell.gameObject.SetActive(true);
+                                if (cell.Icon != null) cell.Icon.sprite = res.Icon;
+                                if (cell.AmountText != null) cell.AmountText.text = res.CachedAmountString ?? "";
+                            }
+                            else if (cell.gameObject.activeSelf)
+                            {
+                                cell.gameObject.SetActive(false);
+                            }
+                        }
+                    }
+
+                    slot.SetMaterialsVisible(matCount > 0);
 
                     string capturedKey = data.Key;
                     string capturedName = data.DisplayName;
@@ -373,5 +455,9 @@ namespace ValheimRecipePinner
         public bool IsSubItem;
         public string ParentGroupName;
         public PinGroupData GroupData;
+
+        // The row's own materials. Null for a group row, which deliberately shows none: a group's
+        // merged list is what hid "which member could I craft right now" in the first place.
+        public List<PinnedResData> Resources;
     }
 }

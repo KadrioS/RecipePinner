@@ -532,20 +532,65 @@ namespace ValheimRecipePinner
             rowBg.color = new Color(0, 0, 0, 0f);
             rowBg.raycastTarget = true;
 
-            HorizontalLayoutGroup hlg = go.AddComponent<HorizontalLayoutGroup>();
+            // The row is two lines now: the controls on top, the materials strip beneath. Putting
+            // the materials beside the name instead would have taken width the name does not have
+            // - long localized names already wrap in the space a row leaves them.
+            VerticalLayoutGroup rowVlg = go.AddComponent<VerticalLayoutGroup>();
+            rowVlg.childControlHeight = true;
+            rowVlg.childControlWidth = true;
+            rowVlg.childForceExpandHeight = false;
+            rowVlg.childForceExpandWidth = true;
+            rowVlg.childAlignment = TextAnchor.UpperLeft;
+            rowVlg.spacing = 2;
+            rowVlg.padding = new RectOffset(6, 6, 4, 4);
+            item.RowLayout = rowVlg;
+
+            LayoutElement rowLe = go.AddComponent<LayoutElement>();
+            rowLe.minHeight = 38;
+            rowLe.flexibleWidth = 1;
+            item.RowHeight = rowLe;
+
+            GameObject topRow = new GameObject("TopRow", typeof(RectTransform)) { layer = 5 };
+            topRow.transform.SetParent(go.transform, false);
+
+            HorizontalLayoutGroup hlg = topRow.AddComponent<HorizontalLayoutGroup>();
             hlg.childControlHeight = true;
             hlg.childControlWidth = true;
             hlg.childForceExpandHeight = false;
             hlg.childForceExpandWidth = false;
             hlg.childAlignment = TextAnchor.MiddleLeft;
             hlg.spacing = 10;
-            hlg.padding = new RectOffset(6, 6, 4, 4);
+            hlg.padding = new RectOffset(0, 0, 0, 0);
+            item.TopRowLayout = hlg;
 
-            LayoutElement rowLe = go.AddComponent<LayoutElement>();
-            rowLe.minHeight = 38;
-            rowLe.flexibleWidth = 1;
+            LayoutElement topLe = topRow.AddComponent<LayoutElement>();
+            topLe.minHeight = 30;
+            topLe.flexibleWidth = 1;
 
-            Button expandBtn = CreateSmallVanillaButton(go.transform, "\u25BA", size: 26);
+            GameObject matsRow = new GameObject("Materials", typeof(RectTransform)) { layer = 5 };
+            matsRow.transform.SetParent(go.transform, false);
+
+            HorizontalLayoutGroup matsHlg = matsRow.AddComponent<HorizontalLayoutGroup>();
+            // The cells must be sized by their LayoutElements. With childControl off, a child
+            // keeps whatever its RectTransform says - and a fresh one says 100x100.
+            matsHlg.childControlHeight = true;
+            matsHlg.childControlWidth = true;
+            matsHlg.childForceExpandHeight = false;
+            matsHlg.childForceExpandWidth = false;
+            matsHlg.childAlignment = TextAnchor.MiddleLeft;
+            matsHlg.spacing = 8;
+            matsHlg.padding = new RectOffset(2, 2, 0, 0);
+
+            LayoutElement matsLe = matsRow.AddComponent<LayoutElement>();
+            float stripHeight = MyPinItemUI.MaterialsStripHeight;
+            matsLe.minHeight = stripHeight;
+            matsLe.preferredHeight = stripHeight;
+            matsLe.flexibleWidth = 1;
+
+            item.MaterialsRoot = matsRow.transform;
+            matsRow.SetActive(false);
+
+            Button expandBtn = CreateSmallVanillaButton(topRow.transform, "\u25BA", size: 26);
             expandBtn.gameObject.name = "ExpandBtn";
             Text expandTxt = expandBtn.GetComponentInChildren<Text>();
             // Keep group expand/collapse glyphs visually stable.
@@ -556,7 +601,7 @@ namespace ValheimRecipePinner
             item.ExpandButtonText = expandTxt;
 
             GameObject toggleObj = new GameObject("SelectToggle", typeof(RectTransform)) { layer = 5 };
-            toggleObj.transform.SetParent(go.transform, false);
+            toggleObj.transform.SetParent(topRow.transform, false);
 
             Toggle toggle = toggleObj.AddComponent<Toggle>();
             Image toggleBg = toggleObj.AddComponent<Image>();
@@ -581,7 +626,7 @@ namespace ValheimRecipePinner
             item.SelectToggle = toggle;
 
             GameObject iconRoot = new GameObject("IconRoot", typeof(RectTransform)) { layer = 5 };
-            iconRoot.transform.SetParent(go.transform, false);
+            iconRoot.transform.SetParent(topRow.transform, false);
             item.IconRoot = iconRoot.transform;
 
             HorizontalLayoutGroup iconHlg = iconRoot.AddComponent<HorizontalLayoutGroup>();
@@ -606,7 +651,7 @@ namespace ValheimRecipePinner
             item.Icon = iconImg;
 
             GameObject nameObj = new GameObject("Name", typeof(RectTransform)) { layer = 5 };
-            nameObj.transform.SetParent(go.transform, false);
+            nameObj.transform.SetParent(topRow.transform, false);
             Text nameText = nameObj.AddComponent<Text>();
             nameText.raycastTarget = false;
             nameText.font = font;
@@ -621,7 +666,7 @@ namespace ValheimRecipePinner
             leName.minWidth = 60;
 
             GameObject countObj = new GameObject("Count", typeof(RectTransform)) { layer = 5 };
-            countObj.transform.SetParent(go.transform, false);
+            countObj.transform.SetParent(topRow.transform, false);
             Text countText = countObj.AddComponent<Text>();
             countText.raycastTarget = false;
             countText.font = font;
@@ -633,20 +678,66 @@ namespace ValheimRecipePinner
             LayoutElement leCount = countObj.AddComponent<LayoutElement>();
             leCount.minWidth = 30;
 
-            Button minusBtn = CreateSmallVanillaButton(go.transform, "-");
+            Button minusBtn = CreateSmallVanillaButton(topRow.transform, "-");
             item.MinusButton = minusBtn;
 
-            Button plusBtn = CreateSmallVanillaButton(go.transform, "+");
+            Button plusBtn = CreateSmallVanillaButton(topRow.transform, "+");
             item.PlusButton = plusBtn;
 
-            Button disbandBtn = CreateSmallVanillaButton(go.transform, "\u2298");
+            Button disbandBtn = CreateSmallVanillaButton(topRow.transform, "\u2298");
             disbandBtn.gameObject.SetActive(false);
             item.DisbandButton = disbandBtn;
 
-            Button delBtn = CreateSmallVanillaButton(go.transform, "X");
+            Button delBtn = CreateSmallVanillaButton(topRow.transform, "X");
             item.DeleteButton = delBtn;
 
             return item;
+        }
+
+        public static MyPinMaterialUI CreateMyPinMaterialCell(Transform parent, Font font)
+        {
+            GameObject go = new GameObject("MatCell", typeof(RectTransform)) { layer = 5 };
+            go.transform.SetParent(parent, false);
+
+            MyPinMaterialUI cell = go.AddComponent<MyPinMaterialUI>();
+
+            HorizontalLayoutGroup hlg = go.AddComponent<HorizontalLayoutGroup>();
+            hlg.childControlHeight = true;
+            hlg.childControlWidth = true;
+            hlg.childForceExpandHeight = false;
+            hlg.childForceExpandWidth = false;
+            hlg.childAlignment = TextAnchor.MiddleLeft;
+            hlg.spacing = 2;
+
+            float iconSize = (RecipePinnerPlugin.MaterialIconSize == null) ? 18f : RecipePinnerPlugin.MaterialIconSize.Value;
+
+            GameObject iconObj = new GameObject("Icon", typeof(RectTransform)) { layer = 5 };
+            iconObj.transform.SetParent(go.transform, false);
+            cell.Icon = iconObj.AddComponent<Image>();
+            cell.Icon.raycastTarget = false;
+            cell.Icon.preserveAspect = true;
+            iconObj.GetComponent<RectTransform>().sizeDelta = new Vector2(iconSize, iconSize);
+            LayoutElement leIcon = iconObj.AddComponent<LayoutElement>();
+            leIcon.minWidth = iconSize; leIcon.minHeight = iconSize;
+            leIcon.preferredWidth = iconSize; leIcon.preferredHeight = iconSize;
+
+            GameObject amountObj = new GameObject("Amount", typeof(RectTransform)) { layer = 5 };
+            amountObj.transform.SetParent(go.transform, false);
+            Text amount = amountObj.AddComponent<Text>();
+            amount.raycastTarget = false;
+            amount.font = font;
+            amount.fontSize = (RecipePinnerPlugin.MaterialFontSize == null) ? 12 : RecipePinnerPlugin.MaterialFontSize.Value;
+            amount.alignment = TextAnchor.MiddleLeft;
+            amount.horizontalOverflow = HorizontalWrapMode.Overflow;
+            // The amount arrives as rich text; its colours are the HUD's three-way availability rule.
+            amount.supportRichText = true;
+            cell.AmountText = amount;
+
+            LayoutElement leAmount = amountObj.AddComponent<LayoutElement>();
+            leAmount.minHeight = iconSize;
+            leAmount.preferredHeight = iconSize;
+
+            return cell;
         }
     }
 }

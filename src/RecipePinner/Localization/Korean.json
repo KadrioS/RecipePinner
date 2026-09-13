@@ -1,6 +1,8 @@
 {
   "pinned": "레시피 고정됨!",
   "unpinned": "고정 해제됨",
+  "hint_pin": "고정",
+  "hint_unpin": "고정 해제",
   "list_full": "목록이 꽉 찼습니다!",
   "added_more": "추가됨: {0}x",
   "decreased": "감소됨: {0}x",
@@ -8,6 +10,7 @@
   "clear_confirm_hotkey": "모든 핀을 지우려면 다시 누르세요",
   "max_level": "최대 레벨 도달",
   "no_upgrade_cost": "업그레이드 비용을 찾을 수 없음",
+  "forge_route": "우상",
   "gathering_title": "채집 목록",
   "gathering_opened": "채집 목록 열림",
   "gathering_closed": "채집 목록 닫힘",

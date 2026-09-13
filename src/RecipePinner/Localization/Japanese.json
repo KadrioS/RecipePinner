@@ -1,6 +1,8 @@
 {
   "pinned": "レシピをピン留めしました！",
   "unpinned": "ピン留めを解除しました",
+  "hint_pin": "ピン留め",
+  "hint_unpin": "ピン解除",
   "list_full": "リストがいっぱいです！",
   "added_more": "追加: {0}x",
   "decreased": "減少: {0}x",
@@ -8,6 +10,7 @@
   "clear_confirm_hotkey": "もう一度押すとすべてのピンを消去します",
   "max_level": "最大レベルに到達しました",
   "no_upgrade_cost": "アップグレードコストが見つかりません",
+  "forge_route": "偶像",
   "gathering_title": "採集リスト",
   "gathering_opened": "採集リストを開きました",
   "gathering_closed": "採集リストを閉じました",

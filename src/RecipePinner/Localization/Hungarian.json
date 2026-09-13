@@ -1,6 +1,8 @@
 {
   "pinned": "Recept kitűzve!",
   "unpinned": "Kitűzés eltávolítva",
+  "hint_pin": "Kitűz",
+  "hint_unpin": "Eltávolít",
   "list_full": "A lista megtelt!",
   "added_more": "Több hozzáadva: {0}x",
   "decreased": "Csökkentve: {0}x",
@@ -8,6 +10,7 @@
   "clear_confirm_hotkey": "Nyomja meg újra az összes kitűzés törléséhez",
   "max_level": "Maximális szint elérve",
   "no_upgrade_cost": "Nincs fejlesztési költség",
+  "forge_route": "Bálvány",
   "gathering_title": "GYŰJTŐLISTA",
   "gathering_opened": "Gyűjtőlista megnyitva",
   "gathering_closed": "Gyűjtőlista bezárva",

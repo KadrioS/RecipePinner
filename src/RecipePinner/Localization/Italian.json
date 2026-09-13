@@ -1,6 +1,8 @@
 {
   "pinned": "Ricetta fissata!",
   "unpinned": "Fissaggio rimosso",
+  "hint_pin": "Fissa",
+  "hint_unpin": "Rimuovi",
   "list_full": "Lista piena!",
   "added_more": "Aggiunto altro: {0}x",
   "decreased": "Diminuito: {0}x",
@@ -8,6 +10,7 @@
   "clear_confirm_hotkey": "Premi di nuovo per rimuovere tutti i pin",
   "max_level": "Livello massimo raggiunto",
   "no_upgrade_cost": "Nessun costo di aggiornamento trovato",
+  "forge_route": "Idolo",
   "gathering_title": "LISTA DI RACCOLTA",
   "gathering_opened": "Lista di raccolta aperta",
   "gathering_closed": "Lista di raccolta chiusa",

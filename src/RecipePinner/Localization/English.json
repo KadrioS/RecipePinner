@@ -1,6 +1,8 @@
 {
   "pinned": "Recipe Pinned!",
   "unpinned": "Pin Removed",
+  "hint_pin": "Pin",
+  "hint_unpin": "Unpin",
   "list_full": "List Full!",
   "added_more": "Added More: {0}x",
   "decreased": "Decreased: {0}x",
@@ -8,6 +10,7 @@
   "clear_confirm_hotkey": "Press again to clear all pins",
   "max_level": "Max Level Reached",
   "no_upgrade_cost": "No upgrade cost found",
+  "forge_route": "Idol",
   "gathering_title": "GATHERING LIST",
   "gathering_opened": "Gathering List Opened",
   "gathering_closed": "Gathering List Closed",

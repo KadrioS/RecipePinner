@@ -1,6 +1,8 @@
 {
   "pinned": "ปักหมุดสูตรแล้ว!",
   "unpinned": "ถอดหมุดแล้ว",
+  "hint_pin": "ปักหมุด",
+  "hint_unpin": "ถอดหมุด",
   "list_full": "รายการเต็ม!",
   "added_more": "เพิ่มอีก: {0}x",
   "decreased": "ลดลง: {0}x",
@@ -8,6 +10,7 @@
   "clear_confirm_hotkey": "กดอีกครั้งเพื่อล้างพินทั้งหมด",
   "max_level": "ถึงระดับสูงสุดแล้ว",
   "no_upgrade_cost": "ไม่พบค่าอัปเกรด",
+  "forge_route": "รูปเคารพ",
   "gathering_title": "รายการรวบรวม",
   "gathering_opened": "เปิดรายการรวบรวมแล้ว",
   "gathering_closed": "ปิดรายการรวบรวมแล้ว",

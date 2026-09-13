@@ -1,6 +1,8 @@
 {
   "pinned": "Opskrift fastgjort!",
   "unpinned": "Fastgørelse fjernet",
+  "hint_pin": "Fastgør",
+  "hint_unpin": "Fjern",
   "list_full": "Listen er fuld!",
   "added_more": "Tilføjet mere: {0}x",
   "decreased": "Reduceret: {0}x",
@@ -8,6 +10,7 @@
   "clear_confirm_hotkey": "Tryk igen for at rydde alle fastgørelser",
   "max_level": "Maks. niveau nået",
   "no_upgrade_cost": "Ingen opgraderingsomkostninger fundet",
+  "forge_route": "Idol",
   "gathering_title": "INDSAMLINGSLISTE",
   "gathering_opened": "Indsamlingsliste åbnet",
   "gathering_closed": "Indsamlingsliste lukket",

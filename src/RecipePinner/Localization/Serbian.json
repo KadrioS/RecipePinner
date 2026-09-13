@@ -1,6 +1,8 @@
 {
   "pinned": "Recept zakačen!",
   "unpinned": "Zakačka uklonjena",
+  "hint_pin": "Zakači",
+  "hint_unpin": "Otkači",
   "list_full": "Lista je puna!",
   "added_more": "Dodato još: {0}x",
   "decreased": "Smanjeno: {0}x",
@@ -8,6 +10,7 @@
   "clear_confirm_hotkey": "Pritisnite ponovo da obrišete sve zakačke",
   "max_level": "Dostignut maksimalni nivo",
   "no_upgrade_cost": "Nije pronađena cena nadogradnje",
+  "forge_route": "Idol",
   "gathering_title": "LISTA ZA SAKUPLJANJE",
   "gathering_opened": "Lista za sakupljanje otvorena",
   "gathering_closed": "Lista za sakupljanje zatvorena",

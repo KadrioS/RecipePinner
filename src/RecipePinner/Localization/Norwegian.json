@@ -1,6 +1,8 @@
 {
   "pinned": "Oppskrift festet!",
   "unpinned": "Pin fjernet",
+  "hint_pin": "Fest",
+  "hint_unpin": "Fjern",
   "list_full": "Listen er full!",
   "added_more": "Lagt til mer: {0}x",
   "decreased": "Redusert: {0}x",
@@ -8,6 +10,7 @@
   "clear_confirm_hotkey": "Trykk igjen for å tømme alle pins",
   "max_level": "Maksnivå nådd",
   "no_upgrade_cost": "Ingen oppgraderingskostnad funnet",
+  "forge_route": "Idol",
   "gathering_title": "INNSAMLINGSLISTE",
   "gathering_opened": "Innsamlingsliste åpnet",
   "gathering_closed": "Innsamlingsliste lukket",

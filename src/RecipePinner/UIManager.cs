@@ -170,6 +170,8 @@ namespace ValheimRecipePinner
             }
 
             UpdateLayout();
+            KeyHintInjector.EnsureInjected();
+            KeyHintInjector.UpdateBuildHintVisibility();
 
             if (_pinListRoot == null) return;
 
@@ -494,44 +496,13 @@ namespace ValheimRecipePinner
             }
         }
 
-        private void UpdatePinSlot(int index, PinnedRecipeData pinData, ContainerScanner containerMgr, bool uncapCompact)
+        // The HUD and the My Pins panel both need these strings, and the HUD alone cannot produce
+        // them for both: UpdatePinSlot runs only for the pins on the currently visible page, and
+        // never for a group's members, because the HUD draws a group as one merged row. Callers
+        // must have refreshed the inventory counts first.
+        private void RefreshResourceAmountStrings(PinnedRecipeData pinData, ContainerScanner containerMgr)
         {
-            PinSlotUI uiSlot = _pinPool[index];
-            if (uiSlot == null || uiSlot.gameObject == null) return;
-
-            if (!uiSlot.gameObject.activeSelf)
-                uiSlot.SetActive(true);
-
-            if (uiSlot.BgImage != null)
-            {
-                float currentAlpha = uiSlot.BgImage.color.a;
-                if (Mathf.Abs(currentAlpha - RecipePinnerPlugin.BackgroundOpacity.Value) > 0.01f)
-                    uiSlot.BgImage.color = new Color(0, 0, 0, RecipePinnerPlugin.BackgroundOpacity.Value);
-            }
-
-            bool isBottomRight = (RecipePinnerPlugin.LayoutModeConfig.Value == RecipePinnerPlugin.PinLayoutMode.ForceBottomRightHorizontal);
-            bool isSailing = (Player.m_localPlayer.GetControlledShip() != null);
-            bool isInvOpen = InventoryGui.instance != null && InventoryGui.IsVisible();
-            bool shouldBeHorizontal = RecipePinnerPlugin.Instance.IsHorizontalMode || isSailing || isInvOpen;
-
-            // Width of the pin box in the current layout. Horizontal mode applies it to the rect
-            // below; both layouts pass it to UpdateData so the compact grid can size its columns.
-            float slotWidth = shouldBeHorizontal
-                ? ((isBottomRight || isSailing || isInvOpen)
-                    ? RecipePinnerPlugin.BottomRightColumnWidth.Value
-                    : RecipePinnerPlugin.HorizontalColumnWidth.Value)
-                : RecipePinnerPlugin.VerticalListWidth.Value;
-
-            if (shouldBeHorizontal)
-            {
-                RectTransform slotRect = uiSlot.Rect ?? uiSlot.GetComponent<RectTransform>();
-
-                if (Mathf.Abs(slotRect.sizeDelta.x - slotWidth) > 1f)
-                    slotRect.sizeDelta = new Vector2(slotWidth, slotRect.sizeDelta.y);
-            }
-
-            bool dataChanged = (uiSlot.CurrentData != pinData);
-            uiSlot.CurrentData = pinData;
+            if (pinData == null || pinData.Resources == null) return;
 
             foreach (var res in pinData.Resources)
             {
@@ -584,6 +555,48 @@ namespace ValheimRecipePinner
                     }
                 }
             }
+        }
+
+        private void UpdatePinSlot(int index, PinnedRecipeData pinData, ContainerScanner containerMgr, bool uncapCompact)
+        {
+            PinSlotUI uiSlot = _pinPool[index];
+            if (uiSlot == null || uiSlot.gameObject == null) return;
+
+            if (!uiSlot.gameObject.activeSelf)
+                uiSlot.SetActive(true);
+
+            if (uiSlot.BgImage != null)
+            {
+                float currentAlpha = uiSlot.BgImage.color.a;
+                if (Mathf.Abs(currentAlpha - RecipePinnerPlugin.BackgroundOpacity.Value) > 0.01f)
+                    uiSlot.BgImage.color = new Color(0, 0, 0, RecipePinnerPlugin.BackgroundOpacity.Value);
+            }
+
+            bool isBottomRight = (RecipePinnerPlugin.LayoutModeConfig.Value == RecipePinnerPlugin.PinLayoutMode.ForceBottomRightHorizontal);
+            bool isSailing = (Player.m_localPlayer.GetControlledShip() != null);
+            bool isInvOpen = InventoryGui.instance != null && InventoryGui.IsVisible();
+            bool shouldBeHorizontal = RecipePinnerPlugin.Instance.IsHorizontalMode || isSailing || isInvOpen;
+
+            // Width of the pin box in the current layout. Horizontal mode applies it to the rect
+            // below; both layouts pass it to UpdateData so the compact grid can size its columns.
+            float slotWidth = shouldBeHorizontal
+                ? ((isBottomRight || isSailing || isInvOpen)
+                    ? RecipePinnerPlugin.BottomRightColumnWidth.Value
+                    : RecipePinnerPlugin.HorizontalColumnWidth.Value)
+                : RecipePinnerPlugin.VerticalListWidth.Value;
+
+            if (shouldBeHorizontal)
+            {
+                RectTransform slotRect = uiSlot.Rect ?? uiSlot.GetComponent<RectTransform>();
+
+                if (Mathf.Abs(slotRect.sizeDelta.x - slotWidth) > 1f)
+                    slotRect.sizeDelta = new Vector2(slotWidth, slotRect.sizeDelta.y);
+            }
+
+            bool dataChanged = (uiSlot.CurrentData != pinData);
+            uiSlot.CurrentData = pinData;
+
+            RefreshResourceAmountStrings(pinData, containerMgr);
 
             if (uiSlot.AccentBar != null)
             {
@@ -789,6 +802,12 @@ namespace ValheimRecipePinner
                     hlg.spacing = RecipePinnerPlugin.BottomRightPinSpacing.Value;
 
                 Vector2 targetPos = RecipePinnerPlugin.BottomRightPosition.Value;
+
+                // The offset rides on top of whatever the player has, so a customised position is
+                // lifted clear of the bar too - and no value becomes unselectable.
+                if (RecipePinnerPlugin.AvoidKeyHintBar.Value && IsKeyHintBarVisible())
+                    targetPos.y += RecipePinnerPlugin.KeyHintBarOffset.Value;
+
                 if (rootRect.anchoredPosition != targetPos)
                     rootRect.anchoredPosition = targetPos;
             }
@@ -849,6 +868,30 @@ namespace ValheimRecipePinner
 
             if (Mathf.Abs(rootRect.sizeDelta.x - RecipePinnerPlugin.VerticalListWidth.Value) > 1f)
                 rootRect.sizeDelta = new Vector2(RecipePinnerPlugin.VerticalListWidth.Value, 0);
+        }
+
+        // Valheim's button-hint bar runs along the bottom of the screen, and the game's own
+        // setting for it defaults to on, so it covers a pin list anchored down there for most
+        // players rather than a few. Read whether a bar is genuinely on screen instead of reading
+        // the preference: the game also hides these during chat, while paused and while dead, and
+        // the pins should not drift upward at those moments.
+        private static bool IsKeyHintBarVisible()
+        {
+            KeyHints hints = KeyHints.instance;
+            if (hints == null) return false;
+
+            return IsHintObjectActive(hints.m_inventoryHints)
+                || IsHintObjectActive(hints.m_inventoryWithContainerHints)
+                || IsHintObjectActive(hints.m_combatHints)
+                || IsHintObjectActive(hints.m_buildHints)
+                || IsHintObjectActive(hints.m_fishingHints)
+                || IsHintObjectActive(hints.m_barberHints);
+        }
+
+        private static bool IsHintObjectActive(GameObject hintObject)
+        {
+            if (hintObject == null) return false;
+            return hintObject.activeInHierarchy;
         }
 
         private Vector2 GetVerticalLayoutPosition()

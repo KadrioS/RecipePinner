@@ -1,6 +1,8 @@
 {
   "pinned": "Recept pinnat!",
   "unpinned": "Pin borttagen",
+  "hint_pin": "Pinna",
+  "hint_unpin": "Ta bort",
   "list_full": "Listan är full!",
   "added_more": "Lade till mer: {0}x",
   "decreased": "Minskade: {0}x",
@@ -8,6 +10,7 @@
   "clear_confirm_hotkey": "Tryck igen för att rensa alla pins",
   "max_level": "Maxnivå uppnådd",
   "no_upgrade_cost": "Ingen uppgraderingskostnad hittades",
+  "forge_route": "Idol",
   "gathering_title": "SAMLINGSLISTA",
   "gathering_opened": "Samlingslista öppen",
   "gathering_closed": "Samlingslista stängd",

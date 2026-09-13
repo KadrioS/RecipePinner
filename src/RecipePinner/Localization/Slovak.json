@@ -1,6 +1,8 @@
 {
   "pinned": "Recept pripnutý!",
   "unpinned": "Pripnutie zrušené",
+  "hint_pin": "Pripnúť",
+  "hint_unpin": "Odopnúť",
   "list_full": "Zoznam je plný!",
   "added_more": "Pridané ďalšie: {0}x",
   "decreased": "Znížené: {0}x",
@@ -8,6 +10,7 @@
   "clear_confirm_hotkey": "Stlačte znova na vymazanie všetkých pripnutí",
   "max_level": "Dosiahnutá maximálna úroveň",
   "no_upgrade_cost": "Nenašla sa cena vylepšenia",
+  "forge_route": "Idol",
   "gathering_title": "ZOZNAM ZBERU",
   "gathering_opened": "Zoznam zberu otvorený",
   "gathering_closed": "Zoznam zberu zatvorený",

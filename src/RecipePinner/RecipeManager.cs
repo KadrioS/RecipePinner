@@ -18,7 +18,7 @@ namespace ValheimRecipePinner
 
         private static readonly Regex CleanNameRegex = new Regex("<.*?>", RegexOptions.Compiled);
         private static readonly Regex AmountSuffixRegex = new Regex(@"\s*[xX]?\s*\d+$", RegexOptions.Compiled);
-        private static readonly Regex UpgradeStarRegex = new Regex(@"\s*★(\d+)$", RegexOptions.Compiled);
+        private static readonly Regex UpgradeStarRegex = new Regex(@"\s*★(\d+)(F)?$", RegexOptions.Compiled);
 
         private static readonly Dictionary<System.Type, FieldInfo> _cachedRecipeFields = new Dictionary<System.Type, FieldInfo>();
         private static readonly Dictionary<System.Type, PropertyInfo> _cachedRecipeProps = new Dictionary<System.Type, PropertyInfo>();
@@ -440,6 +440,66 @@ namespace ValheimRecipePinner
             return null;
         }
 
+        // Which cost an upgrade pin shows is part of its key, not of where the player is standing:
+        // an "F" after the level means the Forge of Potential, which charges a single upgrader
+        // resource instead of the ordinary materials. Reading it from the key is what keeps a
+        // pinned row from changing every time the player walks up to that station and back.
+        public static bool IsForgeUpgradeKey(string recipeKey)
+        {
+            if (string.IsNullOrEmpty(recipeKey)) return false;
+
+            Match routeMatch = UpgradeStarRegex.Match(recipeKey);
+            return routeMatch.Success && routeMatch.Groups[2].Success;
+        }
+
+        // Every surface that draws a pin name derives the level here. The HUD and My Pins used to
+        // build their names independently, which is how My Pins ended up showing no level at all
+        // and drawing two upgrades of one item as identical rows.
+        public static string BuildUpgradeLevelSuffix(string recipeKey)
+        {
+            if (string.IsNullOrEmpty(recipeKey)) return string.Empty;
+
+            Match levelMatch = UpgradeStarRegex.Match(recipeKey);
+            if (!levelMatch.Success) return string.Empty;
+
+            return " ★" + levelMatch.Groups[1].Value;
+        }
+
+        // The route is spelled out only where there is room for it, which is My Pins. On the HUD
+        // the two costs already tell themselves apart by their material lines - the Forge of
+        // Potential route asks for one idol and nothing else - so a label there would only take
+        // width from them.
+        //
+        // The game's own word for the resource this route spends, so it arrives translated into
+        // whatever language the player is using and cannot be mistaken for the ordinary forge.
+        // Localize marks an unknown token by returning text containing "MISSING KEY"; if the game
+        // ever drops the token, fall back to the mod's own string rather than printing that.
+        public static string BuildUpgradeRouteSuffix(string recipeKey)
+        {
+            if (!IsForgeUpgradeKey(recipeKey)) return string.Empty;
+
+            string label = null;
+            if (Localization.instance != null)
+            {
+                string localized = Localization.instance.Localize("$item_upgrader_name");
+                if (!string.IsNullOrEmpty(localized) && !localized.Contains("MISSING KEY"))
+                {
+                    label = localized;
+                }
+            }
+
+            if (string.IsNullOrEmpty(label))
+            {
+                RecipePinnerPlugin plugin = RecipePinnerPlugin.Instance;
+                LocalizationManager loc = (plugin == null) ? null : plugin.LocalizationMgr;
+                label = (loc == null) ? null : loc.GetText("forge_route");
+            }
+
+            if (string.IsNullOrEmpty(label)) return string.Empty;
+
+            return " (" + label + ")";
+        }
+
         private Recipe CreateFakeUpgradeRecipe(Recipe baseRecipe, int targetLevel, string customName)
         {
             if (baseRecipe == null) return null;
@@ -503,7 +563,13 @@ namespace ValheimRecipePinner
             }
 
             int maxQuality = sharedData.m_maxQuality;
-            if (maxQuality < 2 || targetLevel > maxQuality)
+
+            // The Forge of Potential is the one station that can push an item past m_maxQuality,
+            // so a key that names that route is allowed above the cap. This is also what keeps a
+            // Forge of Potential pin alive: ValidateAndCleanPins deletes every pin whose key does not resolve
+            // to a recipe, and then saves.
+            bool forgeRoute = IsForgeUpgradeKey(customName);
+            if (maxQuality < 2 || (targetLevel > maxQuality && !forgeRoute))
             {
                 DebugLogger.Warning($"Invalid upgrade level for '{customName}': target={targetLevel}, max={maxQuality}");
                 return false;
@@ -693,7 +759,39 @@ namespace ValheimRecipePinner
                                             int nextQ = currentQ + 1;
                                             int maxQ = itemData.m_shared.m_maxQuality;
 
-                                            if (currentQ >= maxQ)
+                                            // Read the station once, here, and let the key carry
+                                            // the route from now on. The Forge of Potential
+                                            // charges one upgrader resource instead of the
+                                            // ordinary materials and is the only station that can
+                                            // go past m_maxQuality.
+                                            Player pinningPlayer = Player.m_localPlayer;
+                                            CraftingStation station = (pinningPlayer == null) ? null : pinningPlayer.GetCurrentCraftingStation();
+                                            bool forgeRoute = station != null && station.m_upgrader;
+
+                                            if (forgeRoute)
+                                            {
+                                                bool hasUpgraderResource = false;
+                                                if (r.m_resources != null)
+                                                {
+                                                    foreach (var upgradeReq in r.m_resources)
+                                                    {
+                                                        if (upgradeReq != null && upgradeReq.m_upgraderResource)
+                                                        {
+                                                            hasUpgraderResource = true;
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+
+                                                if (!hasUpgraderResource)
+                                                {
+                                                    string noCostMsg = RecipePinnerPlugin.Instance.LocalizationMgr.GetText("no_upgrade_cost");
+                                                    Player.m_localPlayer?.Message(MessageHud.MessageType.Center, noCostMsg);
+                                                    return;
+                                                }
+                                            }
+
+                                            if (currentQ >= maxQ && !forgeRoute)
                                             {
                                                 string msg = RecipePinnerPlugin.Instance.LocalizationMgr.GetText("max_level");
                                                 Player.m_localPlayer?.Message(MessageHud.MessageType.Center, msg);
@@ -707,7 +805,9 @@ namespace ValheimRecipePinner
                                             }
 
                                             string prefabName = r.m_item.name;
-                                            string upgradeId = $"{prefabName} ★{nextQ}";
+                                            string upgradeId = forgeRoute
+                                                ? $"{prefabName} ★{nextQ}F"
+                                                : $"{prefabName} ★{nextQ}";
 
                                             if (IsUnpinHotkeyHeld() && !PinnedRecipes.ContainsKey(upgradeId)) return;
 
@@ -1104,7 +1204,8 @@ namespace ValheimRecipePinner
             PinnedRecipeData data = new PinnedRecipeData
             {
                 IsDirty = true,
-                RecipeRef = r
+                RecipeRef = r,
+                PinKey = recipeName
             };
 
             if (r.m_item != null && r.m_item.m_itemData != null)
@@ -1136,16 +1237,7 @@ namespace ValheimRecipePinner
 
             if (Localization.instance != null)
             {
-                Match starMatch = UpgradeStarRegex.Match(recipeName);
-                if (starMatch.Success)
-                {
-                    string baseName = Localization.instance.Localize(data.RawName);
-                    displayName = baseName + starMatch.Value;
-                }
-                else
-                {
-                    displayName = Localization.instance.Localize(data.RawName);
-                }
+                displayName = Localization.instance.Localize(data.RawName) + BuildUpgradeLevelSuffix(recipeName);
             }
 
             displayName = displayName.Replace("\r", "").Replace("\n", "");
@@ -1161,6 +1253,8 @@ namespace ValheimRecipePinner
                 return null;
             }
 
+            bool forgeRoute = IsForgeUpgradeKey(recipeName);
+
             foreach (var res in r.m_resources)
             {
                 if (res == null || res.m_amount <= 0)
@@ -1168,16 +1262,13 @@ namespace ValheimRecipePinner
                     continue;
                 }
 
-                // Valheim 1.0's Battle Idols are flagged m_upgraderResource and are consumed only at
-                // the Forge of Potential. That is an *alternative* upgrade route, not a required
-                // one: IsValidUpgradeTarget refuses any level above the item's m_maxQuality, so
-                // every upgrade this mod can pin is reachable at an ordinary station with ordinary
-                // materials. Showing the idol would advertise a material the pin never needs.
-                //
-                // Deliberately not station-dependent. The game shows these only at an upgrade
-                // station, but a pin lives on the HUD permanently - matching that would make a
-                // pinned row change every time the player walks up to a Forge and back.
-                if (res.m_upgraderResource)
+                // Valheim 1.0's Idols are flagged m_upgraderResource and are consumed only
+                // at the Forge of Potential, which charges one of them instead of the ordinary
+                // materials. Show whichever cost belongs to this pin's route and hide the other,
+                // which is the game's own rule - except that the route comes from the key rather
+                // than from where the player happens to be standing. Reading it from the player
+                // would make a pinned row change every time they walked up to that station and back.
+                if (res.m_upgraderResource != forgeRoute)
                 {
                     continue;
                 }

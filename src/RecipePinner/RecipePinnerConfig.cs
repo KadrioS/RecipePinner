@@ -76,6 +76,9 @@ namespace ValheimRecipePinner
         public static ConfigEntry<Color> ButtonTextColor;
         public static ConfigEntry<Vector2> MyPinsButtonPosition;
         public static ConfigEntry<int> MyPinsButtonSize;
+        public static ConfigEntry<float> MaterialIconSize;
+        public static ConfigEntry<int> MaterialFontSize;
+        public static ConfigEntry<float> MaterialStripHeight;
         public static ConfigEntry<int> ConfigVersion;
 
         // ── 10 - Layout: Vertical ────────────────────────────────
@@ -92,6 +95,8 @@ namespace ValheimRecipePinner
         public static ConfigEntry<float> BottomRightColumnWidth;
         public static ConfigEntry<float> BottomRightPinSpacing;
         public static ConfigEntry<Vector2> BottomRightPosition;
+        public static ConfigEntry<bool> AvoidKeyHintBar;
+        public static ConfigEntry<float> KeyHintBarOffset;
 
         // ── 13 - Debug ───────────────────────────────────────────
         public static ConfigEntry<bool> EnableDebugLogging;
@@ -157,9 +162,11 @@ namespace ValheimRecipePinner
             HotkeyPin = Config.Bind("02 - Controls", "HotkeyPin", KeyCode.Mouse2,
                 new ConfigDescription("Hotkey to pin the currently viewed recipe.", null,
                 new ConfigurationManagerAttributes { Order = 99 }));
+            HotkeyPin.SettingChanged += (s, e) => KeyHintInjector.RefreshKeys();
             HotkeyUnpin = Config.Bind("02 - Controls", "HotkeyUnpin", KeyCode.LeftShift,
                 new ConfigDescription("Hold this key + press the Pin hotkey over a recipe or build piece to decrease/remove that pin.", null,
                 new ConfigurationManagerAttributes { Order = 98 }));
+            HotkeyUnpin.SettingChanged += (s, e) => KeyHintInjector.RefreshKeys();
             HotkeyToggleVisibility = Config.Bind("02 - Controls", "HotkeyToggleVisibility", KeyCode.F7,
                 new ConfigDescription("Hotkey to show/hide the HUD pin overlay.", null,
                 new ConfigurationManagerAttributes { Order = 97 }));
@@ -380,6 +387,24 @@ namespace ValheimRecipePinner
                 new ConfigurationManagerAttributes { Order = 94 }));
             MyPinsButtonSize.SettingChanged += (s, e) => UIMgr?.DestroyMyPinsUI();
 
+            MaterialIconSize = Config.Bind("09 - My Pins Panel", "MaterialIconSize", 18f,
+                new ConfigDescription("Size of each material icon on a pin's materials strip, in pixels.",
+                new AcceptableValueRange<float>(8f, 64f),
+                new ConfigurationManagerAttributes { Order = 93 }));
+            MaterialIconSize.SettingChanged += (s, e) => UIMgr?.DestroyMyPinsUI();
+
+            MaterialFontSize = Config.Bind("09 - My Pins Panel", "MaterialFontSize", 12,
+                new ConfigDescription("Font size of the have/required amount next to each material icon.",
+                new AcceptableValueRange<int>(6, 32),
+                new ConfigurationManagerAttributes { Order = 92 }));
+            MaterialFontSize.SettingChanged += (s, e) => UIMgr?.DestroyMyPinsUI();
+
+            MaterialStripHeight = Config.Bind("09 - My Pins Panel", "MaterialStripHeight", 24f,
+                new ConfigDescription("Height the materials strip adds to each pin row. Raising it makes rows taller, so fewer of them fit in the panel at a given PanelHeight.",
+                new AcceptableValueRange<float>(12f, 80f),
+                new ConfigurationManagerAttributes { Order = 91 }));
+            MaterialStripHeight.SettingChanged += (s, e) => UIMgr?.DestroyMyPinsUI();
+
 
             // ── 10 - Layout (Vertical Mode) ───────────────────────────────
             VerticalListWidth = Config.Bind("10 - Layout (Vertical Mode)", "ListWidth", 265f,
@@ -413,6 +438,12 @@ namespace ValheimRecipePinner
             BottomRightPosition = Config.Bind("12 - Layout (Horizontal - Bottom Right)", "Position", new Vector2(-40f, 40f),
                 new ConfigDescription("Anchor position offset (X, Y).", null,
                 new ConfigurationManagerAttributes { Order = 97 }));
+            AvoidKeyHintBar = Config.Bind("12 - Layout (Horizontal - Bottom Right)", "AvoidKeyHintBar", true,
+                new ConfigDescription("Raise the pin list while Valheim's button-hint bar is on screen, so the hints do not cover it. That bar is on by default in the game's own settings.", null,
+                new ConfigurationManagerAttributes { Order = 96 }));
+            KeyHintBarOffset = Config.Bind("12 - Layout (Horizontal - Bottom Right)", "KeyHintBarOffset", 35f,
+                new ConfigDescription("How far up the list moves while that bar is showing. Added to Position's Y, so the default 40 sits at 75.", new AcceptableValueRange<float>(0f, 300f),
+                new ConfigurationManagerAttributes { Order = 95 }));
 
             // ── 13 - Debug ────────────────────────────────────────────────
             EnableDebugLogging = Config.Bind("13 - Debug", "EnableDebugLogging", false,

@@ -1,6 +1,8 @@
 {
   "pinned": "¡Receta fijada!",
   "unpinned": "Fijación eliminada",
+  "hint_pin": "Fijar",
+  "hint_unpin": "Quitar",
   "list_full": "¡Lista llena!",
   "added_more": "Se añadió más: {0}x",
   "decreased": "Se redujo: {0}x",
@@ -8,6 +10,7 @@
   "clear_confirm_hotkey": "Pulsa de nuevo para borrar todas las fijaciones",
   "max_level": "Nivel máximo alcanzado",
   "no_upgrade_cost": "No se encontró coste de mejora",
+  "forge_route": "Ídolo",
   "gathering_title": "LISTA DE RECOLECCIÓN",
   "gathering_opened": "Lista de recolección abierta",
   "gathering_closed": "Lista de recolección cerrada",

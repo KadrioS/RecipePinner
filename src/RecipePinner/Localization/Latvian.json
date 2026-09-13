@@ -1,6 +1,8 @@
 {
   "pinned": "Recepte piesprausta!",
   "unpinned": "Piespraudums noņemts",
+  "hint_pin": "Piespraust",
+  "hint_unpin": "Noņemt",
   "list_full": "Saraksts pilns!",
   "added_more": "Pievienots vairāk: {0}x",
   "decreased": "Samazināts: {0}x",
@@ -8,6 +10,7 @@
   "clear_confirm_hotkey": "Nospiediet vēlreiz, lai notīrītu visus piespraudumus",
   "max_level": "Sasniegts maksimālais līmenis",
   "no_upgrade_cost": "Uzlabošanas izmaksas nav atrastas",
+  "forge_route": "Elks",
   "gathering_title": "VĀKŠANAS SARAKSTS",
   "gathering_opened": "Vākšanas saraksts atvērts",
   "gathering_closed": "Vākšanas saraksts aizvērts",

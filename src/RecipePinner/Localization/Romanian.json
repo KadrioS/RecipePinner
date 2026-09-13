@@ -1,6 +1,8 @@
 {
   "pinned": "Rețetă fixată!",
   "unpinned": "Fixare eliminată",
+  "hint_pin": "Fixează",
+  "hint_unpin": "Elimină",
   "list_full": "Listă plină!",
   "added_more": "Adăugat mai mult: {0}x",
   "decreased": "Scăzut: {0}x",
@@ -8,6 +10,7 @@
   "clear_confirm_hotkey": "Apasă din nou pentru a șterge toate fixările",
   "max_level": "Nivel maxim atins",
   "no_upgrade_cost": "Nu s-a găsit costul de modernizare",
+  "forge_route": "Idol",
   "gathering_title": "LISTĂ DE COLECTARE",
   "gathering_opened": "Lista de colectare deschisă",
   "gathering_closed": "Lista de colectare închisă",

@@ -1,6 +1,8 @@
 {
   "pinned": "Resepti kiinnitetty!",
   "unpinned": "Kiinnitys poistettu",
+  "hint_pin": "Kiinnitä",
+  "hint_unpin": "Irrota",
   "list_full": "Lista on täynnä!",
   "added_more": "Lisätty lisää: {0}x",
   "decreased": "Vähennetty: {0}x",
@@ -8,6 +10,7 @@
   "clear_confirm_hotkey": "Paina uudelleen tyhjentääksesi kaikki kiinnitykset",
   "max_level": "Maksimitaso saavutettu",
   "no_upgrade_cost": "Päivityskustannusta ei löytynyt",
+  "forge_route": "Epäjumala",
   "gathering_title": "KERÄYSLISTA",
   "gathering_opened": "Keräyslista avattu",
   "gathering_closed": "Keräyslista suljettu",

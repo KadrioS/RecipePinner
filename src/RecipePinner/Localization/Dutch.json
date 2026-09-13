@@ -1,6 +1,8 @@
 {
   "pinned": "Recept vastgespeld!",
   "unpinned": "Vastspelden ongedaan gemaakt",
+  "hint_pin": "Vastspelden",
+  "hint_unpin": "Losmaken",
   "list_full": "Lijst is vol!",
   "added_more": "Meer toegevoegd: {0}x",
   "decreased": "Verminderd: {0}x",
@@ -8,6 +10,7 @@
   "clear_confirm_hotkey": "Druk nogmaals om alle pins te wissen",
   "max_level": "Max. niveau bereikt",
   "no_upgrade_cost": "Geen upgradekosten gevonden",
+  "forge_route": "Idool",
   "gathering_title": "VERZAMELLIJST",
   "gathering_opened": "Verzamellijst geopend",
   "gathering_closed": "Verzamellijst gesloten",

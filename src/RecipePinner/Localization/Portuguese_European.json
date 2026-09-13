@@ -1,6 +1,8 @@
 {
   "pinned": "Receita Fixada!",
   "unpinned": "Fixação Removida",
+  "hint_pin": "Fixar",
+  "hint_unpin": "Desafixar",
   "list_full": "Lista Cheia!",
   "added_more": "Adicionado mais: {0}x",
   "decreased": "Reduzido: {0}x",
@@ -8,6 +10,7 @@
   "clear_confirm_hotkey": "Prima novamente para limpar todas as fixações",
   "max_level": "Nível Máximo Atingido",
   "no_upgrade_cost": "Nenhum custo de melhoria encontrado",
+  "forge_route": "Ídolo",
   "gathering_title": "LISTA DE RECOLHA",
   "gathering_opened": "Lista de Recolha Aberta",
   "gathering_closed": "Lista de Recolha Fechada",

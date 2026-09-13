@@ -6,6 +6,12 @@ namespace ValheimRecipePinner
     public class PinnedRecipeData
     {
         public Recipe RecipeRef;
+
+        // The key this pin is stored under, which is not always the recipe's own name: a name two
+        // recipes share gets a "#N" ordinal, and an upgrade carries its level and route. Keeping
+        // it here lets a consumer match a pin by key without re-deriving it.
+        public string PinKey;
+
         public string RawName;
         public string CachedHeader;
         public Sprite Icon;

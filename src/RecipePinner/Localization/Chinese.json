@@ -1,6 +1,8 @@
 {
   "pinned": "配方已固定！",
   "unpinned": "已取消固定",
+  "hint_pin": "固定",
+  "hint_unpin": "取消固定",
   "list_full": "列表已满！",
   "added_more": "已添加更多：{0}x",
   "decreased": "已减少：{0}x",
@@ -8,6 +10,7 @@
   "clear_confirm_hotkey": "再按一次以清除所有固定项",
   "max_level": "已达最高等级",
   "no_upgrade_cost": "未找到升级消耗",
+  "forge_route": "神像",
   "gathering_title": "收集列表",
   "gathering_opened": "收集列表已打开",
   "gathering_closed": "收集列表已关闭",

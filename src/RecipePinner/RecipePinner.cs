@@ -1,12 +1,13 @@
 using BepInEx;
 using BepInEx.Bootstrap;
 using HarmonyLib;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
 namespace ValheimRecipePinner
 {
-    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.4.1")]
+    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.5.0")]
     public partial class RecipePinnerPlugin : BaseUnityPlugin
     {
         public static RecipePinnerPlugin Instance;
@@ -414,6 +415,29 @@ namespace ValheimRecipePinner
             Instance.DataMgr.SavePins();
         }
 
+        // An upgrade attempt at the Forge of Potential has three outcomes and this postfix cannot
+        // see which one ran: the item can come back one level higher, come back one level LOWER,
+        // or be destroyed outright. The game puts the item back into the slot it came from, so
+        // that slot holding the target level is the only available proof that the upgrade
+        // succeeded. RemoveItem does not clear m_gridPos, so the detached item still knows where
+        // it was.
+        private static bool UpgradeSucceeded(ItemDrop.ItemData upgradeItem, int targetLevel)
+        {
+            if (upgradeItem == null || upgradeItem.m_shared == null) return false;
+
+            Player localPlayer = Player.m_localPlayer;
+            if (localPlayer == null) return false;
+
+            Inventory inventory = localPlayer.GetInventory();
+            if (inventory == null) return false;
+
+            ItemDrop.ItemData inSlot = inventory.GetItemAt(upgradeItem.m_gridPos.x, upgradeItem.m_gridPos.y);
+            return inSlot != null
+                && inSlot.m_shared != null
+                && inSlot.m_shared.m_name == upgradeItem.m_shared.m_name
+                && inSlot.m_quality == targetLevel;
+        }
+
         [HarmonyPatch(typeof(InventoryGui), "DoCrafting")]
         [HarmonyPostfix]
         public static void AutoUnpinHook(InventoryGui __instance)
@@ -423,7 +447,7 @@ namespace ValheimRecipePinner
 
             if (craftedRecipe != null)
             {
-                string keyToRemove = null;
+                List<string> keysToRemove = new List<string>();
 
                 bool isUpgrade = !__instance.m_tabUpgrade.interactable;
 
@@ -436,55 +460,76 @@ namespace ValheimRecipePinner
                         int currentReadingLevel = upgradeItem.m_quality;
                         int targetLevelKey = currentReadingLevel + 1;
 
-                        keyToRemove = $"{prefabName} ★{targetLevelKey}";
-                        DebugLogger.Log($"Upgrade crafted: Unpinning target {keyToRemove} (Base Level: {currentReadingLevel})");
+                        // At an upgrader station the craft can fail or destroy the item, and this
+                        // postfix runs either way. Unpin nothing unless the result proves the
+                        // upgrade happened: a stale row costs the player far less than a pin they
+                        // never removed. An ordinary station has no such branch - reaching here
+                        // already means it worked.
+                        Player craftingPlayer = Player.m_localPlayer;
+                        CraftingStation station = (craftingPlayer == null) ? null : craftingPlayer.GetCurrentCraftingStation();
+                        if (station != null && station.m_upgrader && !UpgradeSucceeded(upgradeItem, targetLevelKey))
+                        {
+                            DebugLogger.Log($"Upgrade attempt on {prefabName} did not produce level {targetLevelKey}; leaving pins alone");
+                            return;
+                        }
+
+                        // Both routes aimed at this level are settled now, so neither key stays.
+                        keysToRemove.Add($"{prefabName} ★{targetLevelKey}");
+                        keysToRemove.Add($"{prefabName} ★{targetLevelKey}F");
+                        DebugLogger.Log($"Upgrade crafted: Unpinning target {prefabName} ★{targetLevelKey} (Base Level: {currentReadingLevel})");
                     }
                 }
                 else
-                    keyToRemove = Instance.RecipeMgr.BuildRecipeKey(craftedRecipe);
-
-                if (keyToRemove != null && Instance.RecipeMgr.PinnedRecipes.TryGetValue(keyToRemove, out int currentCount))
                 {
-                    // Consume an ungrouped excess copy first; only touch group claims when every
-                    // remaining copy belongs to a group. Compared BEFORE the decrement below.
-                    bool hasUngroupedExcess = currentCount > Instance.RecipeMgr.GetGroupClaimCount(keyToRemove);
-
-                    currentCount--;
-                    DebugLogger.Log($"Auto-unpin: {keyToRemove}, remaining count: {currentCount}");
-
-                    if (hasUngroupedExcess)
-                    {
-                        DebugLogger.Verbose($"Auto-unpin: consumed ungrouped copy of '{keyToRemove}', group claims untouched");
-                    }
-                    else
-                    {
-                        Instance.RecipeMgr.DecrementGroupMemberCounts(keyToRemove);
-                    }
-
-                    // Re-read claim count after group decrement (groups may have changed)
-                    if (currentCount <= 0)
-                    {
-                        Instance.RecipeMgr.PinnedRecipes.Remove(keyToRemove);
-                        Instance.RecipeMgr.PinnedRecipeOrder.Remove(keyToRemove);
-                        DebugLogger.Log($"Recipe {keyToRemove} fully unpinned");
-                    }
-                    else
-                    {
-                        Instance.RecipeMgr.PinnedRecipes[keyToRemove] = currentCount;
-                    }
-
-                    Instance.RecipeMgr.RefreshRecipeCache();
-                    Instance.DataMgr.SavePins();
-
-                    if (Instance.RecipeMgr.GetEffectivePinCount() < 2)
-                        Instance.UIMgr.CloseGatheringList();
+                    string craftedKey = Instance.RecipeMgr.BuildRecipeKey(craftedRecipe);
+                    if (craftedKey != null) keysToRemove.Add(craftedKey);
                 }
-                else if (keyToRemove != null)
+
+                foreach (string keyToRemove in keysToRemove)
                 {
-                    // Key not found — log all current pinned keys to help diagnose mismatches
-                    // (e.g. crafting base recipe when an upgrade pin is in PinnedRecipes)
-                    string pinnedKeys = string.Join(", ", Instance.RecipeMgr.PinnedRecipes.Keys);
-                    DebugLogger.Verbose($"Auto-unpin: '{keyToRemove}' not found in PinnedRecipes. Current keys: [{pinnedKeys}]");
+                    if (Instance.RecipeMgr.PinnedRecipes.TryGetValue(keyToRemove, out int currentCount))
+                    {
+                        // Consume an ungrouped excess copy first; only touch group claims when every
+                        // remaining copy belongs to a group. Compared BEFORE the decrement below.
+                        bool hasUngroupedExcess = currentCount > Instance.RecipeMgr.GetGroupClaimCount(keyToRemove);
+
+                        currentCount--;
+                        DebugLogger.Log($"Auto-unpin: {keyToRemove}, remaining count: {currentCount}");
+
+                        if (hasUngroupedExcess)
+                        {
+                            DebugLogger.Verbose($"Auto-unpin: consumed ungrouped copy of '{keyToRemove}', group claims untouched");
+                        }
+                        else
+                        {
+                            Instance.RecipeMgr.DecrementGroupMemberCounts(keyToRemove);
+                        }
+
+                        // Re-read claim count after group decrement (groups may have changed)
+                        if (currentCount <= 0)
+                        {
+                            Instance.RecipeMgr.PinnedRecipes.Remove(keyToRemove);
+                            Instance.RecipeMgr.PinnedRecipeOrder.Remove(keyToRemove);
+                            DebugLogger.Log($"Recipe {keyToRemove} fully unpinned");
+                        }
+                        else
+                        {
+                            Instance.RecipeMgr.PinnedRecipes[keyToRemove] = currentCount;
+                        }
+
+                        Instance.RecipeMgr.RefreshRecipeCache();
+                        Instance.DataMgr.SavePins();
+
+                        if (Instance.RecipeMgr.GetEffectivePinCount() < 2)
+                            Instance.UIMgr.CloseGatheringList();
+                    }
+                    else
+                    {
+                        // Key not found — log all current pinned keys to help diagnose mismatches
+                        // (e.g. crafting base recipe when an upgrade pin is in PinnedRecipes)
+                        string pinnedKeys = string.Join(", ", Instance.RecipeMgr.PinnedRecipes.Keys);
+                        DebugLogger.Verbose($"Auto-unpin: '{keyToRemove}' not found in PinnedRecipes. Current keys: [{pinnedKeys}]");
+                    }
                 }
             }
         }

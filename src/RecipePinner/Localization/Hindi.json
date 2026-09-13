@@ -1,6 +1,8 @@
 {
   "pinned": "रेसिपी पिन की गई!",
   "unpinned": "पिन हटाया गया",
+  "hint_pin": "पिन करें",
+  "hint_unpin": "पिन हटाएं",
   "list_full": "सूची भर गई!",
   "added_more": "और जोड़ा गया: {0}x",
   "decreased": "घटाया गया: {0}x",
@@ -8,6 +10,7 @@
   "clear_confirm_hotkey": "सभी पिन हटाने के लिए फिर से दबाएँ",
   "max_level": "अधिकतम स्तर पर पहुँच गए",
   "no_upgrade_cost": "कोई अपग्रेड लागत नहीं मिली",
+  "forge_route": "मूर्ति",
   "gathering_title": "एकत्रीकरण सूची",
   "gathering_opened": "एकत्रीकरण सूची खुल गई",
   "gathering_closed": "एकत्रीकरण सूची बंद हो गई",

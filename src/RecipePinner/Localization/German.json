@@ -1,6 +1,8 @@
 {
   "pinned": "Rezept angeheftet!",
   "unpinned": "Anheftung entfernt",
+  "hint_pin": "Anheften",
+  "hint_unpin": "Lösen",
   "list_full": "Liste voll!",
   "added_more": "Mehr hinzugefügt: {0}x",
   "decreased": "Verringert: {0}x",
@@ -8,6 +10,7 @@
   "clear_confirm_hotkey": "Erneut drücken, um alle Pins zu löschen",
   "max_level": "Max. Level erreicht",
   "no_upgrade_cost": "Keine Upgrade-Kosten gefunden",
+  "forge_route": "Götze",
   "gathering_title": "SAMMELLISTE",
   "gathering_opened": "Sammelliste geöffnet",
   "gathering_closed": "Sammelliste geschlossen",

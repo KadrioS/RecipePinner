@@ -1,6 +1,8 @@
 {
   "pinned": "Przepis przypięty!",
   "unpinned": "Przypięcie usunięte",
+  "hint_pin": "Przypnij",
+  "hint_unpin": "Odepnij",
   "list_full": "Lista jest pełna!",
   "added_more": "Dodano więcej: {0}x",
   "decreased": "Zmniejszono: {0}x",
@@ -8,6 +10,7 @@
   "clear_confirm_hotkey": "Naciśnij ponownie, aby usunąć wszystkie przypięcia",
   "max_level": "Osiągnięto maksymalny poziom",
   "no_upgrade_cost": "Nie znaleziono kosztu ulepszenia",
+  "forge_route": "Bożek",
   "gathering_title": "LISTA ZBIERANIA",
   "gathering_opened": "Lista zbierania otwarta",
   "gathering_closed": "Lista zbierania zamknięta",

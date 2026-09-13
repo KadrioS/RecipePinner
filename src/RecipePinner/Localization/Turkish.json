@@ -1,6 +1,8 @@
 {
   "pinned": "Tarif İğnelendi!",
   "unpinned": "İğne Kaldırıldı",
+  "hint_pin": "İğnele",
+  "hint_unpin": "İğneyi Kaldır",
   "list_full": "Liste Dolu!",
   "added_more": "Daha Fazla Eklendi: {0}x",
   "decreased": "Azaltıldı: {0}x",
@@ -8,6 +10,7 @@
   "clear_confirm_hotkey": "Tüm iğneleri temizlemek için tekrar basın",
   "max_level": "Maksimum Seviyeye Ulaşıldı",
   "no_upgrade_cost": "Yükseltme bedeli bulunamadı",
+  "forge_route": "İdol",
   "gathering_title": "TOPLAMA LİSTESİ",
   "gathering_opened": "Toplama Listesi Açıldı",
   "gathering_closed": "Toplama Listesi Kapandı",

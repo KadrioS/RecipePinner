@@ -1,6 +1,8 @@
 {
   "pinned": "Recept prikvačen!",
   "unpinned": "Pribadača uklonjena",
+  "hint_pin": "Prikvači",
+  "hint_unpin": "Otkvači",
   "list_full": "Popis je pun!",
   "added_more": "Dodano još: {0}x",
   "decreased": "Smanjeno: {0}x",
@@ -8,6 +10,7 @@
   "clear_confirm_hotkey": "Pritisnite ponovno za brisanje svih pribadača",
   "max_level": "Dostignuta maksimalna razina",
   "no_upgrade_cost": "Nije pronađen trošak nadogradnje",
+  "forge_route": "Idol",
   "gathering_title": "POPIS ZA PRIKUPLJANJE",
   "gathering_opened": "Popis za prikupljanje otvoren",
   "gathering_closed": "Popis za prikupljanje zatvoren",

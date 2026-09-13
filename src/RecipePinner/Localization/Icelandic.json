@@ -1,6 +1,8 @@
 {
   "pinned": "Uppskrift fest!",
   "unpinned": "Festa fjarlægð",
+  "hint_pin": "Festa",
+  "hint_unpin": "Losa",
   "list_full": "Listi fullur!",
   "added_more": "Bætti við meiru: {0}x",
   "decreased": "Minnkað: {0}x",
@@ -8,6 +10,7 @@
   "clear_confirm_hotkey": "Ýttu aftur til að hreinsa allar festingar",
   "max_level": "Hámarksstigi náð",
   "no_upgrade_cost": "Enginn uppfærslukostnaður fannst",
+  "forge_route": "Skurðgoð",
   "gathering_title": "SÖFNUNARLISTI",
   "gathering_opened": "Söfnunarlisti opnaður",
   "gathering_closed": "Söfnunarlisti lokaður",

@@ -1,3 +1,21 @@
+### 1.5.0
+
+#### Added
+
+* Upgrades can now be pinned for the Forge of Potential. Pin an upgrade while standing at that station and the pin asks for the single Idol it charges, instead of the ordinary materials it does not use. Pin the same upgrade anywhere else and you get the ordinary materials, as before. You can keep both pins at once, and crafting the upgrade clears both.
+* Upgrade levels past an item's usual quality cap can be pinned. Only the Forge of Potential can reach them, and pins used to refuse those levels outright.
+* Every row in My Pins shows its own materials, with the same have/required numbers and colours the HUD uses. A group's own row shows none - open it, and each member shows its own, so you can tell which one you are able to craft right now.
+* The Pin and Unpin keys now appear in Valheim's button-hint bar, next to the game's own, while the inventory, a container or the build menu is open. Rebind a key and the hint follows it.
+* New settings for the materials row - icon size, text size and height - and for how far the pins move out of the button-hint bar's way.
+
+#### Fixed
+
+* A pinned upgrade no longer disappears when an attempt at the Forge of Potential goes wrong. That station can fail and drop the item a level, or destroy it, and the pin was being removed as though the upgrade had worked. It now clears only when the item really did reach the level you pinned.
+* Pins are no longer hidden behind Valheim's button-hint bar. That bar is on by default and sits exactly where the pin list does while your inventory is open or you are sailing; the list now moves out of its way and settles back when the bar is gone. Turn off `AvoidKeyHintBar` if you would rather it did not, or change `KeyHintBarOffset` for a different gap.
+* My Pins now shows which upgrade level a pin is for. A ★2 and a ★3 pin of the same item used to draw as two identical rows.
+
+---
+
 ### 1.4.1
 
 #### Fixed

@@ -1,6 +1,8 @@
 {
   "pinned": "Receptas prisegtas!",
   "unpinned": "Segtukas pašalintas",
+  "hint_pin": "Prisegti",
+  "hint_unpin": "Atsegti",
   "list_full": "Sąrašas pilnas!",
   "added_more": "Pridėta daugiau: {0}x",
   "decreased": "Sumažinta: {0}x",
@@ -8,6 +10,7 @@
   "clear_confirm_hotkey": "Paspauskite dar kartą, kad išvalytumėte visus segtukus",
   "max_level": "Pasiektas maksimalus lygis",
   "no_upgrade_cost": "Nerastos tobulinimo išlaidos",
+  "forge_route": "Stabas",
   "gathering_title": "RINKIMO SĄRAŠAS",
   "gathering_opened": "Rinkimo sąrašas atidarytas",
   "gathering_closed": "Rinkimo sąrašas uždarytas",
