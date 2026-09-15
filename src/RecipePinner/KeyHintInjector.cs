@@ -49,17 +49,38 @@ namespace ValheimRecipePinner
         }
 
         /// <summary>
-        /// The build bar appears as soon as a hammer is equipped, but a build piece can only be
-        /// pinned from the piece-selection window, which reads the piece under the pointer. Keep
-        /// the two entries hidden until that window is actually open, so the hint never offers
-        /// something the press would not do.
+        /// Shows an entry only where its press would do something: the build bar needs the
+        /// piece-selection window open, and Unpin needs a pin the shortcut can remove.
         /// </summary>
-        public static void UpdateBuildHintVisibility()
+        public static void UpdateHintVisibility()
         {
             KeyHints hints = KeyHints.instance;
             if (hints == null) return;
 
-            SetEntriesActive(hints.m_buildHints, IsBuildMenuOpen());
+            bool canUnpin = HasHotkeyRemovablePin();
+            bool buildMenuOpen = IsBuildMenuOpen();
+
+            SetEntriesActive(hints.m_inventoryHints, true, canUnpin);
+            SetEntriesActive(hints.m_inventoryWithContainerHints, true, canUnpin);
+            SetEntriesActive(hints.m_buildHints, buildMenuOpen, buildMenuOpen && canUnpin);
+        }
+
+        // Group rows do not count: the shortcut refuses to remove a group member, so a player
+        // holding nothing but groups has nothing for it to act on.
+        private static bool HasHotkeyRemovablePin()
+        {
+            RecipePinnerPlugin plugin = RecipePinnerPlugin.Instance;
+            if (plugin == null) return false;
+
+            RecipeManager recipeMgr = plugin.RecipeMgr;
+            if (recipeMgr == null) return false;
+
+            foreach (PinnedRecipeData pin in recipeMgr.CachedPins)
+            {
+                if (pin != null && !pin.IsGroup) return true;
+            }
+
+            return false;
         }
 
         // Ask Hud.InBuildUi() rather than reading a window off Hud directly. Valheim 1.0 moved the
@@ -72,15 +93,15 @@ namespace ValheimRecipePinner
             return Hud.InBuildUi();
         }
 
-        private static void SetEntriesActive(GameObject bar, bool visible)
+        private static void SetEntriesActive(GameObject bar, bool pinVisible, bool unpinVisible)
         {
             if (bar == null) return;
 
             Transform keyboard = bar.transform.Find("Keyboard");
             if (keyboard == null) return;
 
-            SetEntryActive(keyboard.Find(PinEntryName), visible);
-            SetEntryActive(keyboard.Find(UnpinEntryName), visible);
+            SetEntryActive(keyboard.Find(PinEntryName), pinVisible);
+            SetEntryActive(keyboard.Find(UnpinEntryName), unpinVisible);
         }
 
         private static void SetEntryActive(Transform entry, bool visible)

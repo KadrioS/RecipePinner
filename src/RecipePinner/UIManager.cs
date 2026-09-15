@@ -171,7 +171,7 @@ namespace ValheimRecipePinner
 
             UpdateLayout();
             KeyHintInjector.EnsureInjected();
-            KeyHintInjector.UpdateBuildHintVisibility();
+            KeyHintInjector.UpdateHintVisibility();
 
             if (_pinListRoot == null) return;
 
@@ -736,6 +736,12 @@ namespace ValheimRecipePinner
                 string title = RecipePinnerPlugin.Instance?.LocalizationMgr?.GetText("gathering_title") ?? "TOTAL NEEDS";
                 _gatheringListPanel = UIBuilder.CreateGatheringListPanel(_pinListRoot, _cachedFont, title);
                 _gatheringListPanel.SetActive(_gatheringListVisible);
+
+                // These three describe the panel, not the manager: a return to the main menu
+                // replaces the panel without DestroyUI running, and they would carry over.
+                _lastHintKey = null;
+                _lastGatheringSlotCount = -1;
+                _gatheringListRepositioned = false;
                 DebugLogger.Log("Gathering list panel ready");
             }
 

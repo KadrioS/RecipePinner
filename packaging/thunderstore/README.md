@@ -2,7 +2,7 @@
 
 ### Your crafting companion for Valheim
 
-[![Version](https://img.shields.io/badge/version-1.5.0-brightgreen?style=for-the-badge)](https://thunderstore.io/c/valheim/p/KadrioS/RecipePinner/)
+[![Version](https://img.shields.io/badge/version-1.5.1-brightgreen?style=for-the-badge)](https://thunderstore.io/c/valheim/p/KadrioS/RecipePinner/)
 [![Hexium](https://img.shields.io/badge/Hexium-Download-purple?style=for-the-badge)](https://valheim.hexium.gg/mods/Kadrio/RecipePinner)
 [![NexusMods](https://img.shields.io/badge/NexusMods-Download-orange?style=for-the-badge)](https://www.nexusmods.com/valheim/mods/3195)
 
@@ -42,7 +42,7 @@ Hover over a crafting recipe or Hammer build piece and press the Pin hotkey. Pre
 
 Valheim 1.0 gives one upgrade two prices: the ordinary materials at a normal station, or a single Idol at the **Forge of Potential**. Pin an upgrade while standing at the Forge of Potential and the pin asks for the idol; pin it anywhere else and you get the ordinary materials. Levels past an item's usual quality cap can only be reached at the Forge of Potential, and they can be pinned now too.
 
-Your pin and unpin keys also appear in Valheim's own button-hint bar, alongside Move and Use, and follow your keys if you rebind them.
+Your pin and unpin keys also appear in Valheim's own button-hint bar, alongside Move and Use, and follow your keys if you rebind them. The unpin hint stays out of the way until you have a pin it can actually remove.
 
 Pin the same recipe more than once and each material row also shows what a **single one** costs, in brackets. Ten stone axes need fifty wood, so the row reads `8/50(5)` - the total stays red because fifty is out of reach, while `(5)` turns green the moment you can afford one axe. No mental arithmetic to find out whether you can craft one right now. Turn it off with `ShowSingleUnitRequirement`.
 

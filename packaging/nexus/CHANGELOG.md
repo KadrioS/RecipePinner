@@ -1,3 +1,10 @@
+### 1.5.1
+
+#### Fixed
+
+* The Unpin hint no longer appears when there is nothing to unpin. It shows once you have a pin the shortcut can remove, and stays hidden while every pin you have is inside a group - a group member can only be taken out from the My Pins panel.
+* Fixed the Gathering List's Open/Close line being blank after you return to the main menu and enter a world again. It used to come back only when you opened your inventory.
+
 ### 1.5.0
 
 #### Added
