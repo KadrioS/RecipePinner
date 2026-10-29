@@ -95,26 +95,8 @@ namespace ValheimRecipePinner
             bool escapeDown = Input.GetKeyDown(KeyCode.Escape);
             bool enterDown  = Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter);
 
-            // Movement is deliberately absent from the sweep below, and Input.ResetInputAxes() is
-            // deliberately not called. This dialog takes no typed text, so there is no reason for
-            // it to root the player: Valheim's own panels let the character keep walking while
-            // they are open, and clearing the movement buttons every frame made this dialog the
-            // one place that did not. Actions still stop, both here and through the
-            // Player.TakeInput patch. Only the name-entry dialog stops movement, because only it
-            // turns a movement key into a letter.
-            try
-            {
-                if (ZInput.instance != null)
-                {
-                    ZInput.ResetButtonStatus("Use");
-                    ZInput.ResetButtonStatus("Attack");
-                    ZInput.ResetButtonStatus("SecondAttack");
-                    ZInput.ResetButtonStatus("Block");
-                    ZInput.ResetButtonStatus("Inventory");
-                    ZInput.ResetButtonStatus("Hide");
-                }
-            }
-            catch (System.Exception) { /* ZInput may not be ready */ }
+            // Nothing is reset here. This dialog takes no typed text, so like Valheim's own panels it
+            // leaves input to the gates: the Player.TakeInput patch for actions, the inventory for the rest.
 
             if (escapeDown)
             {

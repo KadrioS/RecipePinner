@@ -11,6 +11,7 @@ namespace ValheimRecipePinner
         private readonly List<PinSlotUI> _pinPool = new List<PinSlotUI>();
         private Font _cachedFont;
         private bool _warnedNoHud = false;
+        private bool _mapOrderChecked = false;
         private readonly Dictionary<string, int> _reusableInvCounts = new Dictionary<string, int>();
         private int _invCountsSignature = 0;
         private bool _invCountsBuilt = false;
@@ -169,6 +170,7 @@ namespace ValheimRecipePinner
                     pin.IsDirty = true;
             }
 
+            EnsurePinsBehindMap();
             UpdateLayout();
             KeyHintInjector.EnsureInjected();
             KeyHintInjector.UpdateHintVisibility();
@@ -642,6 +644,44 @@ namespace ValheimRecipePinner
             }
         }
 
+        // Unity draws a parent's children in sibling order and SetParent appends, so the pin root
+        // would land after the large map and draw over it, where vanilla's own HUD draws behind it.
+        // Which root the map lives under is prefab data, so it is found here rather than assumed.
+        private void EnsurePinsBehindMap()
+        {
+            if (_mapOrderChecked || _pinListRoot == null) return;
+
+            Minimap map = Minimap.instance;
+            if (map == null || map.m_largeRoot == null) return;
+
+            _mapOrderChecked = true;
+
+            Transform hudRoot = _pinListRoot.parent;
+            if (hudRoot == null) return;
+
+            Transform mapBranch = map.m_largeRoot.transform;
+            while (mapBranch != null && mapBranch.parent != hudRoot)
+                mapBranch = mapBranch.parent;
+
+            if (mapBranch == null)
+            {
+                DebugLogger.Log("Large map is not under the pins' HUD root; draw order left unchanged");
+                return;
+            }
+
+            int mapIndex = mapBranch.GetSiblingIndex();
+            int pinIndex = _pinListRoot.GetSiblingIndex();
+            if (pinIndex > mapIndex)
+            {
+                _pinListRoot.SetSiblingIndex(mapIndex);
+                DebugLogger.Log($"Pins moved behind the large map: '{mapBranch.name}' was at {mapIndex}, pins were at {pinIndex}");
+            }
+            else
+            {
+                DebugLogger.Log($"Pins already behind the large map: '{mapBranch.name}' at {mapIndex}, pins at {pinIndex}");
+            }
+        }
+
         private void CreateCanvasUI()
         {
             if (_pinListRoot != null) return;
@@ -675,6 +715,7 @@ namespace ValheimRecipePinner
             GameObject rootObj = new GameObject("PinListRoot", typeof(RectTransform)) { layer = 5 };
             rootObj.transform.SetParent(parentTransform, false);
             _pinListRoot = rootObj.transform;
+            _mapOrderChecked = false;
             _pinListRoot.localScale = Vector3.one * RecipePinnerPlugin.UIScale.Value;
 
             RectTransform rect = rootObj.GetComponent<RectTransform>();
@@ -729,6 +770,7 @@ namespace ValheimRecipePinner
 
             _paginationRoot = UIBuilder.CreatePaginationContainer(_pinListRoot);
             _paginationRoot.transform.SetAsLastSibling();
+            _pageDots.Clear();
 
             // Gathering List Panel
             if (RecipePinnerPlugin.EnableGatheringList.Value)

@@ -1,13 +1,13 @@
 using BepInEx;
 using BepInEx.Bootstrap;
+using BepInEx.Configuration;
 using HarmonyLib;
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 
 namespace ValheimRecipePinner
 {
-    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.5.1")]
+    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.5.3")]
     public partial class RecipePinnerPlugin : BaseUnityPlugin
     {
         public static RecipePinnerPlugin Instance;
@@ -19,9 +19,12 @@ namespace ValheimRecipePinner
         public UIManager UIMgr;
         public DataPersistence DataMgr;
 
-        // MLUI compat
-        internal bool _mluiMapListEnabled = false;
-        internal bool _mluiNoMapListEnabled = false;
+        // MLUI compat. The entries are MyLittleUI's own, so these follow its live value; a missing
+        // entry reads as enabled, which is the right guess for most MyLittleUI users.
+        private ConfigEntry<bool> _mluiMapListEntry;
+        private ConfigEntry<bool> _mluiNoMapListEntry;
+        internal bool _mluiMapListEnabled => _mluiMapListEntry == null || _mluiMapListEntry.Value;
+        internal bool _mluiNoMapListEnabled => _mluiNoMapListEntry == null || _mluiNoMapListEntry.Value;
         internal bool _mluiInstalled = false;
 
 
@@ -319,7 +322,7 @@ namespace ValheimRecipePinner
 
         private void ReadMyLittleUIConfig()
         {
-            if (!Chainloader.PluginInfos.ContainsKey("shudnal.MyLittleUI"))
+            if (!Chainloader.PluginInfos.TryGetValue("shudnal.MyLittleUI", out PluginInfo mlui) || mlui.Instance == null)
             {
                 _mluiInstalled = false;
                 DebugLogger.Log("MyLittleUI not detected");
@@ -327,66 +330,16 @@ namespace ValheimRecipePinner
             }
 
             _mluiInstalled = true;
-            _mluiMapListEnabled = true;
-            _mluiNoMapListEnabled = true;
 
-            string configPath = Path.Combine(Paths.ConfigPath, "shudnal.MyLittleUI.cfg");
-            if (!File.Exists(configPath))
-            {
-                DebugLogger.Log("MyLittleUI installed but config not found");
-                return;
-            }
+            // Not the cfg file: BepInEx keeps a renamed section there as an orphan with the old
+            // value, and the file never holds the value a server syncs. The entries hold both right.
+            ConfigFile config = mlui.Instance.Config;
+            if (!config.TryGetEntry("Status effects - Map - List", "Enable", out _mluiMapListEntry))
+                DebugLogger.Warning("MyLittleUI has no [Status effects - Map - List] Enable setting; assuming that list is enabled");
+            if (!config.TryGetEntry("Status effects - Nomap - List", "Enable", out _mluiNoMapListEntry))
+                DebugLogger.Warning("MyLittleUI has no [Status effects - Nomap - List] Enable setting; assuming that list is enabled");
 
-            try
-            {
-                string[] lines = File.ReadAllLines(configPath);
-                string currentSection = "";
-
-                foreach (string line in lines)
-                {
-                    string trimmed = line.Trim();
-
-                    if (trimmed.StartsWith("[") && trimmed.EndsWith("]"))
-                    {
-                        currentSection = trimmed;
-                        continue;
-                    }
-
-                    if (TryReadBoolConfigValue(trimmed, "Enable", out bool isEnabled))
-                    {
-                        if (currentSection == "[Status effects - Map - List]")
-                            _mluiMapListEnabled = isEnabled;
-                        else if (currentSection == "[Status effects - Nomap - List]")
-                            _mluiNoMapListEnabled = isEnabled;
-                    }
-                }
-
-                DebugLogger.Log($"MyLittleUI Config: MapList={_mluiMapListEnabled}, NoMapList={_mluiNoMapListEnabled}");
-            }
-            catch (System.Exception ex)
-            {
-                DebugLogger.Error($"Error reading MyLittleUI config", ex);
-            }
-        }
-
-        private static bool TryReadBoolConfigValue(string line, string key, out bool value)
-        {
-            value = false;
-
-            int equalsIndex = line.IndexOf('=');
-            if (equalsIndex <= 0)
-                return false;
-
-            string parsedKey = line.Substring(0, equalsIndex).Trim();
-            if (!string.Equals(parsedKey, key, System.StringComparison.OrdinalIgnoreCase))
-                return false;
-
-            string parsedValue = line.Substring(equalsIndex + 1);
-            int commentIndex = parsedValue.IndexOf('#');
-            if (commentIndex >= 0)
-                parsedValue = parsedValue.Substring(0, commentIndex);
-
-            return bool.TryParse(parsedValue.Trim(), out value);
+            DebugLogger.Log($"MyLittleUI Config: MapList={_mluiMapListEnabled}, NoMapList={_mluiNoMapListEnabled}");
         }
 
         // ============================================================
@@ -639,6 +592,31 @@ namespace ValheimRecipePinner
                 return false; // Skip original - no movement while the name field has focus
 
             return true;
+        }
+
+        /// <summary>
+        /// Reports the group-name field as Valheim's own text box while the dialog is open.
+        /// TextInput.IsVisible() is what the game and well-behaved mods check before acting on a key,
+        /// and a field this mod builds is not a TextInput, so without this they never know it is in use.
+        /// </summary>
+        [HarmonyPatch(typeof(TextInput), "IsVisible")]
+        [HarmonyPostfix]
+        public static void TextInput_IsVisible_WhileNaming(ref bool __result)
+        {
+            if (GroupNameDialog.IsDialogOpen)
+                __result = true;
+        }
+
+        /// <summary>
+        /// Stops a held E from stacking into an open container while the group name is typed.
+        /// InventoryGui reads that hold every frame the inventory is visible, behind no text-input check.
+        /// </summary>
+        [HarmonyPatch(typeof(InventoryGui), "UseButtonHeld")]
+        [HarmonyPostfix]
+        public static void InventoryGui_UseButtonHeld_WhileNaming(ref bool __result)
+        {
+            if (GroupNameDialog.IsDialogOpen)
+                __result = false;
         }
 
         /// <summary>

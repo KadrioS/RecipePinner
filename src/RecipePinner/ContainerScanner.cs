@@ -178,6 +178,8 @@ namespace ValheimRecipePinner
                 {
                     foreach (ItemDrop.ItemData item in inv.GetAllItems())
                     {
+                        if (item == null || item.m_shared == null) continue;
+
                         string name = item.m_shared.m_name;
 
                         if (ContainerCache.TryGetValue(name, out int currentVal))

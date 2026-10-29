@@ -65,14 +65,10 @@ namespace ValheimRecipePinner
                     ZInput.ResetButtonStatus("Run");
                     ZInput.ResetButtonStatus("Use");
                     ZInput.ResetButtonStatus("Attack");
-                    ZInput.ResetButtonStatus("SecondAttack");
                     ZInput.ResetButtonStatus("Block");
                     ZInput.ResetButtonStatus("Inventory");
                     ZInput.ResetButtonStatus("Hide");
                     ZInput.ResetButtonStatus("Sit");
-                    ZInput.ResetButtonStatus("GPower");
-                    ZInput.ResetButtonStatus("Emote1");
-                    ZInput.ResetButtonStatus("Emote2");
                 }
             }
             catch (System.Exception ex)

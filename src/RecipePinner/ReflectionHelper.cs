@@ -361,6 +361,15 @@ namespace ValheimRecipePinner
             if (TextInput.IsVisible())
                 return true;
 
+            // The map's pin-name field and the build menu's search box are not TextInput, so the
+            // check above misses them; vanilla's own PlayerController.TakeInput lists them separately.
+            if (Minimap.InTextInput())
+                return true;
+
+            Hud hud = Hud.instance;
+            if (hud != null && hud.m_buildUi != null && hud.m_buildUi.SearchFieldFocused)
+                return true;
+
             return false;
         }
 

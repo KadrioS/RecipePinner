@@ -176,35 +176,11 @@ namespace ValheimRecipePinner
             bool escapeDown = Input.GetKeyDown(KeyCode.Escape);
             bool enterDown  = Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter);
 
-            // Harmony blocks the main paths; this swallows residual Unity/ZInput state.
+            // The Harmony patches gate the game and every mod that checks TextInput.IsVisible();
+            // this clears Unity's legacy input for anything reading it later this frame regardless.
             if (IsDialogOpen)
             {
                 Input.ResetInputAxes();
-
-                try
-                {
-                    if (ZInput.instance != null)
-                    {
-                        ZInput.ResetButtonStatus("Forward");
-                        ZInput.ResetButtonStatus("Backward");
-                        ZInput.ResetButtonStatus("Left");
-                        ZInput.ResetButtonStatus("Right");
-                        ZInput.ResetButtonStatus("Jump");
-                        ZInput.ResetButtonStatus("Crouch");
-                        ZInput.ResetButtonStatus("Run");
-                        ZInput.ResetButtonStatus("Use");
-                        ZInput.ResetButtonStatus("Attack");
-                        ZInput.ResetButtonStatus("SecondAttack");
-                        ZInput.ResetButtonStatus("Block");
-                        ZInput.ResetButtonStatus("Inventory");
-                        ZInput.ResetButtonStatus("Hide");
-                        ZInput.ResetButtonStatus("Sit");
-                        ZInput.ResetButtonStatus("GPower");
-                        ZInput.ResetButtonStatus("Emote1");
-                        ZInput.ResetButtonStatus("Emote2");
-                    }
-                }
-                catch (System.Exception) { /* ZInput may not be ready */ }
             }
 
             // Use cached shortcuts so Escape/Enter work even when the text field lost focus.

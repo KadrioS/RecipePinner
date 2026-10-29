@@ -1,5 +1,17 @@
 # Changelog
 
+### 1.5.3
+
+#### Fixed
+
+* Typing a map pin name or a build menu search no longer triggers Recipe Pinner's hotkeys. A name with two P's in it - "copper", say - could clear every pin you had.
+* Fixed Recipe Pinner stopping until a restart - no hotkeys, no Gathering List updates - after you returned to the main menu and entered a world again with more pins than fit on one page. No pins were lost.
+* The pins now stay behind the map when you open it, like the rest of the HUD, instead of covering it.
+* Typing a group name no longer triggers other mods' hotkeys - Quick Stack Store's restock on L, for example. Mods that respect Valheim's own text boxes now see the group name field as one.
+* With My Little UI installed, changing its status effect list setting now moves the pins straight away, instead of after a restart. On a server that syncs that setting, the pins now follow the server's value too.
+
+---
+
 ### 1.5.1
 
 #### Fixed
