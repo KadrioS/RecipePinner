@@ -17,6 +17,9 @@ namespace ValheimRecipePinner
         private int _gatheringStamp = 0;
         private static readonly Vector2 DefaultContainerGap = new Vector2(90f, 2f);
         private readonly Vector3[] _containerCorners = new Vector3[4];
+        private readonly Vector3[] _sideButtonCorners = new Vector3[4];
+        private const float ContainerSideButtonGap = 8f;
+        private float _loggedSideButtonPush = 0f;
         private bool _warnedLegacyContainerOffset = false;
         private string _hexEnough = null;
         private string _hexMissing = null;
@@ -42,7 +45,8 @@ namespace ValheimRecipePinner
             _gatheringListVisible = !_gatheringListVisible;
             DebugLogger.Log($"Gathering list toggled: {_gatheringListVisible}");
 
-            _gatheringListPanel?.SetActive(_gatheringListVisible);
+            if (_gatheringListPanel != null)
+                _gatheringListPanel.SetActive(_gatheringListVisible);
             _lastGatheringSlotCount = -1;
 
             if (Player.m_localPlayer != null)
@@ -58,7 +62,8 @@ namespace ValheimRecipePinner
         public void CloseGatheringList()
         {
             _gatheringListVisible = false;
-            _gatheringListPanel?.SetActive(false);
+            if (_gatheringListPanel != null)
+                _gatheringListPanel.SetActive(false);
 
             if (_gatheringListRepositioned)
             {
@@ -184,12 +189,19 @@ namespace ValheimRecipePinner
                 Vector3 containerTopRight = _containerCorners[2];
                 float canvasScale = hudRect.lossyScale.x;
 
+                float left = containerTopRight.x + gap.x * canvasScale;
+                float top = containerTopRight.y + gap.y * canvasScale;
+                left = ClearContainerSideButtons(left, top, containerTopRight.x, canvasScale);
+
                 // Setting position rather than anchoredPosition keeps this independent of whatever
-                // anchors and pivot the HUD root happens to use.
-                panelRect.pivot = new Vector2(0f, 1f);
-                panelRect.position = new Vector3(containerTopRight.x + gap.x * canvasScale,
-                                                 containerTopRight.y + gap.y * canvasScale,
-                                                 0f);
+                // anchors and pivot the HUD root happens to use. Both are assigned only when they
+                // differ, for the same reason as localScale below.
+                Vector2 topLeftPivot = new Vector2(0f, 1f);
+                if (panelRect.pivot != topLeftPivot)
+                    panelRect.pivot = topLeftPivot;
+                Vector3 wantedPosition = new Vector3(left, top, 0f);
+                if (panelRect.position != wantedPosition)
+                    panelRect.position = wantedPosition;
                 placed = true;
             }
 
@@ -210,6 +222,45 @@ namespace ValheimRecipePinner
                 panelRect.localScale = wantedScale;
 
             _gatheringListRepositioned = true;
+        }
+
+        /// <summary>
+        /// Moves the list's left edge past anything beside the Take All button that sticks out of
+        /// the container window. Quick Stack Store parents its buttons there; measuring the siblings
+        /// instead of detecting the mod also covers its hidden-button settings and any other mod.
+        /// </summary>
+        private float ClearContainerSideButtons(float left, float top, float windowRight, float canvasScale)
+        {
+            Button takeAll = InventoryGui.instance != null ? InventoryGui.instance.m_takeAllButton : null;
+            if (takeAll == null) return left;
+            Transform group = takeAll.transform.parent;
+            if (group == null) return left;
+
+            RectTransform panelRect = _gatheringListPanel.PanelRect;
+            float bottom = top - panelRect.rect.height * panelRect.lossyScale.y;
+            float cleared = left;
+
+            for (int i = 0; i < group.childCount; i++)
+            {
+                RectTransform child = group.GetChild(i) as RectTransform;
+                if (child == null || !child.gameObject.activeInHierarchy) continue;
+
+                child.GetWorldCorners(_sideButtonCorners);
+                if (_sideButtonCorners[2].x <= windowRight) continue;
+                if (_sideButtonCorners[0].y >= top || _sideButtonCorners[1].y <= bottom) continue;
+
+                float needed = _sideButtonCorners[2].x + ContainerSideButtonGap * canvasScale;
+                if (needed > cleared) cleared = needed;
+            }
+
+            float push = canvasScale > 0f ? (cleared - left) / canvasScale : 0f;
+            if (Mathf.Abs(push - _loggedSideButtonPush) > 0.5f)
+            {
+                _loggedSideButtonPush = push;
+                DebugLogger.Log($"Gathering List beside a chest: pushed {push:F0} units right to clear buttons beside Take All.");
+            }
+
+            return cleared;
         }
 
         private void RestoreGatheringListParent()

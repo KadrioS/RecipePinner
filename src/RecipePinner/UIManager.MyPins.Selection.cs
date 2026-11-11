@@ -338,6 +338,14 @@ namespace ValheimRecipePinner
             if (recipeMgr == null) return;
 
             var locMgr = RecipePinnerPlugin.Instance?.LocalizationMgr;
+            if (recipeMgr.GetEffectivePinCountAfterDisband(groupName) > RecipePinnerPlugin.MaximumPins.Value)
+            {
+                DebugLogger.Log($"OnDisbandGroup refused: {groupName} would exceed MaximumPins");
+                if (Player.m_localPlayer != null)
+                    Player.m_localPlayer.Message(MessageHud.MessageType.Center, locMgr?.GetText("list_full") ?? "List Full!");
+                return;
+            }
+
             string message = string.Format(
                 locMgr?.GetText("confirm_disband_group") ?? "Disband group \"{0}\"? Members will become individual pins.",
                 displayName);
@@ -347,7 +355,11 @@ namespace ValheimRecipePinner
                 _confirmDialog.Show(message, () =>
                 {
                     DebugLogger.Log($"OnDisbandGroup confirmed: {groupName}");
-                    recipeMgr.DisbandGroup(groupName);
+                    if (!recipeMgr.DisbandGroup(groupName))
+                    {
+                        RefreshMyPinsList();
+                        return;
+                    }
                     _expandedGroups.Remove(groupName);
                     RefreshMyPinsList();
 

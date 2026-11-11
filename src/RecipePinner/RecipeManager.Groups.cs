@@ -87,6 +87,14 @@ namespace ValheimRecipePinner
                 return false;
             }
 
+            int maxPins = RecipePinnerPlugin.MaximumPins.Value;
+            int afterDisband = GetEffectivePinCountAfterDisband(groupName);
+            if (afterDisband > maxPins)
+            {
+                DebugLogger.Warning($"DisbandGroup: '{groupName}' not disbanded - it would leave {afterDisband} pins, max is {maxPins}");
+                return false;
+            }
+
             PinGroups.Remove(groupName);
             PinnedRecipeOrder.Remove($"GROUP:{groupName}");
             DebugLogger.Log($"Group disbanded: '{groupName}' ({group.MemberRecipeKeys.Count} members restored)");
@@ -369,15 +377,16 @@ namespace ValheimRecipePinner
             while (GetEffectivePinCount() > maxEffectivePins)
             {
                 bool trimmedOne = false;
+                List<string> displayOrder = GetDisplayPinOrder();
 
-                for (int i = PinnedRecipeOrder.Count - 1; i >= 0; i--)
+                for (int i = displayOrder.Count - 1; i >= 0; i--)
                 {
-                    string entry = PinnedRecipeOrder[i];
+                    string entry = displayOrder[i];
 
                     if (entry.StartsWith("GROUP:"))
                     {
                         string groupName = entry.Substring(6);
-                        PinnedRecipeOrder.RemoveAt(i);
+                        PinnedRecipeOrder.Remove(entry);
 
                         if (PinGroups.TryGetValue(groupName, out PinGroupData group))
                         {
@@ -419,7 +428,7 @@ namespace ValheimRecipePinner
                             else
                             {
                                 PinnedRecipes.Remove(entry);
-                                PinnedRecipeOrder.RemoveAt(i);
+                                PinnedRecipeOrder.Remove(entry);
                             }
 
                             removed++;
@@ -434,6 +443,27 @@ namespace ValheimRecipePinner
             }
 
             return removed;
+        }
+
+        /// <summary>
+        /// The effective pin count DisbandGroup would leave behind: the group's row goes, and each
+        /// member becomes a row unless other groups still claim every copy of it.
+        /// </summary>
+        public int GetEffectivePinCountAfterDisband(string groupName)
+        {
+            if (!PinGroups.TryGetValue(groupName, out PinGroupData group))
+                return GetEffectivePinCount();
+
+            int count = PinGroups.Count - 1;
+            foreach (var kvp in PinnedRecipes)
+            {
+                int claimCount = GetGroupClaimCount(kvp.Key);
+                if (group.MemberRecipeKeys.Contains(kvp.Key))
+                    claimCount -= group.MemberCounts.TryGetValue(kvp.Key, out int memberClaim) ? memberClaim : 1;
+                if (kvp.Value > claimCount)
+                    count++;
+            }
+            return count;
         }
 
         /// <summary>

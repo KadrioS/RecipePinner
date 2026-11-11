@@ -1,3 +1,13 @@
+### 1.5.4
+
+#### Fixed
+
+* With Quick Stack Store installed, the Gathering List beside an open chest no longer hides behind its buttons. The list now moves past them on its own, and stays where it was when they are hidden or not installed.
+* Fixed three ways your pins could be lost or overwritten: pressing Clear All's key twice at the main menu and then entering the same character again, a save file that could not be read for a moment (it was then saved empty), and changing Maximum Pins while the mod was turned off, which could write one character's pins into another character's save. Recipe Pinner now only saves pins it has actually read for the character you are playing.
+* Maximum Pins now holds when you add another copy of a recipe that is in a group, or disband a group. If the result would not fit, you get "List Full!" and nothing changes - the disband confirmation does not even open. Before, the extra pins went through and the next start removed your newest ones.
+* Lowering Maximum Pins now removes the pins at the end of the list as you see it. A recipe's extra copy shown after its group could be kept while the group itself was removed.
+* A pin is no longer removed when the craft does not happen - for example when a material leaves your inventory while the craft bar is filling.
+
 ### 1.5.3
 
 #### Fixed

@@ -196,7 +196,8 @@ namespace ValheimRecipePinner
                 _previousPinCount >= 2)
             {
                 _gatheringListVisible = false;
-                _gatheringListPanel?.SetActive(false);
+                if (_gatheringListPanel != null)
+                    _gatheringListPanel.SetActive(false);
                 DebugLogger.Log("Gathering list auto-closed (less than 2 pins)");
             }
             _previousPinCount = currentPinCount;

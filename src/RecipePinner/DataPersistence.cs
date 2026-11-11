@@ -11,6 +11,13 @@ namespace ValheimRecipePinner
         {
             try
             {
+                RecipePinnerPlugin plugin = RecipePinnerPlugin.Instance;
+                if (plugin == null || RecipePinnerPlugin.EnableMod == null || !RecipePinnerPlugin.EnableMod.Value || !plugin.IsPinDataLoaded)
+                {
+                    DebugLogger.Warning("Save refused - the pins in memory are not the current character's loaded pins, or the mod is disabled");
+                    return;
+                }
+
                 string savePath = GetSavePath();
                 if (string.IsNullOrEmpty(savePath))
                 {
@@ -69,26 +76,26 @@ namespace ValheimRecipePinner
             }
         }
 
-        public void LoadPins()
+        public bool LoadPins()
         {
             string savePath = GetSavePath();
             if (string.IsNullOrEmpty(savePath))
             {
                 DebugLogger.Warning("Cannot load - save path is invalid");
-                return;
+                return false;
             }
 
             var recipeMgr = RecipePinnerPlugin.Instance?.RecipeMgr;
             if (recipeMgr == null)
             {
                 DebugLogger.Warning("Cannot load - RecipeMgr is null");
-                return;
+                return false;
             }
 
             if (!File.Exists(savePath))
             {
                 DebugLogger.Log($"No save file found at: {savePath}");
-                return;
+                return true;
             }
 
             try
@@ -252,10 +259,12 @@ namespace ValheimRecipePinner
                 }
 
                 DebugLogger.Log($"Loaded {loadedCount} pins and {groupCount} groups from: {savePath} (Errors: {errorCount})");
+                return true;
             }
             catch (System.Exception ex)
             {
                 DebugLogger.Error("Failed to load pins", ex);
+                return false;
             }
         }
 

@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace ValheimRecipePinner
 {
-    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.5.3")]
+    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.5.4")]
     public partial class RecipePinnerPlugin : BaseUnityPlugin
     {
         public static RecipePinnerPlugin Instance;
@@ -31,11 +31,24 @@ namespace ValheimRecipePinner
         private bool _startupInitialized = false;
         private string _lastLanguage = "";
         private string _currentSessionPlayer = null;
+        // The character whose pins are in memory and were read from disk successfully. Null until a
+        // read succeeds, and again once the player is gone; SavePins refuses to write without it.
+        private string _pinsLoadedFor = null;
+        private const float LoadRetryInterval = 5f;
+        private float _nextLoadRetry = 0f;
         private const float ClearAllConfirmWindow = 2f;
         private float _clearAllArmedUntil = 0f;
         private static bool _isUiVisible = true;
         public static bool IsUiVisible => _isUiVisible;
-        internal bool IsPinDataLoaded => _startupInitialized;
+        internal bool IsPinDataLoaded
+        {
+            get
+            {
+                if (_pinsLoadedFor == null) return false;
+                Player player = Player.m_localPlayer;
+                return player != null && player.GetPlayerName() == _pinsLoadedFor;
+            }
+        }
 
         public enum PinLayoutMode
         {
@@ -138,6 +151,15 @@ namespace ValheimRecipePinner
 
         private void Update()
         {
+            // The plugin outlives the world. Once the player is gone the pins in memory belong to
+            // nobody, and the next character to enter - the same one included - must read its file.
+            if (Player.m_localPlayer == null && _currentSessionPlayer != null)
+            {
+                DebugLogger.Log($"Player '{_currentSessionPlayer}' left - pin session closed");
+                _currentSessionPlayer = null;
+                _pinsLoadedFor = null;
+            }
+
             if (!EnableMod.Value) return;
 
             ReflectionHelper.UpdateGuiScale();
@@ -146,7 +168,7 @@ namespace ValheimRecipePinner
             {
                 DebugLogger.Log("First init");
                 _lastLanguage = Localization.instance.GetSelectedLanguage();
-                DataMgr.LoadPins();
+                LoadPinsForPlayer(Player.m_localPlayer.GetPlayerName());
                 RecipeMgr.ValidateAndCleanPins();
                 RecipeMgr.RefreshRecipeCache();
                 _startupInitialized = true;
@@ -166,7 +188,8 @@ namespace ValheimRecipePinner
                 Input.GetKeyDown(HotkeyClearAll.Value) ||
                 Input.GetKeyDown(HotkeyPageSwitch.Value) ||
                 Input.GetKeyDown(HotkeyGatheringList.Value);
-            bool hotkeysBlocked = recipePinnerHotkeyPressed && AreRecipePinnerHotkeysBlocked();
+            // With no player the pins in memory are a previous character's; no hotkey may act on them.
+            bool hotkeysBlocked = recipePinnerHotkeyPressed && (Player.m_localPlayer == null || AreRecipePinnerHotkeysBlocked());
             if (Input.GetKeyDown(HotkeyToggleVisibility.Value))
             {
                 if (!hotkeysBlocked)
@@ -311,13 +334,40 @@ namespace ValheimRecipePinner
 
                 _currentSessionPlayer = activePlayerName;
 
-                DataMgr.LoadPins();
+                LoadPinsForPlayer(activePlayerName);
                 if (ObjectDB.instance != null && ObjectDB.instance.m_recipes.Count > 0)
                     RecipeMgr.ValidateAndCleanPins();
                 RecipeMgr.RefreshRecipeCache();
             }
+            else if (_pinsLoadedFor != activePlayerName && Time.unscaledTime >= _nextLoadRetry)
+            {
+                // The last read of this character's file failed, and nothing has been saved since, so
+                // the file still holds the real pins. A successful read replaces memory by itself.
+                LoadPinsForPlayer(activePlayerName);
+                if (_pinsLoadedFor == activePlayerName)
+                {
+                    DebugLogger.Log($"Pins for '{activePlayerName}' loaded on retry");
+                    if (ObjectDB.instance != null && ObjectDB.instance.m_recipes.Count > 0)
+                        RecipeMgr.ValidateAndCleanPins();
+                    RecipeMgr.RefreshRecipeCache();
+                }
+            }
 
             UIMgr.UpdateUI(_isUiVisible);
+        }
+
+        private void LoadPinsForPlayer(string playerName)
+        {
+            if (DataMgr.LoadPins())
+            {
+                _pinsLoadedFor = playerName;
+            }
+            else
+            {
+                _pinsLoadedFor = null;
+                _nextLoadRetry = Time.unscaledTime + LoadRetryInterval;
+                DebugLogger.Warning($"Pins for '{playerName}' could not be loaded - saving is off until a load succeeds, retrying in {LoadRetryInterval:0} s");
+            }
         }
 
         private void ReadMyLittleUIConfig()
@@ -392,10 +442,45 @@ namespace ValheimRecipePinner
         }
 
         [HarmonyPatch(typeof(InventoryGui), "DoCrafting")]
+        [HarmonyPrefix]
+        public static void AutoUnpinCraftCountHook(out float __state)
+        {
+            __state = ReadCraftCount();
+        }
+
+        // NaN when there is nothing to read; the postfix then leaves every pin alone. Slot 0 is the
+        // copy IncrementStat always writes; GetStat's signature differs between game versions.
+        // Never throws: an exception in a DoCrafting prefix would stop the craft itself.
+        private static float ReadCraftCount()
+        {
+            try
+            {
+                if (Game.instance == null) return float.NaN;
+                PlayerProfile profile = Game.instance.GetPlayerProfile();
+                if (profile == null || profile.m_playerStats == null || profile.m_playerStats.Length == 0) return float.NaN;
+                return profile.m_playerStats[0][PlayerStatType.CraftsOrUpgrades];
+            }
+            catch (System.Exception ex)
+            {
+                DebugLogger.Error("Could not read the craft count", ex);
+                return float.NaN;
+            }
+        }
+
+        [HarmonyPatch(typeof(InventoryGui), "DoCrafting")]
         [HarmonyPostfix]
-        public static void AutoUnpinHook(InventoryGui __instance)
+        public static void AutoUnpinHook(InventoryGui __instance, float __state)
         {
             if (!EnableMod.Value || !AutoUnpinAfterCrafting.Value || Instance == null) return;
+
+            // DoCrafting can return early during the craft delay - a material dropped, a full
+            // inventory, a moved upgrade item - and this postfix runs either way.
+            float craftCountAfter = ReadCraftCount();
+            if (float.IsNaN(__state) || float.IsNaN(craftCountAfter) || craftCountAfter <= __state)
+            {
+                DebugLogger.Log("DoCrafting finished without crafting; leaving pins alone");
+                return;
+            }
             Recipe craftedRecipe = ReflectionHelper.GetCraftRecipe(__instance);
 
             if (craftedRecipe != null)

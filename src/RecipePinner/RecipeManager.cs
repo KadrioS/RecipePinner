@@ -944,6 +944,16 @@ namespace ValheimRecipePinner
                 }
                 else
                 {
+                    // A copy beyond the group claims becomes a row of its own, so it needs a free slot.
+                    if (currentCount <= GetGroupClaimCount(recipeName) &&
+                        GetEffectivePinCount() >= RecipePinnerPlugin.MaximumPins.Value)
+                    {
+                        if (Player.m_localPlayer != null)
+                            Player.m_localPlayer.Message(MessageHud.MessageType.Center, locMgr.GetText("list_full"));
+                        DebugLogger.Warning($"Cannot add a copy of {recipeName} - it would need a new row and max pins reached ({RecipePinnerPlugin.MaximumPins.Value})");
+                        return;
+                    }
+
                     currentCount++;
                     PinnedRecipes[recipeName] = currentCount;
 
