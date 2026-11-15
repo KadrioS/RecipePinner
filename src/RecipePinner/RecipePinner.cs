@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace ValheimRecipePinner
 {
-    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.5.4")]
+    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.5.5")]
     public partial class RecipePinnerPlugin : BaseUnityPlugin
     {
         public static RecipePinnerPlugin Instance;
@@ -38,6 +38,9 @@ namespace ValheimRecipePinner
         private float _nextLoadRetry = 0f;
         private const float ClearAllConfirmWindow = 2f;
         private float _clearAllArmedUntil = 0f;
+        private const float MaximumPinsSettleDelay = 1f;
+        private bool _maximumPinsTrimPending = false;
+        private float _maximumPinsChangedAt = 0f;
         private static bool _isUiVisible = true;
         public static bool IsUiVisible => _isUiVisible;
         internal bool IsPinDataLoaded
@@ -175,6 +178,8 @@ namespace ValheimRecipePinner
                 DebugLogger.Log($"Init done - {RecipeMgr.PinnedRecipes.Count} pins loaded");
             }
 
+            ApplyPendingMaximumPinsTrim();
+
             // Container scanning
             if (EnableChestScanning.Value && Player.m_localPlayer != null && RecipeMgr.CachedPins.Count > 0)
             {
@@ -289,6 +294,44 @@ namespace ValheimRecipePinner
             // My Pins button/panel lifecycle
             if (Player.m_localPlayer != null)
                 UIMgr?.UpdateMyPinsInventoryState();
+        }
+
+        private void ApplyPendingMaximumPinsTrim()
+        {
+            if (!_maximumPinsTrimPending)
+                return;
+
+            // With no character's pins loaded there is nothing to trim; LoadPins trims to the cap itself.
+            if (!IsPinDataLoaded)
+            {
+                _maximumPinsTrimPending = false;
+                return;
+            }
+
+            // A pause in a drag is not a settled value: wait for the button and the config window too.
+            if (Input.GetMouseButton(0) || TextInput.IsVisible())
+            {
+                _maximumPinsChangedAt = Time.unscaledTime;
+                return;
+            }
+
+            if (Time.unscaledTime - _maximumPinsChangedAt < MaximumPinsSettleDelay)
+                return;
+
+            _maximumPinsTrimPending = false;
+
+            int trimmed = RecipeMgr?.TrimToMaximumPins(MaximumPins.Value) ?? 0;
+            if (trimmed > 0)
+            {
+                DebugLogger.Log($"MaximumPins reduced, trimmed {trimmed} effective pin(s)");
+                RecipeMgr?.RefreshRecipeCache();
+            }
+
+            UIMgr?.ResetPage();
+            UIMgr?.DestroyUI();
+
+            if (trimmed > 0)
+                DataMgr?.SavePins();
         }
 
         private bool AreRecipePinnerHotkeysBlocked()
@@ -441,42 +484,56 @@ namespace ValheimRecipePinner
                 && inSlot.m_quality == targetLevel;
         }
 
+        // CraftsOrUpgrades rises by one per DoCrafting that made something; Crafts rises by the batch
+        // count of a multi-craft and not at all for an upgrade.
+        public struct CraftCounters
+        {
+            public float CraftsOrUpgrades;
+            public float Crafts;
+        }
+
         [HarmonyPatch(typeof(InventoryGui), "DoCrafting")]
         [HarmonyPrefix]
-        public static void AutoUnpinCraftCountHook(out float __state)
+        public static void AutoUnpinCraftCountHook(out CraftCounters __state)
         {
-            __state = ReadCraftCount();
+            __state = ReadCraftCounters();
         }
 
         // NaN when there is nothing to read; the postfix then leaves every pin alone. Slot 0 is the
         // copy IncrementStat always writes; GetStat's signature differs between game versions.
         // Never throws: an exception in a DoCrafting prefix would stop the craft itself.
-        private static float ReadCraftCount()
+        private static CraftCounters ReadCraftCounters()
         {
+            CraftCounters unread = new CraftCounters { CraftsOrUpgrades = float.NaN, Crafts = float.NaN };
             try
             {
-                if (Game.instance == null) return float.NaN;
+                if (Game.instance == null) return unread;
                 PlayerProfile profile = Game.instance.GetPlayerProfile();
-                if (profile == null || profile.m_playerStats == null || profile.m_playerStats.Length == 0) return float.NaN;
-                return profile.m_playerStats[0][PlayerStatType.CraftsOrUpgrades];
+                if (profile == null || profile.m_playerStats == null || profile.m_playerStats.Length == 0) return unread;
+                return new CraftCounters
+                {
+                    CraftsOrUpgrades = profile.m_playerStats[0][PlayerStatType.CraftsOrUpgrades],
+                    Crafts = profile.m_playerStats[0][PlayerStatType.Crafts]
+                };
             }
             catch (System.Exception ex)
             {
                 DebugLogger.Error("Could not read the craft count", ex);
-                return float.NaN;
+                return unread;
             }
         }
 
         [HarmonyPatch(typeof(InventoryGui), "DoCrafting")]
         [HarmonyPostfix]
-        public static void AutoUnpinHook(InventoryGui __instance, float __state)
+        public static void AutoUnpinHook(InventoryGui __instance, CraftCounters __state)
         {
             if (!EnableMod.Value || !AutoUnpinAfterCrafting.Value || Instance == null) return;
 
             // DoCrafting can return early during the craft delay - a material dropped, a full
             // inventory, a moved upgrade item - and this postfix runs either way.
-            float craftCountAfter = ReadCraftCount();
-            if (float.IsNaN(__state) || float.IsNaN(craftCountAfter) || craftCountAfter <= __state)
+            CraftCounters countsAfter = ReadCraftCounters();
+            if (float.IsNaN(__state.CraftsOrUpgrades) || float.IsNaN(countsAfter.CraftsOrUpgrades)
+                || countsAfter.CraftsOrUpgrades <= __state.CraftsOrUpgrades)
             {
                 DebugLogger.Log("DoCrafting finished without crafting; leaving pins alone");
                 return;
@@ -488,6 +545,7 @@ namespace ValheimRecipePinner
                 List<string> keysToRemove = new List<string>();
 
                 bool isUpgrade = !__instance.m_tabUpgrade.interactable;
+                int batches = 1;
 
                 if (isUpgrade)
                 {
@@ -521,26 +579,34 @@ namespace ValheimRecipePinner
                 {
                     string craftedKey = Instance.RecipeMgr.BuildRecipeKey(craftedRecipe);
                     if (craftedKey != null) keysToRemove.Add(craftedKey);
+
+                    float craftsDelta = countsAfter.Crafts - __state.Crafts;
+                    if (!float.IsNaN(craftsDelta) && craftsDelta > 1f)
+                        batches = Mathf.RoundToInt(craftsDelta);
                 }
 
                 foreach (string keyToRemove in keysToRemove)
                 {
                     if (Instance.RecipeMgr.PinnedRecipes.TryGetValue(keyToRemove, out int currentCount))
                     {
-                        // Consume an ungrouped excess copy first; only touch group claims when every
-                        // remaining copy belongs to a group. Compared BEFORE the decrement below.
-                        bool hasUngroupedExcess = currentCount > Instance.RecipeMgr.GetGroupClaimCount(keyToRemove);
-
-                        currentCount--;
-                        DebugLogger.Log($"Auto-unpin: {keyToRemove}, remaining count: {currentCount}");
-
-                        if (hasUngroupedExcess)
+                        // One copy per batch, each taken as a single craft would take it.
+                        for (int batch = 0; batch < batches && currentCount > 0; batch++)
                         {
-                            DebugLogger.Verbose($"Auto-unpin: consumed ungrouped copy of '{keyToRemove}', group claims untouched");
-                        }
-                        else
-                        {
-                            Instance.RecipeMgr.DecrementGroupMemberCounts(keyToRemove);
+                            // Consume an ungrouped excess copy first; only touch group claims when every
+                            // remaining copy belongs to a group. Compared BEFORE the decrement below.
+                            bool hasUngroupedExcess = currentCount > Instance.RecipeMgr.GetGroupClaimCount(keyToRemove);
+
+                            currentCount--;
+                            DebugLogger.Log($"Auto-unpin: {keyToRemove}, remaining count: {currentCount}");
+
+                            if (hasUngroupedExcess)
+                            {
+                                DebugLogger.Verbose($"Auto-unpin: consumed ungrouped copy of '{keyToRemove}', group claims untouched");
+                            }
+                            else
+                            {
+                                Instance.RecipeMgr.DecrementGroupMemberCounts(keyToRemove);
+                            }
                         }
 
                         // Re-read claim count after group decrement (groups may have changed)
@@ -714,6 +780,22 @@ namespace ValheimRecipePinner
         [HarmonyPrefix]
         public static bool InventoryGui_Hide_BlockDuringDialog()
         {
+            // InventoryGui.Update forces Hide every frame for these; blocking it would keep the
+            // inventory and our dialogs on screen through a death or a portal.
+            Player localPlayer = Player.m_localPlayer;
+            if (localPlayer == null || localPlayer.IsDead() || localPlayer.InCutscene() || localPlayer.IsTeleporting())
+            {
+                UIManager uiMgr = Instance != null ? Instance.UIMgr : null;
+                if (GroupNameDialog.IsDialogOpen || ConfirmDialog.IsDialogOpen || ControlsInfoPanel.IsOpen
+                    || (uiMgr != null && uiMgr.IsMyPinsPanelOpen))
+                {
+                    if (uiMgr != null)
+                        uiMgr.CloseMyPinsPanel();
+                    DebugLogger.Log("InventoryGui.Hide forced - My Pins panel and dialogs closed");
+                }
+                return true;
+            }
+
             if (GroupNameDialog.IsDialogOpen)
             {
                 DebugLogger.Verbose("InventoryGui.Hide blocked - GroupNameDialog is open");

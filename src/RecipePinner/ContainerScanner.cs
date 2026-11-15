@@ -167,6 +167,14 @@ namespace ValheimRecipePinner
                     hasAccess = ReflectionHelper.CheckContainerAccess(container, Player.m_localPlayer.GetPlayerID());
                 }
 
+                // Container.Interact refuses inside someone else's ward before its own access check;
+                // flash off, as GetHoverText asks it, so a scan does not make the ward flash.
+                if (hasAccess && container.m_checkGuardStone
+                    && !PrivateArea.CheckAccess(container.transform.position, 0f, false))
+                {
+                    hasAccess = false;
+                }
+
                 if (!hasAccess)
                 {
                     accessDeniedCount++;

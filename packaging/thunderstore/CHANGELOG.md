@@ -1,3 +1,17 @@
+### 1.5.5
+
+#### Fixed
+
+* Dragging the Maximum Pins slider in Configuration Manager no longer deletes pins on the way. The new limit is applied once you let go and close the settings window; until then, the pins over the limit wait on a second page.
+* Clear All's key no longer works while the pause menu is open.
+* The backup of your pin list (the `.bak` file next to it) now keeps your last different list. Before, every autosave overwrote it, so after clearing your pins the backup was cleared too at the next save.
+* Dying, going through a portal or entering a cutscene with a Recipe Pinner window open now closes it together with your inventory. Before, the window, My Pins and the inventory stayed on screen - after a portal, until you closed them yourself.
+* Pressing Enter on a group name that already exists now says the name is taken, instead of saying it cannot be empty.
+* Crafting five at once with Left Shift now removes five pinned copies, not one.
+* The Chest Scanner no longer counts chests inside someone else's ward that you cannot open. This covers Valheim's own ward; wards from WardIsLove are not covered yet.
+
+---
+
 ### 1.5.4
 
 #### Fixed

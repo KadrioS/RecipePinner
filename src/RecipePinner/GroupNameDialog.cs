@@ -29,6 +29,8 @@ namespace ValheimRecipePinner
 
         private bool _inputLocked = false;
         private bool _listenersWired = false;
+        // onEndEdit and Update both see the same Enter press; whichever runs first that frame handles it.
+        private int _enterHandledFrame = -1;
 
         public void SetActive(bool active)
         {
@@ -90,9 +92,17 @@ namespace ValheimRecipePinner
             // Ignore focus-loss end-edit events; only Enter should confirm.
             if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
             {
-                DebugLogger.Log("GroupNameDialog: Enter via onEndEdit");
-                OnConfirmClicked();
+                ConfirmFromEnter("GroupNameDialog: Enter via onEndEdit");
             }
+        }
+
+        private void ConfirmFromEnter(string logMessage)
+        {
+            if (_enterHandledFrame == Time.frameCount) return;
+            _enterHandledFrame = Time.frameCount;
+
+            DebugLogger.Log(logMessage);
+            OnConfirmClicked();
         }
 
         private void OnConfirmClicked()
@@ -193,8 +203,7 @@ namespace ValheimRecipePinner
                 }
                 else if (enterDown)
                 {
-                    DebugLogger.Log("GroupNameDialog: Enter pressed, confirming");
-                    OnConfirmClicked();
+                    ConfirmFromEnter("GroupNameDialog: Enter pressed, confirming");
                 }
             }
         }

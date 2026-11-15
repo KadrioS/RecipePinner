@@ -353,6 +353,9 @@ namespace ValheimRecipePinner
                 return true;
             }
 
+            if (Menu.IsVisible())
+                return true;
+
             if (Chat.instance != null && Chat.instance.HasFocus())
             {
                 return true;

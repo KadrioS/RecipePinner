@@ -334,21 +334,16 @@ If another mod rearranges the crafting panel, this is the setting that gets the 
 
 ## 🐞 Known Issues
 
-These are known, and fixes are planned for the coming versions.
+Fixes for these are planned.
 
-* **A mod that adds recipes, missing for even one launch, takes its pins with it.** When Recipe Pinner starts and cannot find a pinned recipe, it removes that pin — group members included — for good. If you switch profiles or turn off such a mod, its pins will not come back when you turn it on again.
-* **Gathering List:**
-  * After you close it with its key, it can open again by itself.
-  * When it opens on its own — pinning a build piece with the Hammer, or after you respawn — it can stay hidden until you open your inventory.
-  * If you walk away from an open chest while your inventory stays open, the list disappears until you close the inventory.
-  * Materials you only have in nearby chests show green in the list, while your pins show them yellow.
-* **Hint bar:** the Pin and Unpin hints keep the old language after you change the game's language, and stay on screen while the mod is turned off.
-* **My Pins panel:**
-  * Its material counts do not follow your inventory while it stays open. Close and reopen it to refresh them.
-  * A build piece pinned more than once shows its count twice ("2x Wood wall" and "x2").
-  * Pressing Enter on a group name that already exists says the name cannot be empty.
-* **The "cannot remove: in group" message is always in English.**
-* **Small visual issues:** beside a chest, the Gathering List uses your column setting instead of its usual four columns; with more than four columns, the list-only mode spills outside its background; the Unpin hint shows an empty key box when its key is set to None; changing a setting while the mod is turned off redraws your pins, frozen in place; group rows in My Pins show no materials for some modded recipes that share a name (Jewelcrafting's sockets, for example); after clearing from My Pins, a Gathering List you had opened by hand comes back with your next pin; and dying with a confirmation window open keeps your inventory on screen until you respawn.
+* **Turning off a mod that adds recipes deletes its pins**, even for one launch, and they do not come back.
+* **Gathering List:** can reopen by itself after you close it, can stay hidden when it opens on its own, vanishes if you walk away from an open chest, and shows chest-only materials green instead of yellow.
+* **Hint bar:** keeps the old language after a language change, and stays visible while the mod is off.
+* **My Pins panel:** counts do not update while it is open (reopen it), and a build piece pinned twice shows its count twice.
+* **"Any one ingredient" recipes** such as Raw fish list every option as required.
+* **WardIsLove:** the Chest Scanner counts chests in other players' wards.
+* **"Cannot remove: in group"** is always shown in English.
+* **A few small visual glitches.**
 
 Anything else, please report it — see **Support And Feedback** below.
 

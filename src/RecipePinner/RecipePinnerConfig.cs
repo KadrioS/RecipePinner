@@ -129,20 +129,12 @@ namespace ValheimRecipePinner
             MaximumPins = Config.Bind("01 - General", "MaximumPins", 10,
                 new ConfigDescription("Maximum number of pins allowed at once.", new AcceptableValueRange<int>(1, 20),
                 new ConfigurationManagerAttributes { Order = 96 }));
+            // Configuration Manager's slider applies every step it passes, so trimming here would
+            // delete rows the user only dragged through. ApplyPendingMaximumPinsTrim acts once it settles.
             MaximumPins.SettingChanged += (s, e) =>
             {
-                int trimmed = RecipeMgr?.TrimToMaximumPins(MaximumPins.Value) ?? 0;
-                if (trimmed > 0)
-                {
-                    DebugLogger.Log($"MaximumPins reduced, trimmed {trimmed} effective pin(s)");
-                    RecipeMgr?.RefreshRecipeCache();
-                }
-
-                UIMgr?.ResetPage();
-                UIMgr?.DestroyUI();
-
-                if (trimmed > 0)
-                    DataMgr?.SavePins();
+                _maximumPinsTrimPending = true;
+                _maximumPinsChangedAt = Time.unscaledTime;
             };
 
             PinsPerPage = Config.Bind("01 - General", "PinsPerPage", 5,

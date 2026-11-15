@@ -66,6 +66,12 @@ namespace ValheimRecipePinner
                     }
                 }
 
+                if (SaveFileMatches(savePath, lines))
+                {
+                    DebugLogger.Log($"Save skipped - {lines.Count} entries unchanged on disk: {savePath}");
+                    return;
+                }
+
                 WriteAllLinesAtomically(savePath, lines);
                 int groupCount = recipeMgr.PinGroups.Count;
                 DebugLogger.Log($"Saved {lines.Count} entries ({lines.Count - groupCount} pins, {groupCount} groups) to: {savePath}");
@@ -264,6 +270,34 @@ namespace ValheimRecipePinner
             catch (System.Exception ex)
             {
                 DebugLogger.Error("Failed to load pins", ex);
+                return false;
+            }
+        }
+
+        // Rewriting an unchanged file would rotate .bak onto the same content, so the backup would
+        // only ever hold the state of one save ago instead of the last different one.
+        private static bool SaveFileMatches(string savePath, List<string> lines)
+        {
+            try
+            {
+                if (!File.Exists(savePath))
+                    return false;
+
+                string[] existing = File.ReadAllLines(savePath);
+                if (existing.Length != lines.Count)
+                    return false;
+
+                for (int i = 0; i < existing.Length; i++)
+                {
+                    if (!string.Equals(existing[i], lines[i], System.StringComparison.Ordinal))
+                        return false;
+                }
+
+                return true;
+            }
+            catch (System.Exception ex)
+            {
+                DebugLogger.Warning($"Could not compare the save with the file on disk, writing it: {ex.Message}");
                 return false;
             }
         }
