@@ -55,5 +55,7 @@
   "ctrl_toggle_hud": "Afficher/masquer l'interface",
   "ctrl_gathering": "Basculer la liste de collecte",
   "ctrl_next_page": "Page d'interface suivante",
-  "ctrl_clear_all": "Effacer toutes les épingles"
+  "ctrl_clear_all": "Effacer toutes les épingles",
+  "remove_in_group": "Impossible de retirer : dans le groupe \"{0}\"",
+  "any_one_of": "Un parmi {0}"
 }

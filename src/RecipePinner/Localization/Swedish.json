@@ -55,5 +55,7 @@
   "ctrl_toggle_hud": "Växla HUD-synlighet",
   "ctrl_gathering": "Växla samlingslista",
   "ctrl_next_page": "Nästa HUD-sida",
-  "ctrl_clear_all": "Rensa alla pins"
+  "ctrl_clear_all": "Rensa alla pins",
+  "remove_in_group": "Kan inte tas bort: i gruppen \"{0}\"",
+  "any_one_of": "Valfri av {0}"
 }

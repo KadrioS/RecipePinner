@@ -55,5 +55,7 @@
   "ctrl_toggle_hud": "HUDの表示切り替え",
   "ctrl_gathering": "採集リストの切り替え",
   "ctrl_next_page": "次のHUDページ",
-  "ctrl_clear_all": "すべてのピンを消去"
+  "ctrl_clear_all": "すべてのピンを消去",
+  "remove_in_group": "削除できません：グループ「{0}」に含まれています",
+  "any_one_of": "{0}種から1つ"
 }

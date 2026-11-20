@@ -55,5 +55,7 @@
   "ctrl_toggle_hud": "Arayüz Görünürlüğünü Değiştir",
   "ctrl_gathering": "Toplama Listesini Aç/Kapat",
   "ctrl_next_page": "Sonraki Arayüz Sayfası",
-  "ctrl_clear_all": "Tüm İğneleri Temizle"
+  "ctrl_clear_all": "Tüm İğneleri Temizle",
+  "remove_in_group": "Kaldırılamaz: \"{0}\" grubunda",
+  "any_one_of": "{0} seçenekten biri"
 }

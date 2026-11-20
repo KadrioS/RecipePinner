@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace ValheimRecipePinner
 {
-    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.5.5")]
+    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.5.6")]
     public partial class RecipePinnerPlugin : BaseUnityPlugin
     {
         public static RecipePinnerPlugin Instance;
@@ -268,6 +268,7 @@ namespace ValheimRecipePinner
                     DebugLogger.Log($"Language changed from {_lastLanguage} to {currentLang}");
                     _lastLanguage = currentLang;
                     LocalizationMgr.LoadTranslations();
+                    KeyHintInjector.RefreshKeys();
 
                     if (ObjectDB.instance != null) RecipeMgr.RefreshRecipeCache();
                     UIMgr?.DestroyUI();

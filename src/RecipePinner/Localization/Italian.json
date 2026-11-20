@@ -55,5 +55,7 @@
   "ctrl_toggle_hud": "Mostra/Nascondi HUD",
   "ctrl_gathering": "Apri/Chiudi lista raccolta",
   "ctrl_next_page": "Pagina HUD successiva",
-  "ctrl_clear_all": "Cancella tutti i pin"
+  "ctrl_clear_all": "Cancella tutti i pin",
+  "remove_in_group": "Impossibile rimuovere: nel gruppo \"{0}\"",
+  "any_one_of": "Uno tra {0}"
 }

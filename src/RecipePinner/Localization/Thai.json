@@ -55,5 +55,7 @@
   "ctrl_toggle_hud": "สลับการแสดงผล UI",
   "ctrl_gathering": "สลับรายการรวบรวม",
   "ctrl_next_page": "หน้า UI ถัดไป",
-  "ctrl_clear_all": "ล้างพินทั้งหมด"
+  "ctrl_clear_all": "ล้างพินทั้งหมด",
+  "remove_in_group": "นำออกไม่ได้: อยู่ในกลุ่ม \"{0}\"",
+  "any_one_of": "อย่างใดอย่างหนึ่งจาก {0}"
 }

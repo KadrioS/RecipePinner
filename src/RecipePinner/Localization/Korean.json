@@ -55,5 +55,7 @@
   "ctrl_toggle_hud": "HUD 표시 전환",
   "ctrl_gathering": "채집 목록 전환",
   "ctrl_next_page": "다음 HUD 페이지",
-  "ctrl_clear_all": "모든 핀 지우기"
+  "ctrl_clear_all": "모든 핀 지우기",
+  "remove_in_group": "제거할 수 없음: \"{0}\" 그룹에 포함됨",
+  "any_one_of": "{0}개 중 하나"
 }

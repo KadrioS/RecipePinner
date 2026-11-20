@@ -55,5 +55,7 @@
   "ctrl_toggle_hud": "Prepnúť viditeľnosť rozhrania",
   "ctrl_gathering": "Prepnúť zoznam zberu",
   "ctrl_next_page": "Ďalšia stránka rozhrania",
-  "ctrl_clear_all": "Vymazať všetky pripnutia"
+  "ctrl_clear_all": "Vymazať všetky pripnutia",
+  "remove_in_group": "Nemožno odobrať: v skupine \"{0}\"",
+  "any_one_of": "Ktorýkoľvek z {0}"
 }

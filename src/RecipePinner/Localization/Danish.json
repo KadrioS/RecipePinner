@@ -55,5 +55,7 @@
   "ctrl_toggle_hud": "Skift HUD-synlighed",
   "ctrl_gathering": "Skift indsamlingsliste",
   "ctrl_next_page": "Næste HUD-side",
-  "ctrl_clear_all": "Ryd alle fastgørelser"
+  "ctrl_clear_all": "Ryd alle fastgørelser",
+  "remove_in_group": "Kan ikke fjernes: i gruppen \"{0}\"",
+  "any_one_of": "Én af {0}"
 }

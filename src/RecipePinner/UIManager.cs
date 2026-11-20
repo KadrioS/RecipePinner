@@ -135,6 +135,11 @@ namespace ValheimRecipePinner
 
         public void UpdateUI(bool isVisible)
         {
+            // Setting handlers and the cache refresh still reach here while the mod is off;
+            // drawing then would bring back a HUD that nothing updates.
+            if (RecipePinnerPlugin.EnableMod != null && !RecipePinnerPlugin.EnableMod.Value)
+                return;
+
             if (Player.m_localPlayer == null || Player.m_localPlayer.IsDead())
             {
                 HideHudOverlay();
@@ -558,6 +563,46 @@ namespace ValheimRecipePinner
                     }
                 }
             }
+
+            // The summary row counts how many crafts the alternatives cover together, and shows the
+            // icon of the one the player has most of.
+            PinnedResData anyOne = pinData.AnyOneRow;
+            if (anyOne != null)
+            {
+                int invUnits = 0;
+                int totalUnits = 0;
+                int bestAmount = -1;
+                Sprite bestIcon = anyOne.Icon;
+                foreach (var res in pinData.Resources)
+                {
+                    int single = res.SingleAmount > 0 ? res.SingleAmount : 1;
+                    invUnits += Mathf.Max(0, res.LastKnownInvAmount) / single;
+                    totalUnits += Mathf.Max(0, res.LastKnownAmount) / single;
+                    if (res.LastKnownAmount > bestAmount)
+                    {
+                        bestAmount = res.LastKnownAmount;
+                        bestIcon = res.Icon;
+                    }
+                }
+
+                if (totalUnits != anyOne.LastKnownAmount || invUnits != anyOne.LastKnownInvAmount
+                    || anyOne.Icon != bestIcon || anyOne.CachedAmountString == null)
+                {
+                    anyOne.LastKnownAmount = totalUnits;
+                    anyOne.LastKnownInvAmount = invUnits;
+                    anyOne.Icon = bestIcon;
+
+                    Color anyOneColor = (invUnits >= anyOne.RequiredAmount) ?
+                                   RecipePinnerPlugin.ColorEnoughInInventory.Value :
+                                   (totalUnits >= anyOne.RequiredAmount) ?
+                                   RecipePinnerPlugin.ColorEnoughWithChests.Value :
+                                   RecipePinnerPlugin.ColorMissing.Value;
+
+                    string anyOneHex = "#" + ColorUtility.ToHtmlStringRGBA(anyOneColor);
+                    anyOne.CachedAmountString = $"<color={anyOneHex}>{totalUnits}/{anyOne.RequiredAmount}</color>";
+                    pinData.IsDirty = true;
+                }
+            }
         }
 
         private void UpdatePinSlot(int index, PinnedRecipeData pinData, ContainerScanner containerMgr, bool uncapCompact)
@@ -609,12 +654,19 @@ namespace ValheimRecipePinner
                         uiSlot.AccentBar.gameObject.SetActive(true);
 
                     bool allReady = true;
-                    for (int r = 0; r < pinData.Resources.Count; r++)
+                    if (pinData.AnyOneRow != null)
                     {
-                        if (pinData.Resources[r].LastKnownAmount < pinData.Resources[r].RequiredAmount)
+                        allReady = pinData.AnyOneRow.LastKnownAmount >= pinData.AnyOneRow.RequiredAmount;
+                    }
+                    else
+                    {
+                        for (int r = 0; r < pinData.Resources.Count; r++)
                         {
-                            allReady = false;
-                            break;
+                            if (pinData.Resources[r].LastKnownAmount < pinData.Resources[r].RequiredAmount)
+                            {
+                                allReady = false;
+                                break;
+                            }
                         }
                     }
 

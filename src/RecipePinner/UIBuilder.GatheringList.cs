@@ -78,7 +78,7 @@ namespace ValheimRecipePinner
             listObj.transform.SetParent(go.transform, false);
 
             GridLayoutGroup grid = listObj.AddComponent<GridLayoutGroup>();
-            grid.cellSize = new Vector2(58, 65);
+            grid.cellSize = new Vector2(58, GatheringCellHeight());
             grid.spacing = new Vector2(4, 3);
             grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
             grid.constraintCount = 4;
@@ -107,6 +107,15 @@ namespace ValheimRecipePinner
 
             DebugLogger.Verbose("Created gathering list panel");
             return panel;
+        }
+
+        // The 65-unit cell leaves the amount 18 units under the icon, which fits 15 points. Larger
+        // sizes grow the cell rather than shrink the icon; a line that does not fit is not drawn at all.
+        public static float GatheringCellHeight()
+        {
+            int size = RecipePinnerPlugin.GatheringListFontSizeMaterials != null
+                ? RecipePinnerPlugin.GatheringListFontSizeMaterials.Value : 15;
+            return 65f + Mathf.Max(0, Mathf.CeilToInt((size - 15) * 1.25f));
         }
 
         public static GatheringItemUI CreateGatheringItemSlot(Transform parent, Font font)
@@ -145,6 +154,7 @@ namespace ValheimRecipePinner
             slot.AmountText.fontSize = matSize;
             slot.AmountText.alignment = TextAnchor.MiddleCenter;
             slot.AmountText.horizontalOverflow = HorizontalWrapMode.Overflow;
+            slot.AmountText.verticalOverflow = VerticalWrapMode.Overflow;
             LayoutElement leAmount = amObj.AddComponent<LayoutElement>();
             leAmount.minHeight = 16;
 

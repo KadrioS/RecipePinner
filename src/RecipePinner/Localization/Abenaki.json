@@ -55,5 +55,7 @@
   "ctrl_toggle_hud": "Toggle HUD Visibility",
   "ctrl_gathering": "Toggle Gathering List",
   "ctrl_next_page": "Next HUD Page",
-  "ctrl_clear_all": "Clear All Pins"
+  "ctrl_clear_all": "Clear All Pins",
+  "remove_in_group": "Cannot remove: in group \"{0}\"",
+  "any_one_of": "Any one of {0}"
 }

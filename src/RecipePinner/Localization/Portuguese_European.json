@@ -55,5 +55,7 @@
   "ctrl_toggle_hud": "Alternar Visibilidade da Interface",
   "ctrl_gathering": "Alternar Lista de Recolha",
   "ctrl_next_page": "Próxima Página da Interface",
-  "ctrl_clear_all": "Limpar Todas as Fixações"
+  "ctrl_clear_all": "Limpar Todas as Fixações",
+  "remove_in_group": "Não é possível remover: no grupo \"{0}\"",
+  "any_one_of": "Qualquer um de {0}"
 }

@@ -55,5 +55,7 @@
   "ctrl_toggle_hud": "Felület mutatása/elrejtése",
   "ctrl_gathering": "Gyűjtőlista megnyitása/bezárása",
   "ctrl_next_page": "Következő oldal",
-  "ctrl_clear_all": "Összes kitűzés törlése"
+  "ctrl_clear_all": "Összes kitűzés törlése",
+  "remove_in_group": "Nem távolítható el: a(z) \"{0}\" csoportban van",
+  "any_one_of": "{0} közül bármelyik"
 }

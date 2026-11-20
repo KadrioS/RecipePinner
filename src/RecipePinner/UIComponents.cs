@@ -69,7 +69,9 @@ namespace ValheimRecipePinner
 
             HeaderText.color = RecipePinnerPlugin.ColorHeader.Value;
 
-            int resCount = data.Resources.Count;
+            // A recipe crafted from any one of its requirements draws one summary row.
+            PinnedResData anyOneRow = data.AnyOneRow;
+            int resCount = anyOneRow != null ? 1 : data.Resources.Count;
             bool useCompact = data.IsGroup && resCount > CompactThreshold && CompactResourceRoot != null;
 
             // Toggle between normal and compact layouts
@@ -141,14 +143,13 @@ namespace ValheimRecipePinner
                         if (CompactSlots[i].AmountText != null)
                         {
                             // A recycled overflow cell left the amount enlarged and stretched;
-                            // restore the material font size and height before reusing it.
-                            if (CompactSlots[i].AmountText.fontSize != compactMaterialFontSize)
-                            {
-                                CompactSlots[i].AmountText.fontSize = compactMaterialFontSize;
-                                LayoutElement amLe = CompactSlots[i].AmountText.GetComponent<LayoutElement>();
-                                if (amLe != null)
-                                    amLe.minHeight = 16f;
-                            }
+                            // restore the material font size and height before reusing it. Set
+                            // unconditionally: the font size cannot tell the two kinds of cell apart
+                            // when the material size is 22 too, and both setters skip equal values.
+                            CompactSlots[i].AmountText.fontSize = compactMaterialFontSize;
+                            LayoutElement amLe = CompactSlots[i].AmountText.GetComponent<LayoutElement>();
+                            if (amLe != null)
+                                amLe.minHeight = 16f;
                             CompactSlots[i].AmountText.text = res.CachedAmountString ?? "";
                         }
                     }
@@ -163,13 +164,10 @@ namespace ValheimRecipePinner
                         if (CompactSlots[i].AmountText != null)
                         {
                             CompactSlots[i].AmountText.text = "+" + overflow;
-                            if (CompactSlots[i].AmountText.fontSize != CompactOverflowFontSize)
-                            {
-                                CompactSlots[i].AmountText.fontSize = CompactOverflowFontSize;
-                                LayoutElement amLe = CompactSlots[i].AmountText.GetComponent<LayoutElement>();
-                                if (amLe != null)
-                                    amLe.minHeight = compactCellHeight;
-                            }
+                            CompactSlots[i].AmountText.fontSize = CompactOverflowFontSize;
+                            LayoutElement amLe = CompactSlots[i].AmountText.GetComponent<LayoutElement>();
+                            if (amLe != null)
+                                amLe.minHeight = compactCellHeight;
                         }
                     }
                     else
@@ -191,7 +189,7 @@ namespace ValheimRecipePinner
                     if (i < resCount)
                     {
                         ResourceSlots[i].SetActive(true);
-                        ResourceSlots[i].UpdateResource(data.Resources[i]);
+                        ResourceSlots[i].UpdateResource(anyOneRow != null ? anyOneRow : data.Resources[i]);
                     }
                     else
                         ResourceSlots[i].SetActive(false);

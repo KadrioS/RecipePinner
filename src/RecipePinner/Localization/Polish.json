@@ -55,5 +55,7 @@
   "ctrl_toggle_hud": "Przełącz widoczność interfejsu",
   "ctrl_gathering": "Przełącz listę zbierania",
   "ctrl_next_page": "Następna strona interfejsu",
-  "ctrl_clear_all": "Wyczyść wszystkie przypięcia"
+  "ctrl_clear_all": "Wyczyść wszystkie przypięcia",
+  "remove_in_group": "Nie można usunąć: w grupie \"{0}\"",
+  "any_one_of": "Dowolny z {0}"
 }

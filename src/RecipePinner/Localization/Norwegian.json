@@ -55,5 +55,7 @@
   "ctrl_toggle_hud": "Bytt HUD-synlighet",
   "ctrl_gathering": "Bytt innsamlingsliste",
   "ctrl_next_page": "Neste HUD-side",
-  "ctrl_clear_all": "Tøm alle pins"
+  "ctrl_clear_all": "Tøm alle pins",
+  "remove_in_group": "Kan ikke fjernes: i gruppen \"{0}\"",
+  "any_one_of": "Én av {0}"
 }

@@ -55,5 +55,7 @@
   "ctrl_toggle_hud": "Alternar visibilidad de interfaz",
   "ctrl_gathering": "Alternar lista de recolección",
   "ctrl_next_page": "Siguiente página",
-  "ctrl_clear_all": "Borrar todas las fijaciones"
+  "ctrl_clear_all": "Borrar todas las fijaciones",
+  "remove_in_group": "No se puede quitar: en el grupo \"{0}\"",
+  "any_one_of": "Cualquiera de {0}"
 }

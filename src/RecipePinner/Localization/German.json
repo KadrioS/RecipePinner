@@ -55,5 +55,7 @@
   "ctrl_toggle_hud": "HUD-Sichtbarkeit umschalten",
   "ctrl_gathering": "Sammelliste umschalten",
   "ctrl_next_page": "Nächste HUD-Seite",
-  "ctrl_clear_all": "Alle Pins löschen"
+  "ctrl_clear_all": "Alle Pins löschen",
+  "remove_in_group": "Entfernen nicht möglich: in Gruppe \"{0}\"",
+  "any_one_of": "Eins von {0}"
 }

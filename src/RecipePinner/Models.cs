@@ -19,6 +19,11 @@ namespace ValheimRecipePinner
         public bool IsDirty = true;
         public bool IsGroup = false;
         public PinGroupData GroupRef = null;
+
+        // Set for a recipe the game crafts from any single one of its requirements. Resources still
+        // lists every alternative, which group totals and the Gathering List read; the pin and
+        // My Pins draw this one row instead.
+        public PinnedResData AnyOneRow;
     }
 
     public class PinnedResData

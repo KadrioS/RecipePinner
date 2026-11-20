@@ -55,5 +55,7 @@
   "ctrl_toggle_hud": "Pārslēgt saskarnes redzamību",
   "ctrl_gathering": "Pārslēgt vākšanas sarakstu",
   "ctrl_next_page": "Nākamā saskarnes lapa",
-  "ctrl_clear_all": "Notīrīt visus piespraudumus"
+  "ctrl_clear_all": "Notīrīt visus piespraudumus",
+  "remove_in_group": "Nevar noņemt: grupā \"{0}\"",
+  "any_one_of": "Jebkurš no {0}"
 }

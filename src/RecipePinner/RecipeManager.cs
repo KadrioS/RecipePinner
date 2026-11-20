@@ -907,7 +907,7 @@ namespace ValheimRecipePinner
                             PinnedRecipes[recipeName] = currentCount;
                             string firstGroup = GetGroupContainingRecipe(recipeName);
                             Player.m_localPlayer?.Message(MessageHud.MessageType.Center,
-                                $"Cannot remove: in group \"{firstGroup}\"");
+                                string.Format(locMgr.GetText("remove_in_group"), firstGroup));
                             DebugLogger.Log($"Hotkey unpin blocked: {recipeName} min={claimCount}");
                         }
                         else
@@ -1310,6 +1310,22 @@ namespace ValheimRecipePinner
                 matName = matName.Replace("\r", "").Replace("\n", "");
                 resData.CachedName = matName;
                 data.Resources.Add(resData);
+            }
+
+            // The game crafts such a recipe from any one requirement, so the pin shows them as a
+            // single row. Its amounts are filled in where the other rows' are.
+            if (r.m_requireOnlyOneIngredient && data.Resources.Count > 0)
+            {
+                string anyOneFormat = RecipePinnerPlugin.Instance.LocalizationMgr.GetText("any_one_of");
+                data.AnyOneRow = new PinnedResData
+                {
+                    CachedName = string.Format(anyOneFormat, data.Resources.Count),
+                    Icon = data.Resources[0].Icon,
+                    RequiredAmount = count,
+                    SingleAmount = 0,
+                    LastKnownAmount = -1,
+                    LastKnownInvAmount = -1
+                };
             }
 
             return data;

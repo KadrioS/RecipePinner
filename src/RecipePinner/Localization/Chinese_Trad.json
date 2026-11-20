@@ -55,5 +55,7 @@
   "ctrl_toggle_hud": "切換介面可見性",
   "ctrl_gathering": "切換收集列表",
   "ctrl_next_page": "下一介面頁",
-  "ctrl_clear_all": "清除所有固定"
+  "ctrl_clear_all": "清除所有固定",
+  "remove_in_group": "無法移除：位於分組「{0}」中",
+  "any_one_of": "{0} 種任選其一"
 }

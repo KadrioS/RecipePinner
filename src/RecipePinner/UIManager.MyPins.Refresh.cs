@@ -33,6 +33,11 @@ namespace ValheimRecipePinner
             if (amountPlayer != null)
                 RefreshInventoryCounts(amountPlayer.GetInventory());
 
+            // Synced on every refresh, whoever called it, or the next frame sees a change and refreshes again.
+            _lastKnownPinCount = recipeMgr.PinnedRecipes.Count;
+            _lastKnownGroupCount = recipeMgr.PinGroups.Count;
+            _lastKnownInvSignature = _invCountsSignature;
+
             ContainerScanner amountContainers = RecipePinnerPlugin.Instance.ContainerMgr;
 
             List<MyPinDisplayItem> displayItems = new List<MyPinDisplayItem>();
@@ -94,7 +99,8 @@ namespace ValheimRecipePinner
                                 {
                                     if (candidate == null) continue;
 
-                                    if ((candidate.RecipeRef != null && candidate.RecipeRef.name == memberKey) || candidate.RawName == memberKey)
+                                    // By pin key: a "#N" ordinal is in the key, not in the recipe's name.
+                                    if (candidate.PinKey == memberKey)
                                     {
                                         memberData = candidate;
                                         break;
@@ -159,7 +165,7 @@ namespace ValheimRecipePinner
                                     IsSubItem = true,
                                     ParentGroupName = groupName,
                                     GroupData = null,
-                                    Resources = memberData != null ? memberData.Resources : null
+                                    Resources = GetStripResources(memberData)
                                 });
 
                                 if (memberData != null)
@@ -201,14 +207,18 @@ namespace ValheimRecipePinner
                 }
                 else
                 {
-                    foreach (var cached in recipeMgr.CachedPins)
+                    PinnedRecipeData cachedRow;
+                    if (_reusablePinLookup.TryGetValue(entry, out cachedRow) && cachedRow != null)
                     {
-                        if (!cached.IsGroup && cached.RecipeRef != null && cached.RecipeRef.name == entry)
-                        {
-                            displayName = cached.CachedHeader + RecipeManager.BuildUpgradeRouteSuffix(entry);
-                            icon = cached.Icon;
-                            break;
-                        }
+                        // CachedHeader is the HUD's and leads with the count, which this row
+                        // shows on its own.
+                        displayName = cachedRow.CachedHeader ?? entry;
+                        string countPrefix = individualCount + "x ";
+                        if (displayName.StartsWith(countPrefix))
+                            displayName = displayName.Substring(countPrefix.Length);
+
+                        displayName += RecipeManager.BuildUpgradeRouteSuffix(entry);
+                        icon = cachedRow.Icon;
                     }
                 }
 
@@ -227,7 +237,7 @@ namespace ValheimRecipePinner
                     IsSubItem = false,
                     ParentGroupName = null,
                     GroupData = null,
-                    Resources = rowPinData != null ? rowPinData.Resources : null
+                    Resources = GetStripResources(rowPinData)
                 });
             }
 
@@ -439,6 +449,14 @@ namespace ValheimRecipePinner
             Canvas.ForceUpdateCanvases();
             _myPinsPanel.RefreshLayout();
             DebugLogger.Verbose($"My Pins list refreshed: {displayItems.Count} items ({ungroupedCount} individual)");
+        }
+
+        // A recipe crafted from any one of its requirements shows its one summary row, as on the HUD.
+        private static List<PinnedResData> GetStripResources(PinnedRecipeData pin)
+        {
+            if (pin == null) return null;
+            if (pin.AnyOneRow != null) return new List<PinnedResData> { pin.AnyOneRow };
+            return pin.Resources;
         }
     }
 

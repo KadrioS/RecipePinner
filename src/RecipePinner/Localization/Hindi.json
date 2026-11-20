@@ -55,5 +55,7 @@
   "ctrl_toggle_hud": "HUD दृश्यता बदलें",
   "ctrl_gathering": "एकत्रीकरण सूची बदलें",
   "ctrl_next_page": "अगला HUD पृष्ठ",
-  "ctrl_clear_all": "सभी पिन साफ़ करें"
+  "ctrl_clear_all": "सभी पिन साफ़ करें",
+  "remove_in_group": "हटाया नहीं जा सकता: समूह \"{0}\" में है",
+  "any_one_of": "{0} में से कोई एक"
 }

@@ -55,5 +55,7 @@
   "ctrl_toggle_hud": "Comută vizibilitatea HUD",
   "ctrl_gathering": "Comută lista de colectare",
   "ctrl_next_page": "Pagina HUD următoare",
-  "ctrl_clear_all": "Șterge toate fixările"
+  "ctrl_clear_all": "Șterge toate fixările",
+  "remove_in_group": "Nu se poate elimina: în grupul \"{0}\"",
+  "any_one_of": "Oricare din {0}"
 }

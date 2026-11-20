@@ -6,7 +6,7 @@ body:
     id: version
     attributes:
       label: Recipe Pinner version
-      placeholder: "1.5.5"
+      placeholder: "1.5.6"
     validations:
       required: true
 

@@ -55,5 +55,7 @@
   "ctrl_toggle_hud": "Sýna/fela HUD",
   "ctrl_gathering": "Sýna/fela söfnunarlista",
   "ctrl_next_page": "Næsta HUD síða",
-  "ctrl_clear_all": "Hreinsa allar festingar"
+  "ctrl_clear_all": "Hreinsa allar festingar",
+  "remove_in_group": "Ekki hægt að fjarlægja: í flokknum \"{0}\"",
+  "any_one_of": "Eitt af {0}"
 }

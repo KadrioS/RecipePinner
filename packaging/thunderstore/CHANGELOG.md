@@ -1,3 +1,22 @@
+### 1.5.6
+
+#### Fixed
+
+* The Pin and Unpin hints in the game's button-hint bar now follow a language change, and disappear while the mod is turned off.
+* With the Unpin key set to None, the Unpin hint no longer shows an empty key box.
+* Changing a setting while the mod is turned off no longer brings back frozen pins on the HUD - after switching characters, even another character's pins.
+* With the build menu open, the button-hint bar no longer runs off the right edge of the screen or squeezes its labels. When the Pin and Unpin hints do not fit, the bar now shrinks just enough to fit. You can turn this off with the new Fit Key Hint Bar setting under Controls.
+* The Pin and Unpin hints now name keys the way the game does ("Mouse-3" instead of "Middle Button"), and the Unpin hint in the build bar has its "+" between the two keys again.
+* My Pins: a group's members now show their materials even when two recipes share a name (for example Jewelcrafting's gem recipes).
+* My Pins: a build piece pinned twice no longer shows its count twice ("2x Wood wall" next to "x2").
+* A large group's "+N" cell on the HUD is no longer misdrawn when the Gathering List material font size is 22.
+* My Pins: material counts now update while the panel is open, for example when you pick up wood with it open.
+* The "Cannot remove: in group" message is now translated.
+* Recipes that need only one of their ingredients, such as Raw fish, now show one row, "Any one of 12", instead of listing every fish as required, and their pin turns ready as soon as you have one. Groups and the Gathering List still list every option for now.
+* Material amounts no longer disappear from the Gathering List and from large groups when the Gathering List material font size is above 15. The cells now grow with the font.
+
+---
+
 ### 1.5.5
 
 #### Fixed

@@ -147,7 +147,7 @@ namespace ValheimRecipePinner
             compactListObj.SetActive(false);
 
             GridLayoutGroup compactGrid = compactListObj.AddComponent<GridLayoutGroup>();
-            compactGrid.cellSize = new Vector2(58, 65);   // Identical to Gathering List
+            compactGrid.cellSize = new Vector2(58, GatheringCellHeight());   // Identical to Gathering List
             compactGrid.spacing = new Vector2(4, 3);       // Identical to Gathering List
             compactGrid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
             compactGrid.constraintCount = 4;

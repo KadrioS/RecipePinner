@@ -246,7 +246,7 @@ Install [Official BepInEx ConfigurationManager](https://valheim.hexium.gg/mods/A
 | Section | What it covers |
 | :--- | :--- |
 | **General** | Enable the mod, language override, layout mode, pin limit, pins per page, auto-unpin after crafting or building |
-| **Controls** | Every hotkey: pin, unpin, toggle visibility, Gathering List, page switch, clear all |
+| **Controls** | Every hotkey: pin, unpin, toggle visibility, Gathering List, page switch, clear all; and whether the button-hint bar shrinks to fit when the Pin and Unpin hints would push it off screen |
 | **Chest Scanner** | Whether nearby chests count toward your materials, plus scan range and interval |
 | **HUD Appearance** | UI scale, background opacity, font sizes, recipe/material/group icon sizes, the craft-readiness bar, the single-unit bracket |
 | **Colors** | The three material states, the recipe name, and both readiness-bar colors |
@@ -338,11 +338,8 @@ Fixes for these are planned.
 
 * **Turning off a mod that adds recipes deletes its pins**, even for one launch, and they do not come back.
 * **Gathering List:** can reopen by itself after you close it, can stay hidden when it opens on its own, vanishes if you walk away from an open chest, and shows chest-only materials green instead of yellow.
-* **Hint bar:** keeps the old language after a language change, and stays visible while the mod is off.
-* **My Pins panel:** counts do not update while it is open (reopen it), and a build piece pinned twice shows its count twice.
-* **"Any one ingredient" recipes** such as Raw fish list every option as required.
+* **"Any one ingredient" recipes** such as Raw fish: pinned on their own they show one row, but when grouped, the group's pin on the HUD and the Gathering List still list every fish as required.
 * **WardIsLove:** the Chest Scanner counts chests in other players' wards.
-* **"Cannot remove: in group"** is always shown in English.
 * **A few small visual glitches.**
 
 Anything else, please report it — see **Support And Feedback** below.

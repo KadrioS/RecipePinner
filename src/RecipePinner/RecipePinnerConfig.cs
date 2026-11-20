@@ -25,6 +25,7 @@ namespace ValheimRecipePinner
         public static ConfigEntry<KeyCode> HotkeyToggleVisibility;
         public static ConfigEntry<KeyCode> HotkeyPageSwitch;
         public static ConfigEntry<KeyCode> HotkeyGatheringList;
+        public static ConfigEntry<bool> FitKeyHintBar;
 
         // ── 03 - Chest Scanner ───────────────────────────────────
         public static ConfigEntry<bool> EnableChestScanning;
@@ -113,13 +114,14 @@ namespace ValheimRecipePinner
                 {
                     UIMgr?.DestroyUI();
                     UIMgr?.DestroyMyPinsUI();
+                    KeyHintInjector.HideAll();
                 }
             };
 
             LanguageOverride = Config.Bind("01 - General", "LanguageOverride", "Auto",
                 new ConfigDescription("Force a specific language (e.g., 'German', 'Turkish'). 'Auto' uses the game language.", null,
                 new ConfigurationManagerAttributes { Order = 98 }));
-            LanguageOverride.SettingChanged += (s, e) => { LocalizationMgr?.LoadTranslations(); RecipeMgr?.RefreshRecipeCache(); UIMgr?.DestroyUI(); UIMgr?.DestroyMyPinsUI(); };
+            LanguageOverride.SettingChanged += (s, e) => { LocalizationMgr?.LoadTranslations(); KeyHintInjector.RefreshKeys(); RecipeMgr?.RefreshRecipeCache(); UIMgr?.DestroyUI(); UIMgr?.DestroyMyPinsUI(); };
 
             LayoutModeConfig = Config.Bind("01 - General", "LayoutMode", PinLayoutMode.AutoDetect,
                 new ConfigDescription("HUD pin layout position.", null,
@@ -171,6 +173,9 @@ namespace ValheimRecipePinner
             HotkeyClearAll = Config.Bind("02 - Controls", "HotkeyClearAll", KeyCode.P,
                 new ConfigDescription("Hotkey to clear all pinned recipes.", null,
                 new ConfigurationManagerAttributes { Order = 94 }));
+            FitKeyHintBar = Config.Bind("02 - Controls", "FitKeyHintBar", true,
+                new ConfigDescription("Shrink Valheim's button-hint bar just enough to fit on screen when the Pin and Unpin hints would push it past the edge.", null,
+                new ConfigurationManagerAttributes { Order = 93 }));
 
             // ── 03 - Chest Scanner ────────────────────────────────────────
             EnableChestScanning = Config.Bind("03 - Chest Scanner", "EnableChestScanning", false,

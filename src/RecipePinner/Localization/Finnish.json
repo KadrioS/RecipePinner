@@ -55,5 +55,7 @@
   "ctrl_toggle_hud": "Vaihda näkymän tilaa",
   "ctrl_gathering": "Vaihda keräyslistan tilaa",
   "ctrl_next_page": "Seuraava sivu",
-  "ctrl_clear_all": "Tyhjennä kaikki kiinnitykset"
+  "ctrl_clear_all": "Tyhjennä kaikki kiinnitykset",
+  "remove_in_group": "Ei voi poistaa: ryhmässä \"{0}\"",
+  "any_one_of": "Yksi {0} vaihtoehdosta"
 }

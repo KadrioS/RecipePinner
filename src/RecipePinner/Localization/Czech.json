@@ -55,5 +55,7 @@
   "ctrl_toggle_hud": "Zobrazit/Skrýt rozhraní",
   "ctrl_gathering": "Otevřít/Zavřít seznam sběru",
   "ctrl_next_page": "Další stránka rozhraní",
-  "ctrl_clear_all": "Vymazat všechna připnutí"
+  "ctrl_clear_all": "Vymazat všechna připnutí",
+  "remove_in_group": "Nelze odebrat: ve skupině \"{0}\"",
+  "any_one_of": "Kterýkoli z {0}"
 }

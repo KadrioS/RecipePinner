@@ -55,5 +55,7 @@
   "ctrl_toggle_hud": "Prikaži/sakrij interfejs",
   "ctrl_gathering": "Prikaži/sakrij listu za sakupljanje",
   "ctrl_next_page": "Sledeća stranica interfejsa",
-  "ctrl_clear_all": "Očisti sve zakačke"
+  "ctrl_clear_all": "Očisti sve zakačke",
+  "remove_in_group": "Nije moguće ukloniti: u grupi \"{0}\"",
+  "any_one_of": "Bilo koji od {0}"
 }

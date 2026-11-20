@@ -55,5 +55,7 @@
   "ctrl_toggle_hud": "HUD-zichtbaarheid schakelen",
   "ctrl_gathering": "Verzamellijst schakelen",
   "ctrl_next_page": "Volgende HUD-pagina",
-  "ctrl_clear_all": "Alle pins wissen"
+  "ctrl_clear_all": "Alle pins wissen",
+  "remove_in_group": "Kan niet verwijderen: in groep \"{0}\"",
+  "any_one_of": "Eén van {0}"
 }

@@ -55,5 +55,7 @@
   "ctrl_toggle_hud": "Perjungti sąsajos matomumą",
   "ctrl_gathering": "Perjungti rinkimo sąrašą",
   "ctrl_next_page": "Kitas sąsajos puslapis",
-  "ctrl_clear_all": "Išvalyti visus segtukus"
+  "ctrl_clear_all": "Išvalyti visus segtukus",
+  "remove_in_group": "Negalima pašalinti: grupėje \"{0}\"",
+  "any_one_of": "Bet kuris iš {0}"
 }

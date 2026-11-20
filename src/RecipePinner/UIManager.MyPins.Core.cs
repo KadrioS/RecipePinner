@@ -19,6 +19,7 @@ namespace ValheimRecipePinner
         private bool _inventoryWasOpen = false;
         private int _lastKnownPinCount = -1;
         private int _lastKnownGroupCount = -1;
+        private int _lastKnownInvSignature;
 
         /// <summary>
         /// True while the My Pins panel is visible; Harmony patches use this to intercept Escape.
@@ -115,7 +116,13 @@ namespace ValheimRecipePinner
                     int currentPinCount = recipeMgr.PinnedRecipes.Count;
                     int currentGroupCount = recipeMgr.PinGroups.Count;
 
-                    if (currentPinCount != _lastKnownPinCount || currentGroupCount != _lastKnownGroupCount)
+                    // The HUD skips this walk while it is hidden, and the player can pick items up
+                    // with the panel open.
+                    if (Player.m_localPlayer != null)
+                        RefreshInventoryCounts(Player.m_localPlayer.GetInventory());
+
+                    if (currentPinCount != _lastKnownPinCount || currentGroupCount != _lastKnownGroupCount
+                        || _invCountsSignature != _lastKnownInvSignature)
                     {
                         _lastKnownPinCount = currentPinCount;
                         _lastKnownGroupCount = currentGroupCount;

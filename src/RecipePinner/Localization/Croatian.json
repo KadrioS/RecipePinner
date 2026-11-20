@@ -55,5 +55,7 @@
   "ctrl_toggle_hud": "Prebaci vidljivost sučelja",
   "ctrl_gathering": "Prebaci popis za prikupljanje",
   "ctrl_next_page": "Sljedeća stranica sučelja",
-  "ctrl_clear_all": "Očisti sve pribadače"
+  "ctrl_clear_all": "Očisti sve pribadače",
+  "remove_in_group": "Nije moguće ukloniti: u grupi \"{0}\"",
+  "any_one_of": "Bilo koji od {0}"
 }
