@@ -110,7 +110,11 @@ namespace ValheimRecipePinner
                     if (memberData.Icon != null && grp.MemberIcons.Count < 4)
                         grp.MemberIcons.Add(memberData.Icon);
 
-                    foreach (var res in memberData.Resources)
+                    // A recipe crafted from any one requirement adds its summary row, not every alternative.
+                    List<PinnedResData> memberRows = memberData.AnyOneRow != null
+                        ? new List<PinnedResData> { memberData.AnyOneRow }
+                        : memberData.Resources;
+                    foreach (var res in memberRows)
                     {
                         if (mergedMap.TryGetValue(res.ItemName, out PinnedResData existingRes))
                         {
@@ -128,7 +132,8 @@ namespace ValheimRecipePinner
                                 Icon = res.Icon,
                                 RequiredAmount = res.RequiredAmount,
                                 LastKnownAmount = -1,
-                                LastKnownInvAmount = -1
+                                LastKnownInvAmount = -1,
+                                Alternatives = res.Alternatives
                             };
                         }
                     }
@@ -1320,6 +1325,8 @@ namespace ValheimRecipePinner
                 data.AnyOneRow = new PinnedResData
                 {
                     CachedName = string.Format(anyOneFormat, data.Resources.Count),
+                    ItemName = "ANYONE:" + recipeName,
+                    Alternatives = data.Resources,
                     Icon = data.Resources[0].Icon,
                     RequiredAmount = count,
                     SingleAmount = 0,

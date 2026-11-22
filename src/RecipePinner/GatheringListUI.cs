@@ -11,6 +11,9 @@ namespace ValheimRecipePinner
         public int LastHave = int.MinValue;
         public int LastRequired = int.MinValue;
         public bool LastComplete;
+        public bool LastInInventory;
+        public bool IsOverflow;
+        public int LastOverflow;
 
         public void SetActive(bool active) => gameObject.SetActive(active);
     }
@@ -19,6 +22,8 @@ namespace ValheimRecipePinner
     {
         public RectTransform PanelRect;
         public Image BgImage;
+        public bool HasInventoryBackground;
+        public Image PlankInset;
         public Transform ItemListRoot;
         public Text HintText;
         public List<GatheringItemUI> ItemSlots = new List<GatheringItemUI>();
@@ -91,6 +96,8 @@ namespace ValheimRecipePinner
         public int TotalRequired;
         public int TotalHave;
         public bool IsComplete;
+        public bool InInventory;
         public int Stamp;
+        public List<PinnedResData> Alternatives;
     }
 }

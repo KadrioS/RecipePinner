@@ -13,6 +13,7 @@ namespace ValheimRecipePinner
         private static Func<InventoryGui, Transform> _getRecipeListRoot;
         private static Func<InventoryGui, object> _getAvailableRecipes;
         private static Func<InventoryGui, Container> _getCurrentContainer;
+        private static Func<InventoryGui, Animator> _getInventoryAnimator;
         private static Func<InventoryGui, Recipe> _getCraftRecipe;
         private static Func<InventoryGui, ItemDrop.ItemData> _getCraftUpgradeItem;
         private static Func<Hud, Piece> _getHoveredPiece;
@@ -100,6 +101,23 @@ namespace ValheimRecipePinner
                 {
                     failCount++;
                     DebugLogger.Warning("✗ InventoryGui.m_currentContainer not found");
+                }
+
+                // InventoryGui - Animator, whose "visible" flag is the window's own state
+                FieldInfo f_animator = AccessTools.Field(typeof(InventoryGui), "m_animator");
+                if (f_animator != null)
+                {
+                    var param = System.Linq.Expressions.Expression.Parameter(typeof(InventoryGui), "arg");
+                    _getInventoryAnimator = System.Linq.Expressions.Expression.Lambda<Func<InventoryGui, Animator>>(
+                        System.Linq.Expressions.Expression.Field(param, f_animator), param
+                    ).Compile();
+                    successCount++;
+                    DebugLogger.Verbose("✓ InventoryGui.m_animator");
+                }
+                else
+                {
+                    failCount++;
+                    DebugLogger.Warning("✗ InventoryGui.m_animator not found");
                 }
 
                 // InventoryGui - Craft Recipe
@@ -240,6 +258,18 @@ namespace ValheimRecipePinner
                 return null;
             }
             return _getHoveredPiece(hud);
+        }
+
+        // The inventory window's own "visible" flag, set the moment the game opens or closes it.
+        // InventoryGui.IsVisible() stays true for up to two frames after a close, so a layout that
+        // follows it lags the window.
+        public static bool IsInventoryShown()
+        {
+            InventoryGui gui = InventoryGui.instance;
+            if (gui == null) return false;
+            Animator animator = _getInventoryAnimator != null ? _getInventoryAnimator(gui) : null;
+            if (animator == null) return InventoryGui.IsVisible();
+            return animator.GetBool("visible");
         }
 
         public static bool IsBlockingInventoryPanelOpen(InventoryGui gui)

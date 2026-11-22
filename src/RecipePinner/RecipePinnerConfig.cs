@@ -42,6 +42,8 @@ namespace ValheimRecipePinner
         public static ConfigEntry<int> HudGroupIconSize;
         public static ConfigEntry<bool> EnableCraftReadiness;
         public static ConfigEntry<bool> ShowSingleUnitRequirement;
+        public static ConfigEntry<bool> ShowPinsOnlyWithInventory;
+        public static ConfigEntry<bool> InventoryBackground;
 
         // ── 05 - Colors ─────────────────────────────────────────
         public static ConfigEntry<Color> ColorHeader;
@@ -59,11 +61,12 @@ namespace ValheimRecipePinner
 
         // ── 07 - Gathering List ──────────────────────────────────
         public static ConfigEntry<bool> EnableGatheringList;
-        public static ConfigEntry<bool> AutoOpenGatheringList;
+        public static ConfigEntry<int> AutoOpenGatheringListAt;
         public static ConfigEntry<int> GatheringListColumns;
         public static ConfigEntry<int> GatheringListFontSizeTitle;
         public static ConfigEntry<int> GatheringListFontSizeMaterials;
         public static ConfigEntry<Vector2> ContainerGatheringListPosition;
+        public static ConfigEntry<bool> SinglePinBesideChest;
 
         // ── 08 - Groups ──────────────────────────────────────────
         public static ConfigEntry<int> GroupCompactThreshold;
@@ -81,6 +84,7 @@ namespace ValheimRecipePinner
         public static ConfigEntry<int> MaterialFontSize;
         public static ConfigEntry<float> MaterialStripHeight;
         public static ConfigEntry<int> ConfigVersion;
+        public static ConfigEntry<bool> GatheringListOpen;
 
         // ── 10 - Layout: Vertical ────────────────────────────────
         public static ConfigEntry<float> VerticalListWidth;
@@ -250,6 +254,14 @@ namespace ValheimRecipePinner
                 new ConfigurationManagerAttributes { Order = 91 }));
             ShowSingleUnitRequirement.SettingChanged += (s, e) => RecipeMgr?.RefreshRecipeCache();
 
+            ShowPinsOnlyWithInventory = Config.Bind("04 - HUD Appearance", "ShowPinsOnlyWithInventory", false,
+                new ConfigDescription("Show the pins and the Gathering List only while the inventory is open (any crafting station, cauldron or chest counts) or a build tool is equipped. The visibility and Gathering List hotkeys still work while they are shown.", null,
+                new ConfigurationManagerAttributes { Order = 90 }));
+
+            InventoryBackground = Config.Bind("04 - HUD Appearance", "InventoryBackground", true,
+                new ConfigDescription("While the inventory is open, give each pin and the Gathering List the inventory window's own background instead of their dark boxes.", null,
+                new ConfigurationManagerAttributes { Order = 89 }));
+
             // ── 05 - Colors ───────────────────────────────────────────────
             ColorHeader = Config.Bind("05 - Colors", "ColorHeader", new Color(1f, 0.808f, 0f, 1f),
                 new ConfigDescription("Recipe/group name text color.", null,
@@ -310,8 +322,8 @@ namespace ValheimRecipePinner
                 new ConfigurationManagerAttributes { Order = 99 }));
             EnableGatheringList.SettingChanged += (s, e) => UIMgr?.DestroyUI();
 
-            AutoOpenGatheringList = Config.Bind("07 - Gathering List", "AutoOpenGatheringList", true,
-                new ConfigDescription("Automatically open the Gathering List when 2+ recipes are pinned.", null,
+            AutoOpenGatheringListAt = Config.Bind("07 - Gathering List", "AutoOpenGatheringListAt", 2,
+                new ConfigDescription("Open the Gathering List by itself once this many recipes are pinned, and close it again below that. 0 = never. A list you close with the hotkey stays closed until the count drops below this number and climbs back to it.", new AcceptableValueRange<int>(0, 20),
                 new ConfigurationManagerAttributes { Order = 98 }));
 
             GatheringListColumns = Config.Bind("07 - Gathering List", "GatheringListColumns", 4,
@@ -329,9 +341,13 @@ namespace ValheimRecipePinner
                 new ConfigurationManagerAttributes { Order = 95 }));
             GatheringListFontSizeMaterials.SettingChanged += (s, e) => UIMgr?.DestroyUI();
 
-            ContainerGatheringListPosition = Config.Bind("07 - Gathering List", "ContainerGatheringListPosition", new Vector2(90f, 2f),
-                new ConfigDescription("Gap between the container window's top-right corner and the Gathering List's top-left corner, when a chest is open. X is to the right, Y is up. Values with a negative X are from the pre-1.3.1 screen-centre scheme and are ignored in favour of the default.", null,
+            ContainerGatheringListPosition = Config.Bind("07 - Gathering List", "ContainerGatheringListPosition", new Vector2(90f, 10f),
+                new ConfigDescription("Gap between the container window's top-right corner and the Gathering List's top-left corner, when a chest is open. With no chest open the list takes the container window's own place under the inventory instead. X is to the right, Y is up. Values with a negative X are from the pre-1.3.1 screen-centre scheme and are ignored in favour of the default.", null,
                 new ConfigurationManagerAttributes { Order = 94 }));
+
+            SinglePinBesideChest = Config.Bind("07 - Gathering List", "SinglePinBesideChest", true,
+                new ConfigDescription("With exactly one pin and the Gathering List closed, move that pin to where the Gathering List goes while the inventory is open: beside an open chest (using ContainerGatheringListPosition's gap), or in the container window's place under the inventory when no chest is open.", null,
+                new ConfigurationManagerAttributes { Order = 93 }));
 
             // ── 08 - Groups ───────────────────────────────────────────────
             GroupCompactThreshold = Config.Bind("08 - Groups", "GroupCompactThreshold", 4,
@@ -432,14 +448,14 @@ namespace ValheimRecipePinner
             BottomRightPinSpacing = Config.Bind("12 - Layout (Horizontal - Bottom Right)", "PinSpacing", 10f,
                 new ConfigDescription("Spacing between pin cards in the column.", new AcceptableValueRange<float>(0f, 200f),
                 new ConfigurationManagerAttributes { Order = 98 }));
-            BottomRightPosition = Config.Bind("12 - Layout (Horizontal - Bottom Right)", "Position", new Vector2(-40f, 40f),
+            BottomRightPosition = Config.Bind("12 - Layout (Horizontal - Bottom Right)", "Position", new Vector2(-30f, 30f),
                 new ConfigDescription("Anchor position offset (X, Y).", null,
                 new ConfigurationManagerAttributes { Order = 97 }));
             AvoidKeyHintBar = Config.Bind("12 - Layout (Horizontal - Bottom Right)", "AvoidKeyHintBar", true,
                 new ConfigDescription("Raise the pin list while Valheim's button-hint bar is on screen, so the hints do not cover it. That bar is on by default in the game's own settings.", null,
                 new ConfigurationManagerAttributes { Order = 96 }));
-            KeyHintBarOffset = Config.Bind("12 - Layout (Horizontal - Bottom Right)", "KeyHintBarOffset", 35f,
-                new ConfigDescription("How far up the list moves while that bar is showing. Added to Position's Y, so the default 40 sits at 75.", new AcceptableValueRange<float>(0f, 300f),
+            KeyHintBarOffset = Config.Bind("12 - Layout (Horizontal - Bottom Right)", "KeyHintBarOffset", 40f,
+                new ConfigDescription("How far up the list moves while that bar is showing. Added to Position's Y, so the default 30 sits at 70.", new AcceptableValueRange<float>(0f, 300f),
                 new ConfigurationManagerAttributes { Order = 95 }));
 
             // ── 13 - Debug ────────────────────────────────────────────────
@@ -451,6 +467,9 @@ namespace ValheimRecipePinner
             ConfigVersion = Config.Bind("14 - Internal", "ConfigVersion", 0,
                 new ConfigDescription("Records which one-time config migrations have already run. Not meant to be edited.", null,
                 new ConfigurationManagerAttributes { Browsable = false, Order = 1 }));
+            GatheringListOpen = Config.Bind("14 - Internal", "GatheringListOpen", false,
+                new ConfigDescription("Whether the Gathering List was open when the game last ran, so the next launch starts the same way. Not meant to be edited.", null,
+                new ConfigurationManagerAttributes { Browsable = false, Order = 2 }));
 
             // Migration 1 - the My Pins button placement. Its old default sat on top of the
             // crafting station's own picture, but BepInEx writes the config file on a player's
@@ -469,6 +488,52 @@ namespace ValheimRecipePinner
                 }
 
                 ConfigVersion.Value = 1;
+            }
+
+            // Migration 2 - the on/off AutoOpenGatheringList became the AutoOpenGatheringListAt count.
+            // The old key is bound only here, to carry an "off" over as 0, and then removed so it leaves
+            // the file; binding it on every launch would write it back with its default.
+            if (ConfigVersion.Value < 2)
+            {
+                ConfigEntry<bool> oldAutoOpen = Config.Bind("07 - Gathering List", "AutoOpenGatheringList", true,
+                    new ConfigDescription("Replaced by AutoOpenGatheringListAt.", null,
+                    new ConfigurationManagerAttributes { Browsable = false }));
+                if (!oldAutoOpen.Value)
+                {
+                    AutoOpenGatheringListAt.Value = 0;
+                    DebugLogger.Log("Config migration 2: AutoOpenGatheringList was off, AutoOpenGatheringListAt set to 0");
+                }
+                Config.Remove(oldAutoOpen.Definition);
+
+                ConfigVersion.Value = 2;
+            }
+
+            // Migration 3 - the bottom-right position and the hint-bar offset got new defaults, chosen
+            // together. As in migration 1, only players still on both old values are moved.
+            if (ConfigVersion.Value < 3)
+            {
+                if (BottomRightPosition.Value == new Vector2(-40f, 40f) && Mathf.Approximately(KeyHintBarOffset.Value, 35f))
+                {
+                    BottomRightPosition.Value = new Vector2(-30f, 30f);
+                    KeyHintBarOffset.Value = 40f;
+                    DebugLogger.Log("Config migration 3: bottom-right position (-40, 40) -> (-30, 30), KeyHintBarOffset 35 -> 40");
+                }
+
+                ConfigVersion.Value = 3;
+            }
+
+            // Migration 4 - ContainerGatheringListPosition's Y. The gap is measured from the chest
+            // window's rect, whose visible frame reaches 10 units above it, so the old 2 left the list
+            // 8 units low. As in migration 1, only players still on the old default are moved.
+            if (ConfigVersion.Value < 4)
+            {
+                if (ContainerGatheringListPosition.Value == new Vector2(90f, 2f))
+                {
+                    ContainerGatheringListPosition.Value = new Vector2(90f, 10f);
+                    DebugLogger.Log("Config migration 4: ContainerGatheringListPosition (90, 2) -> (90, 10)");
+                }
+
+                ConfigVersion.Value = 4;
             }
 
             DebugLogger.Log("Config loaded");

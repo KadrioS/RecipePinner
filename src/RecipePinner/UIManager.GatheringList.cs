@@ -7,24 +7,35 @@ namespace ValheimRecipePinner
     public partial class UIManager
     {
         private GatheringListUI _gatheringListPanel;
-        private bool _gatheringListVisible = false;
+        // Starts as the last launch left it; UpdateUI keeps the config value in step.
+        private bool _gatheringListVisible = RecipePinnerPlugin.GatheringListOpen?.Value ?? false;
         private bool _gatheringListRepositioned = false;
         private readonly List<GatheringItemData> _gatheringData = new List<GatheringItemData>();
         private readonly Dictionary<string, GatheringItemData> _gatheringAggregator = new Dictionary<string, GatheringItemData>();
         private int _previousPinCount = 0;
+        private bool _pinCountSeeded = false;
         private string _lastHintKey = null;
         private int _lastGatheringSlotCount = -1;
         private int _gatheringStamp = 0;
-        private static readonly Vector2 DefaultContainerGap = new Vector2(90f, 2f);
+        private static readonly Vector2 DefaultContainerGap = new Vector2(90f, 10f);
+        // The game's own gap between stacked inventory windows, in canvas units: between the player
+        // window and a chest's, and between the info panel and the crafting window.
+        private const float InventoryWindowGap = 10f;
         private readonly Vector3[] _containerCorners = new Vector3[4];
         private readonly Vector3[] _sideButtonCorners = new Vector3[4];
+        private readonly Vector3[] _playerCorners = new Vector3[4];
+        private readonly Vector3[] _listCorners = new Vector3[4];
+        // As the compact grid's "+N" cell.
+        private const int GatheringOverflowFontSize = 22;
         private const float ContainerSideButtonGap = 8f;
         private float _loggedSideButtonPush = 0f;
         private bool _warnedLegacyContainerOffset = false;
         private string _hexEnough = null;
         private string _hexMissing = null;
+        private string _hexChests = null;
         private Color _hexEnoughSource;
         private Color _hexMissingSource;
+        private Color _hexChestsSource;
 
         public void ToggleGatheringList()
         {
@@ -45,7 +56,10 @@ namespace ValheimRecipePinner
             _gatheringListVisible = !_gatheringListVisible;
             DebugLogger.Log($"Gathering list toggled: {_gatheringListVisible}");
 
-            if (_gatheringListPanel != null)
+            // This runs after the frame's UpdateUI. With the inventory open the next UpdateUI shows
+            // the panel in its place; shown here it would draw for a frame at its old one.
+            bool inventoryOpen = ReflectionHelper.IsInventoryShown();
+            if (_gatheringListPanel != null && !(_gatheringListVisible && inventoryOpen))
                 _gatheringListPanel.SetActive(_gatheringListVisible);
             _lastGatheringSlotCount = -1;
 
@@ -87,6 +101,9 @@ namespace ValheimRecipePinner
         private void UpdateGatheringListPosition(bool isHorizontal, bool isBottomRight)
         {
             if (_gatheringListPanel == null) return;
+
+            // While the inventory is open RepositionGatheringListForInventory places the panel.
+            if (_gatheringListRepositioned) return;
 
             LayoutElement le = _gatheringListPanel.GetComponent<LayoutElement>()
                 ?? _gatheringListPanel.gameObject.AddComponent<LayoutElement>();
@@ -145,6 +162,52 @@ namespace ValheimRecipePinner
             return configured;
         }
 
+        /// <summary>
+        /// World position of the top-left corner the Gathering List (or a lone pin) takes while the
+        /// inventory is open. With a chest's window showing, beside it. Without one, in that window's
+        /// own place: the game only hides it, so its corners still hold. It is also kept below the
+        /// player inventory's bottom edge, which extra inventory rows move down.
+        /// </summary>
+        private Vector3 GetInventorySpot(RectTransform panelRect, RectTransform containerRect, float canvasScale)
+        {
+            containerRect.GetWorldCorners(_containerCorners);
+
+            if (containerRect.gameObject.activeSelf)
+            {
+                Vector3 containerTopRight = _containerCorners[2];
+                Vector2 gap = GetContainerGatheringListGap();
+                float left = containerTopRight.x + gap.x * canvasScale;
+                float top = containerTopRight.y + gap.y * canvasScale;
+                left = ClearContainerSideButtons(panelRect, left, top, containerTopRight.x, canvasScale);
+                return new Vector3(left, top, 0f);
+            }
+
+            // Without a chest the panel's own edges line up with what the player sees, so this
+            // measures the windows' visible edges rather than their rects.
+            VisibleEdge(containerRect).GetWorldCorners(_containerCorners);
+            Vector3 containerTopLeft = _containerCorners[1];
+            float spotTop = containerTopLeft.y;
+            RectTransform playerRect = InventoryGui.instance != null ? InventoryGui.instance.m_player : null;
+            if (playerRect != null)
+            {
+                VisibleEdge(playerRect).GetWorldCorners(_playerCorners);
+                float belowPlayer = _playerCorners[0].y - InventoryWindowGap * canvasScale;
+                if (belowPlayer < spotTop)
+                    spotTop = belowPlayer;
+            }
+            return new Vector3(containerTopLeft.x, spotTop, 0f);
+        }
+
+        // A game window's visible edge: its "Bkg" image, which reaches past the window's own rect.
+        // Falls back to the rect if a mod has replaced the image.
+        private static RectTransform VisibleEdge(RectTransform window)
+        {
+            RectTransform bkg = window.Find("Bkg") as RectTransform;
+            if (bkg == null)
+                return window;
+            return bkg;
+        }
+
         private void RepositionGatheringListForInventory()
         {
             if (_gatheringListPanel == null) return;
@@ -168,11 +231,9 @@ namespace ValheimRecipePinner
                     ?? _gatheringListPanel.gameObject.AddComponent<LayoutElement>();
                 le.ignoreLayout = true;
 
-                // Container mode: always 4 columns like vertical mode
-                _gatheringListPanel.ApplyColumns(4);
+                // The inventory layouts are horizontal, so the column setting applies here too.
+                _gatheringListPanel.ApplyColumns(RecipePinnerPlugin.GatheringListColumns?.Value ?? 4);
             }
-
-            Vector2 gap = GetContainerGatheringListGap();
 
             // The container window is anchored to the screen's top-left and this panel used to be
             // anchored to the screen centre. Both are scaled by the game's GUI setting, but from
@@ -185,13 +246,7 @@ namespace ValheimRecipePinner
 
             if (hudRect != null && containerRect != null)
             {
-                containerRect.GetWorldCorners(_containerCorners);
-                Vector3 containerTopRight = _containerCorners[2];
-                float canvasScale = hudRect.lossyScale.x;
-
-                float left = containerTopRight.x + gap.x * canvasScale;
-                float top = containerTopRight.y + gap.y * canvasScale;
-                left = ClearContainerSideButtons(left, top, containerTopRight.x, canvasScale);
+                Vector3 wantedPosition = GetInventorySpot(panelRect, containerRect, hudRect.lossyScale.x);
 
                 // Setting position rather than anchoredPosition keeps this independent of whatever
                 // anchors and pivot the HUD root happens to use. Both are assigned only when they
@@ -199,7 +254,6 @@ namespace ValheimRecipePinner
                 Vector2 topLeftPivot = new Vector2(0f, 1f);
                 if (panelRect.pivot != topLeftPivot)
                     panelRect.pivot = topLeftPivot;
-                Vector3 wantedPosition = new Vector3(left, top, 0f);
                 if (panelRect.position != wantedPosition)
                     panelRect.position = wantedPosition;
                 placed = true;
@@ -229,14 +283,13 @@ namespace ValheimRecipePinner
         /// the container window. Quick Stack Store parents its buttons there; measuring the siblings
         /// instead of detecting the mod also covers its hidden-button settings and any other mod.
         /// </summary>
-        private float ClearContainerSideButtons(float left, float top, float windowRight, float canvasScale)
+        private float ClearContainerSideButtons(RectTransform panelRect, float left, float top, float windowRight, float canvasScale)
         {
             Button takeAll = InventoryGui.instance != null ? InventoryGui.instance.m_takeAllButton : null;
             if (takeAll == null) return left;
             Transform group = takeAll.transform.parent;
             if (group == null) return left;
 
-            RectTransform panelRect = _gatheringListPanel.PanelRect;
             float bottom = top - panelRect.rect.height * panelRect.lossyScale.y;
             float cleared = left;
 
@@ -273,8 +326,13 @@ namespace ValheimRecipePinner
                 _gatheringListPanel.transform.localScale = Vector3.one;
             }
 
-            LayoutElement le = _gatheringListPanel.GetComponent<LayoutElement>();
-            if (le != null) le.ignoreLayout = false;
+            // Placed for the root's layout at once: handed back to the layout for a frame, a
+            // horizontal row takes the list for one more pin and stretches every pin to its height.
+            _gatheringListRepositioned = false;
+            bool horizontal = _pinListRoot.GetComponent<HorizontalLayoutGroup>() != null;
+            bool forcedBottomRight = RecipePinnerPlugin.LayoutModeConfig.Value == RecipePinnerPlugin.PinLayoutMode.ForceBottomRightHorizontal;
+            bool sailing = !forcedBottomRight && Player.m_localPlayer != null && Player.m_localPlayer.GetControlledShip() != null;
+            UpdateGatheringListPosition(horizontal, forcedBottomRight || sailing || ReflectionHelper.IsInventoryShown());
         }
 
         private void UpdateGatheringList()
@@ -285,9 +343,30 @@ namespace ValheimRecipePinner
 
             if (_gatheringListPanel.BgImage != null)
             {
-                float currentAlpha = _gatheringListPanel.BgImage.color.a;
-                if (Mathf.Abs(currentAlpha - RecipePinnerPlugin.BackgroundOpacity.Value) > 0.01f)
-                    _gatheringListPanel.BgImage.color = new Color(0, 0, 0, RecipePinnerPlugin.BackgroundOpacity.Value);
+                bool plank = UseInventoryBackground();
+                if (plank != _gatheringListPanel.HasInventoryBackground)
+                {
+                    _gatheringListPanel.HasInventoryBackground = plank;
+                    ApplyPanelBackground(_gatheringListPanel.BgImage, plank);
+                    _gatheringListPanel.PlankInset = SetPlankInset(_gatheringListPanel.gameObject, _gatheringListPanel.PlankInset, plank);
+                    // The panel's width includes the padding the plank just changed; applied here, or
+                    // the list keeps the old width until its placement next runs.
+                    bool rowLayout = _gatheringListRepositioned
+                        || (_pinListRoot != null && _pinListRoot.GetComponent<HorizontalLayoutGroup>() != null);
+                    _gatheringListPanel.ApplyColumns(rowLayout ? (RecipePinnerPlugin.GatheringListColumns?.Value ?? 4) : 4);
+                }
+
+                if (!plank)
+                {
+                    float currentAlpha = _gatheringListPanel.BgImage.color.a;
+                    if (Mathf.Abs(currentAlpha - RecipePinnerPlugin.BackgroundOpacity.Value) > 0.01f)
+                        _gatheringListPanel.BgImage.color = new Color(0, 0, 0, RecipePinnerPlugin.BackgroundOpacity.Value);
+                }
+                else if (_gatheringListPanel.PlankInset != null
+                    && Mathf.Abs(_gatheringListPanel.PlankInset.color.a - RecipePinnerPlugin.BackgroundOpacity.Value) > 0.01f)
+                {
+                    _gatheringListPanel.PlankInset.color = new Color(0, 0, 0, RecipePinnerPlugin.BackgroundOpacity.Value);
+                }
             }
 
             var recipeMgr = RecipePinnerPlugin.Instance?.RecipeMgr;
@@ -302,31 +381,31 @@ namespace ValheimRecipePinner
 
             foreach (var pin in recipeMgr.CachedPins)
             {
-                foreach (var res in pin.Resources)
+                // A recipe crafted from any one requirement counts as its summary row.
+                if (pin.AnyOneRow != null)
                 {
-                    if (!_gatheringAggregator.TryGetValue(res.ItemName, out GatheringItemData item))
-                    {
-                        item = new GatheringItemData { ItemName = res.ItemName };
-                        _gatheringAggregator[res.ItemName] = item;
-                    }
-
-                    if (item.Stamp != _gatheringStamp)
-                    {
-                        item.Stamp = _gatheringStamp;
-                        item.Icon = res.Icon;
-                        item.TotalRequired = res.RequiredAmount;
-                        _gatheringData.Add(item);
-                    }
-                    else
-                    {
-                        item.TotalRequired += res.RequiredAmount;
-                    }
+                    AddGatheringResource(pin.AnyOneRow);
+                    continue;
                 }
+
+                foreach (var res in pin.Resources)
+                    AddGatheringResource(res);
             }
 
             // Calculate totals
             foreach (var item in _gatheringData)
             {
+                if (item.Alternatives != null)
+                {
+                    CountAnyOne(item.Alternatives, containerMgr, out int invUnits, out int totalUnits, out Sprite bestIcon);
+                    item.TotalHave = totalUnits;
+                    item.IsComplete = totalUnits >= item.TotalRequired;
+                    item.InInventory = invUnits >= item.TotalRequired;
+                    if (bestIcon != null)
+                        item.Icon = bestIcon;
+                    continue;
+                }
+
                 _reusableInvCounts.TryGetValue(item.ItemName, out int invCount);
 
                 int chestCount = 0;
@@ -335,15 +414,17 @@ namespace ValheimRecipePinner
 
                 item.TotalHave = invCount + chestCount;
                 item.IsComplete = item.TotalHave >= item.TotalRequired;
+                item.InInventory = invCount >= item.TotalRequired;
             }
 
             // Update UI slots
             var panel = _gatheringListPanel;
 
-            // The two colours come from config and almost never change, so cache their hex strings.
+            // The three colours come from config and almost never change, so cache their hex strings.
             // When one does change, every cached slot string is stale, so force them all to rebuild.
             Color enoughColor = RecipePinnerPlugin.ColorEnoughInInventory.Value;
             Color missingColor = RecipePinnerPlugin.ColorMissing.Value;
+            Color chestsColor = RecipePinnerPlugin.ColorEnoughWithChests.Value;
             bool coloursChanged = false;
 
             if (_hexEnough == null || enoughColor != _hexEnoughSource)
@@ -360,6 +441,13 @@ namespace ValheimRecipePinner
                 coloursChanged = true;
             }
 
+            if (_hexChests == null || chestsColor != _hexChestsSource)
+            {
+                _hexChestsSource = chestsColor;
+                _hexChests = "#" + ColorUtility.ToHtmlStringRGBA(chestsColor);
+                coloursChanged = true;
+            }
+
             if (coloursChanged)
             {
                 for (int c = 0; c < panel.ItemSlots.Count; c++)
@@ -368,14 +456,25 @@ namespace ValheimRecipePinner
                         panel.ItemSlots[c].LastHave = int.MinValue;
                 }
             }
-            while (panel.ItemSlots.Count < _gatheringData.Count)
+            int cellCap = GetGatheringListCellCap();
+            int visibleCount = _gatheringData.Count;
+            int overflow = 0;
+            if (cellCap > 0 && _gatheringData.Count > cellCap)
+            {
+                // The counter needs a cell of its own, so one fewer material is shown.
+                visibleCount = cellCap - 1;
+                overflow = _gatheringData.Count - visibleCount;
+            }
+            int shownSlots = visibleCount + (overflow > 0 ? 1 : 0);
+
+            while (panel.ItemSlots.Count < shownSlots)
             {
                 panel.ItemSlots.Add(UIBuilder.CreateGatheringItemSlot(panel.ItemListRoot, _cachedFont));
             }
 
             for (int i = 0; i < panel.ItemSlots.Count; i++)
             {
-                if (i < _gatheringData.Count)
+                if (i < visibleCount)
                 {
                     var slot = panel.ItemSlots[i];
                     if (slot == null) continue;
@@ -383,23 +482,33 @@ namespace ValheimRecipePinner
                     var data = _gatheringData[i];
 
                     if (!slot.gameObject.activeSelf) slot.SetActive(true);
+                    if (slot.IsOverflow) RestoreMaterialCell(slot);
 
                     if (slot.Icon != null)
                         slot.Icon.sprite = data.Icon;
 
                     if (data.TotalHave != slot.LastHave
                         || data.TotalRequired != slot.LastRequired
-                        || data.IsComplete != slot.LastComplete)
+                        || data.IsComplete != slot.LastComplete
+                        || data.InInventory != slot.LastInInventory)
                     {
                         slot.LastHave = data.TotalHave;
                         slot.LastRequired = data.TotalRequired;
                         slot.LastComplete = data.IsComplete;
+                        slot.LastInInventory = data.InInventory;
 
-                        string hexColor = data.IsComplete ? _hexEnough : _hexMissing;
+                        string hexColor = data.InInventory ? _hexEnough : (data.IsComplete ? _hexChests : _hexMissing);
                         if (slot.AmountText != null)
                             slot.AmountText.text = $"<color={hexColor}>{data.TotalHave}/{data.TotalRequired}</color>";
                     }
 
+                }
+                else if (overflow > 0 && i == visibleCount)
+                {
+                    var slot = panel.ItemSlots[i];
+                    if (slot == null) continue;
+                    if (!slot.gameObject.activeSelf) slot.SetActive(true);
+                    ShowOverflowCell(slot, overflow);
                 }
                 else
                 {
@@ -422,10 +531,102 @@ namespace ValheimRecipePinner
                 }
             }
 
-            if (_lastGatheringSlotCount != _gatheringData.Count)
+            if (_lastGatheringSlotCount != shownSlots)
             {
-                _lastGatheringSlotCount = _gatheringData.Count;
+                _lastGatheringSlotCount = shownSlots;
                 panel.RefreshLayout();
+            }
+        }
+
+        // How many cells fit between the list's top and the lowest point it may reach while it is
+        // placed for the inventory (GetLowerBound); 0 for no limit. Measured from the last frame's
+        // layout: the title and the hint do not change with the row count, so a change settles in
+        // one frame.
+        private int GetGatheringListCellCap()
+        {
+            if (!_gatheringListRepositioned || _gatheringListPanel == null) return 0;
+
+            RectTransform panelRect = _gatheringListPanel.PanelRect;
+            RectTransform gridRect = _gatheringListPanel.ItemListRoot as RectTransform;
+            GridLayoutGroup grid = gridRect != null ? gridRect.GetComponent<GridLayoutGroup>() : null;
+            if (panelRect == null || grid == null) return 0;
+            float scale = panelRect.lossyScale.y;
+            if (scale <= 0f) return 0;
+
+            panelRect.GetWorldCorners(_listCorners);
+            float room = (_listCorners[1].y - GetLowerBound(_listCorners[0].x, _listCorners[2].x)) / scale;
+            float aroundGrid = panelRect.rect.height - gridRect.rect.height;
+            float gridRoom = room - aroundGrid - grid.padding.vertical;
+            int rows = Mathf.FloorToInt((gridRoom + grid.spacing.y) / (grid.cellSize.y + grid.spacing.y));
+            return Mathf.Max(1, rows) * Mathf.Max(1, grid.constraintCount);
+        }
+
+        // One "+N" cell for the materials that do not fit, drawn as the compact grid's: no icon and a
+        // larger amount stretched to the cell's height, so it reads centred.
+        private void ShowOverflowCell(GatheringItemUI slot, int overflow)
+        {
+            if (!slot.IsOverflow)
+            {
+                slot.IsOverflow = true;
+                slot.LastOverflow = -1;
+                if (slot.Icon != null)
+                    slot.Icon.gameObject.SetActive(false);
+                if (slot.AmountText != null)
+                {
+                    slot.AmountText.fontSize = GatheringOverflowFontSize;
+                    LayoutElement le = slot.AmountText.GetComponent<LayoutElement>();
+                    GridLayoutGroup grid = _gatheringListPanel.ItemListRoot.GetComponent<GridLayoutGroup>();
+                    if (le != null && grid != null)
+                        le.minHeight = grid.cellSize.y;
+                }
+            }
+
+            if (slot.LastOverflow != overflow)
+            {
+                slot.LastOverflow = overflow;
+                if (slot.AmountText != null)
+                    slot.AmountText.text = "+" + overflow;
+            }
+        }
+
+        // Undoes ShowOverflowCell when the cell holds a material again.
+        private static void RestoreMaterialCell(GatheringItemUI slot)
+        {
+            slot.IsOverflow = false;
+            if (slot.Icon != null)
+                slot.Icon.gameObject.SetActive(true);
+            if (slot.AmountText != null)
+            {
+                slot.AmountText.fontSize = RecipePinnerPlugin.GatheringListFontSizeMaterials != null
+                    ? RecipePinnerPlugin.GatheringListFontSizeMaterials.Value : 15;
+                LayoutElement le = slot.AmountText.GetComponent<LayoutElement>();
+                if (le != null)
+                    le.minHeight = 16f;
+            }
+            // The text is the counter's; force the amount to be written again.
+            slot.LastHave = int.MinValue;
+        }
+
+        // The aggregator keeps its entries between frames; Stamp marks the ones seen this frame.
+        private void AddGatheringResource(PinnedResData res)
+        {
+            if (!_gatheringAggregator.TryGetValue(res.ItemName, out GatheringItemData item))
+            {
+                item = new GatheringItemData { ItemName = res.ItemName };
+                _gatheringAggregator[res.ItemName] = item;
+            }
+
+            if (item.Stamp != _gatheringStamp)
+            {
+                item.Stamp = _gatheringStamp;
+                item.Icon = res.Icon;
+                item.TotalRequired = res.RequiredAmount;
+                item.Alternatives = res.Alternatives;
+                _gatheringData.Add(item);
+            }
+            else
+            {
+                item.TotalRequired += res.RequiredAmount;
             }
         }
     }

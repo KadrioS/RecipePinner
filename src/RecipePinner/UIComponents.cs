@@ -19,6 +19,9 @@ namespace ValheimRecipePinner
         public PinnedRecipeData CurrentData;
         public float LastSlotWidth = -1f; // Pin box width UpdateData last sized the compact grid for
         public bool LastUncap = false; // Whether UpdateData last rendered the compact grid uncapped (solo group)
+        public int LastFitRows = 0; // Rows UpdateData last fitted under the crafting window; 0 for no limit
+        public bool HasInventoryBackground; // Whether BgImage currently shows the inventory window's plank
+        public Image PlankInset; // The dark panel inside the plank, created the first time it is needed
 
         private Coroutine _layoutCoroutine;
 
@@ -40,7 +43,7 @@ namespace ValheimRecipePinner
 
         public void SetActive(bool active) => this.gameObject.SetActive(active);
 
-        public void UpdateData(PinnedRecipeData data, Font font, float slotWidth, bool uncap)
+        public void UpdateData(PinnedRecipeData data, Font font, float slotWidth, bool uncap, int fitRows)
         {
             // Icon: group = show stacked-cards container with count; regular = show recipe icon
             if (data.IsGroup && data.GroupRef != null && GroupIconContainer != null)
@@ -109,8 +112,14 @@ namespace ValheimRecipePinner
                     if (grid.constraintCount != cols)
                         grid.constraintCount = cols;
 
-                    int maxCells = cols * CompactMaxRows;
-                    if (!uncap && resCount > maxCells)
+                    // A lone group is uncapped; fitRows, when set, still keeps any group under the
+                    // crafting window.
+                    int rowCap = uncap ? 0 : CompactMaxRows;
+                    if (fitRows > 0 && (rowCap == 0 || fitRows < rowCap))
+                        rowCap = fitRows;
+
+                    int maxCells = cols * rowCap;
+                    if (rowCap > 0 && resCount > maxCells)
                     {
                         // The counter needs a cell of its own, so one fewer material is shown.
                         visibleCount = maxCells - 1;

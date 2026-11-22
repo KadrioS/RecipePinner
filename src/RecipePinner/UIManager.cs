@@ -12,9 +12,26 @@ namespace ValheimRecipePinner
         private Font _cachedFont;
         private bool _warnedNoHud = false;
         private bool _mapOrderChecked = false;
+        private bool _rootRaised = false;
         private readonly Dictionary<string, int> _reusableInvCounts = new Dictionary<string, int>();
         private int _invCountsSignature = 0;
         private bool _invCountsBuilt = false;
+        private Sprite _inventoryBgSprite;
+        private Material _inventoryBgMaterial;
+        private bool _inventoryBgLookupFailed = false;
+        // How far the dark inset sits inside the plank's edge, in the panel's own units. The content
+        // padding grows by the same amount on the plank so it stays inside the inset.
+        private const float PlankInset = 20f;
+
+        // Space kept between a group's card and the crafting window above it, in the card's units.
+        private const float CraftingWindowClearance = 10f;
+        private readonly Vector3[] _craftingCorners = new Vector3[4];
+        private readonly Vector3[] _slotCorners = new Vector3[4];
+        private readonly Vector3[] _gridCorners = new Vector3[4];
+        private readonly Vector3[] _healthBarCorners = new Vector3[4];
+        private readonly Vector3[] _rootCorners = new Vector3[4];
+        private CanvasGroup _pinRootGroup;
+        private bool _pinsMaskedForRoom = false;
 
         private const float DefaultVerticalPositionX = -40f;
         private const float DefaultVerticalPositionY = -250f;
@@ -56,7 +73,8 @@ namespace ValheimRecipePinner
             // panel this flag refers to has just been destroyed, so the next one must be reparented
             // and configured again rather than inheriting a stale "already done".
             _gatheringListRepositioned = false;
-            _previousPinCount = 0;
+            // _previousPinCount is kept: a rebuild changes no pins, and resetting it would make the
+            // auto-open treat every rebuild as the pin count reaching its threshold.
             _invCountsBuilt = false;
 
             // NOTE: DestroyMyPinsUI is NOT called here on purpose.
@@ -177,35 +195,66 @@ namespace ValheimRecipePinner
 
             EnsurePinsBehindMap();
             UpdateLayout();
+            UpdateCraftingRoomMask();
             KeyHintInjector.EnsureInjected();
             KeyHintInjector.UpdateHintVisibility();
 
             if (_pinListRoot == null) return;
 
-            bool isInventoryOpen = InventoryGui.instance != null && InventoryGui.IsVisible();
+            bool isInventoryOpen = ReflectionHelper.IsInventoryShown();
             bool shouldShow = isVisible && recipeMgr.CachedPins.Count > 0;
 
             // Auto-open/close gathering list — must run before early returns so state stays in sync
             int currentPinCount = recipeMgr.CachedPins.Count;
-            if (RecipePinnerPlugin.AutoOpenGatheringList.Value &&
+            // The first count after the pins load is where the session starts, not a change;
+            // counted from 0 the list would open at every launch, whatever state it was left in.
+            if (!_pinCountSeeded && instance.IsPinDataLoaded)
+            {
+                _previousPinCount = currentPinCount;
+                _pinCountSeeded = true;
+            }
+            int autoOpenAt = RecipePinnerPlugin.AutoOpenGatheringListAt.Value;
+            if (autoOpenAt > 0 &&
                 RecipePinnerPlugin.EnableGatheringList.Value &&
                 !_gatheringListVisible &&
-                currentPinCount >= 2 &&
-                _previousPinCount < 2)
+                currentPinCount >= autoOpenAt &&
+                _previousPinCount < autoOpenAt)
             {
                 _gatheringListVisible = true;
-                DebugLogger.Log("Gathering list auto-opened (2+ pins detected)");
+                // Activated here because the inventory branch below does it only while the inventory is open.
+                if (_gatheringListPanel != null)
+                    _gatheringListPanel.SetActive(true);
+                _lastGatheringSlotCount = -1;
+                DebugLogger.Log($"Gathering list auto-opened ({currentPinCount} pins, threshold {autoOpenAt})");
             }
-            if (_gatheringListVisible &&
-                currentPinCount < 2 &&
-                _previousPinCount >= 2)
+            if (autoOpenAt > 0 &&
+                _gatheringListVisible &&
+                currentPinCount < autoOpenAt &&
+                _previousPinCount >= autoOpenAt)
             {
                 _gatheringListVisible = false;
                 if (_gatheringListPanel != null)
                     _gatheringListPanel.SetActive(false);
-                DebugLogger.Log("Gathering list auto-closed (less than 2 pins)");
+                DebugLogger.Log($"Gathering list auto-closed (below {autoOpenAt} pins)");
             }
             _previousPinCount = currentPinCount;
+
+            // Kept in the config file so the list starts the next launch as it was left.
+            if (RecipePinnerPlugin.GatheringListOpen.Value != _gatheringListVisible)
+                RecipePinnerPlugin.GatheringListOpen.Value = _gatheringListVisible;
+
+            // Only a mask: it changes no state, so F7, F8 and the auto-open keep their own rules under it.
+            if (RecipePinnerPlugin.ShowPinsOnlyWithInventory.Value && !isInventoryOpen && !Player.m_localPlayer.InPlaceMode())
+            {
+                if (_gatheringListRepositioned && _gatheringListPanel != null)
+                {
+                    RestoreGatheringListParent();
+                    _gatheringListRepositioned = false;
+                }
+                if (_pinListRoot.gameObject.activeSelf)
+                    _pinListRoot.gameObject.SetActive(false);
+                return;
+            }
 
             bool gatheringListOnly = !shouldShow && _gatheringListVisible && _gatheringListPanel != null && recipeMgr.CachedPins.Count > 0;
 
@@ -237,9 +286,7 @@ namespace ValheimRecipePinner
                     ? RecipePinnerPlugin.BottomRightColumnWidth.Value
                     : (glHorizontal ? RecipePinnerPlugin.HorizontalColumnWidth.Value : RecipePinnerPlugin.VerticalListWidth.Value);
 
-                bool isChestOpen = isInventoryOpen && ReflectionHelper.GetCurrentContainer(InventoryGui.instance) != null;
-
-                if (isChestOpen)
+                if (isInventoryOpen)
                 {
                     RepositionGatheringListForInventory();
                 }
@@ -251,10 +298,12 @@ namespace ValheimRecipePinner
                         _gatheringListRepositioned = false;
                     }
 
-                    panelRect.sizeDelta = new Vector2(columnWidth, panelRect.sizeDelta.y);
-
+                    // The horizontal layouts keep the width ApplyColumns gave them, or columns past
+                    // the fourth fall outside the background.
                     if (!glHorizontal)
                     {
+                        panelRect.sizeDelta = new Vector2(columnWidth, panelRect.sizeDelta.y);
+
                         // Vertical mode: reset root position to non-paginated state
                         // since dots are hidden, then anchor gathering list to top of root
                         RectTransform rootRect = _pinListRoot.GetComponent<RectTransform>();
@@ -290,12 +339,8 @@ namespace ValheimRecipePinner
 
             if (isInventoryOpen && _gatheringListPanel != null && recipeMgr.CachedPins.Count > 0 && _gatheringListVisible)
             {
-                bool isChestOpen = ReflectionHelper.GetCurrentContainer(InventoryGui.instance) != null;
                 _gatheringListPanel.SetActive(true);
-                if (isChestOpen)
-                {
-                    RepositionGatheringListForInventory();
-                }
+                RepositionGatheringListForInventory();
             }
             else if (_gatheringListRepositioned && _gatheringListPanel != null)
             {
@@ -350,7 +395,7 @@ namespace ValheimRecipePinner
             }
 
             bool isSailing = Player.m_localPlayer.GetControlledShip() != null;
-            bool isInvOpen = InventoryGui.instance != null && InventoryGui.IsVisible();
+            bool isInvOpen = ReflectionHelper.IsInventoryShown();
             bool shouldBeHorizontal = RecipePinnerPlugin.Instance.IsHorizontalMode || isSailing || isInvOpen;
             EqualizePinHeights(startIndex, endIndex, shouldBeHorizontal);
 
@@ -374,6 +419,90 @@ namespace ValheimRecipePinner
 
             if (_gatheringListPanel != null && _gatheringListPanel.gameObject.activeSelf)
                 _gatheringListPanel.SetActive(false);
+        }
+
+        private bool UseInventoryBackground()
+        {
+            if (!RecipePinnerPlugin.InventoryBackground.Value) return false;
+            if (!ReflectionHelper.IsInventoryShown()) return false;
+
+            // Looked up once: the lookup warns when it fails, and this runs every frame.
+            if (_inventoryBgSprite == null && !_inventoryBgLookupFailed)
+            {
+                if (!TryGetInventoryPanelBackground())
+                    _inventoryBgLookupFailed = true;
+            }
+            return _inventoryBgSprite != null;
+        }
+
+        // The player inventory window's own plank, so the pins match the window they sit under.
+        private bool TryGetInventoryPanelBackground()
+        {
+            InventoryGui gui = InventoryGui.instance;
+            Transform bkg = (gui != null && gui.m_player != null) ? gui.m_player.Find("Bkg") : null;
+            Image image = bkg != null ? bkg.GetComponent<Image>() : null;
+            if (image == null || image.sprite == null)
+            {
+                DebugLogger.Warning("Inventory panel background not found; the pins keep their own boxes");
+                return false;
+            }
+
+            _inventoryBgSprite = image.sprite;
+            _inventoryBgMaterial = image.material;
+            DebugLogger.Log($"Inventory panel background: {_inventoryBgSprite.name}");
+            return true;
+        }
+
+        // Switches a pin's or the Gathering List's Image between the inventory window's plank and the
+        // mod's own dark box. Callers use it only when the wanted state changes.
+        private void ApplyPanelBackground(Image image, bool plank)
+        {
+            Sprite sprite = plank ? _inventoryBgSprite : UIBuilder.GetBackgroundSprite();
+            image.sprite = sprite;
+            image.material = plank ? _inventoryBgMaterial : null;
+            image.type = (sprite != null && sprite.border != Vector4.zero) ? Image.Type.Sliced : Image.Type.Simple;
+            // The pins are scaled by UIScale; this draws the plank's frame as thick as the game's windows.
+            image.pixelsPerUnitMultiplier = plank ? RecipePinnerPlugin.UIScale.Value : 1f;
+            image.color = plank ? Color.white : new Color(0, 0, 0, RecipePinnerPlugin.BackgroundOpacity.Value);
+        }
+
+        // On the plank a dark inset, like the crafting window's inner panels, keeps icons and text
+        // readable. 14/8/8/8 is the padding UIBuilder gives both a pin and the Gathering List.
+        private Image SetPlankInset(GameObject panel, Image inset, bool plank)
+        {
+            if (plank && inset == null)
+            {
+                GameObject insetObj = new GameObject("PlankInset", typeof(RectTransform)) { layer = 5 };
+                insetObj.transform.SetParent(panel.transform, false);
+                insetObj.transform.SetAsFirstSibling();
+                insetObj.AddComponent<LayoutElement>().ignoreLayout = true;
+                RectTransform insetRect = insetObj.GetComponent<RectTransform>();
+                insetRect.anchorMin = Vector2.zero;
+                insetRect.anchorMax = Vector2.one;
+                insetRect.offsetMin = new Vector2(PlankInset, PlankInset);
+                insetRect.offsetMax = new Vector2(-PlankInset, -PlankInset);
+                inset = insetObj.AddComponent<Image>();
+                inset.raycastTarget = false;
+                Sprite sprite = UIBuilder.GetBackgroundSprite();
+                inset.sprite = sprite;
+                inset.type = (sprite != null && sprite.border != Vector4.zero) ? Image.Type.Sliced : Image.Type.Simple;
+            }
+
+            if (inset != null)
+            {
+                inset.color = new Color(0, 0, 0, RecipePinnerPlugin.BackgroundOpacity.Value);
+                if (inset.gameObject.activeSelf != plank)
+                    inset.gameObject.SetActive(plank);
+            }
+
+            VerticalLayoutGroup vlg = panel.GetComponent<VerticalLayoutGroup>();
+            if (vlg != null)
+            {
+                int grow = plank ? (int)PlankInset : 0;
+                vlg.padding = new RectOffset(14 + grow, 8 + grow, 8 + grow, 8 + grow);
+            }
+
+            return inset;
         }
 
         private readonly List<Image> _pageDots = new List<Image>();
@@ -439,7 +568,7 @@ namespace ValheimRecipePinner
 
             bool isForcedBottomRight = RecipePinnerPlugin.LayoutModeConfig.Value == RecipePinnerPlugin.PinLayoutMode.ForceBottomRightHorizontal;
             bool isSailing = Player.m_localPlayer.GetControlledShip() != null;
-            bool isInvOpen = InventoryGui.instance != null && InventoryGui.IsVisible();
+            bool isInvOpen = ReflectionHelper.IsInventoryShown();
             bool shouldUseHorizontal = RecipePinnerPlugin.Instance.IsHorizontalMode || isSailing || isInvOpen;
 
             if (shouldUseHorizontal)
@@ -514,6 +643,14 @@ namespace ValheimRecipePinner
 
             foreach (var res in pinData.Resources)
             {
+                // A group's row for a recipe crafted from any one requirement.
+                if (res.Alternatives != null)
+                {
+                    if (RefreshAnyOneRow(res, containerMgr))
+                        pinData.IsDirty = true;
+                    continue;
+                }
+
                 _reusableInvCounts.TryGetValue(res.ItemName, out int invCount);
 
                 int chestCount = 0;
@@ -564,43 +701,61 @@ namespace ValheimRecipePinner
                 }
             }
 
-            // The summary row counts how many crafts the alternatives cover together, and shows the
-            // icon of the one the player has most of.
-            PinnedResData anyOne = pinData.AnyOneRow;
-            if (anyOne != null)
+            if (pinData.AnyOneRow != null && RefreshAnyOneRow(pinData.AnyOneRow, containerMgr))
+                pinData.IsDirty = true;
+        }
+
+        // A summary row counts how many crafts its alternatives cover together and shows the icon
+        // of the one the player has most of. Returns true when its text changed.
+        private bool RefreshAnyOneRow(PinnedResData row, ContainerScanner containerMgr)
+        {
+            CountAnyOne(row.Alternatives, containerMgr, out int invUnits, out int totalUnits, out Sprite bestIcon);
+            if (bestIcon == null)
+                bestIcon = row.Icon;
+
+            if (totalUnits == row.LastKnownAmount && invUnits == row.LastKnownInvAmount
+                && row.Icon == bestIcon && row.CachedAmountString != null)
+                return false;
+
+            row.LastKnownAmount = totalUnits;
+            row.LastKnownInvAmount = invUnits;
+            row.Icon = bestIcon;
+
+            Color color = (invUnits >= row.RequiredAmount) ?
+                           RecipePinnerPlugin.ColorEnoughInInventory.Value :
+                           (totalUnits >= row.RequiredAmount) ?
+                           RecipePinnerPlugin.ColorEnoughWithChests.Value :
+                           RecipePinnerPlugin.ColorMissing.Value;
+
+            string hex = "#" + ColorUtility.ToHtmlStringRGBA(color);
+            row.CachedAmountString = $"<color={hex}>{totalUnits}/{row.RequiredAmount}</color>";
+            return true;
+        }
+
+        // Shared with the Gathering List, so a summary cell there counts the same way as on a pin.
+        private void CountAnyOne(List<PinnedResData> alternatives, ContainerScanner containerMgr,
+            out int invUnits, out int totalUnits, out Sprite bestIcon)
+        {
+            invUnits = 0;
+            totalUnits = 0;
+            bestIcon = null;
+            int bestAmount = -1;
+
+            foreach (var alt in alternatives)
             {
-                int invUnits = 0;
-                int totalUnits = 0;
-                int bestAmount = -1;
-                Sprite bestIcon = anyOne.Icon;
-                foreach (var res in pinData.Resources)
+                _reusableInvCounts.TryGetValue(alt.ItemName, out int inv);
+                int chest = 0;
+                if (RecipePinnerPlugin.EnableChestScanning.Value)
+                    containerMgr.ContainerCache.TryGetValue(alt.ItemName, out chest);
+
+                int total = inv + chest;
+                int single = alt.SingleAmount > 0 ? alt.SingleAmount : 1;
+                invUnits += inv / single;
+                totalUnits += total / single;
+                if (total > bestAmount)
                 {
-                    int single = res.SingleAmount > 0 ? res.SingleAmount : 1;
-                    invUnits += Mathf.Max(0, res.LastKnownInvAmount) / single;
-                    totalUnits += Mathf.Max(0, res.LastKnownAmount) / single;
-                    if (res.LastKnownAmount > bestAmount)
-                    {
-                        bestAmount = res.LastKnownAmount;
-                        bestIcon = res.Icon;
-                    }
-                }
-
-                if (totalUnits != anyOne.LastKnownAmount || invUnits != anyOne.LastKnownInvAmount
-                    || anyOne.Icon != bestIcon || anyOne.CachedAmountString == null)
-                {
-                    anyOne.LastKnownAmount = totalUnits;
-                    anyOne.LastKnownInvAmount = invUnits;
-                    anyOne.Icon = bestIcon;
-
-                    Color anyOneColor = (invUnits >= anyOne.RequiredAmount) ?
-                                   RecipePinnerPlugin.ColorEnoughInInventory.Value :
-                                   (totalUnits >= anyOne.RequiredAmount) ?
-                                   RecipePinnerPlugin.ColorEnoughWithChests.Value :
-                                   RecipePinnerPlugin.ColorMissing.Value;
-
-                    string anyOneHex = "#" + ColorUtility.ToHtmlStringRGBA(anyOneColor);
-                    anyOne.CachedAmountString = $"<color={anyOneHex}>{totalUnits}/{anyOne.RequiredAmount}</color>";
-                    pinData.IsDirty = true;
+                    bestAmount = total;
+                    bestIcon = alt.Icon;
                 }
             }
         }
@@ -615,14 +770,38 @@ namespace ValheimRecipePinner
 
             if (uiSlot.BgImage != null)
             {
-                float currentAlpha = uiSlot.BgImage.color.a;
-                if (Mathf.Abs(currentAlpha - RecipePinnerPlugin.BackgroundOpacity.Value) > 0.01f)
-                    uiSlot.BgImage.color = new Color(0, 0, 0, RecipePinnerPlugin.BackgroundOpacity.Value);
+                bool plank = UseInventoryBackground();
+                if (plank != uiSlot.HasInventoryBackground)
+                {
+                    uiSlot.HasInventoryBackground = plank;
+                    ApplyPanelBackground(uiSlot.BgImage, plank);
+                    uiSlot.PlankInset = SetPlankInset(uiSlot.gameObject, uiSlot.PlankInset, plank);
+
+                    // On the plank the readiness bar sits on the inset's left edge, inside the frame.
+                    if (uiSlot.AccentBar != null)
+                    {
+                        RectTransform accentRect = uiSlot.AccentBar.rectTransform;
+                        accentRect.anchoredPosition = new Vector2(plank ? PlankInset : 0f, 0f);
+                        accentRect.sizeDelta = new Vector2(4f, plank ? -2f * PlankInset : 0f);
+                    }
+                }
+
+                if (!plank)
+                {
+                    float currentAlpha = uiSlot.BgImage.color.a;
+                    if (Mathf.Abs(currentAlpha - RecipePinnerPlugin.BackgroundOpacity.Value) > 0.01f)
+                        uiSlot.BgImage.color = new Color(0, 0, 0, RecipePinnerPlugin.BackgroundOpacity.Value);
+                }
+                else if (uiSlot.PlankInset != null
+                    && Mathf.Abs(uiSlot.PlankInset.color.a - RecipePinnerPlugin.BackgroundOpacity.Value) > 0.01f)
+                {
+                    uiSlot.PlankInset.color = new Color(0, 0, 0, RecipePinnerPlugin.BackgroundOpacity.Value);
+                }
             }
 
             bool isBottomRight = (RecipePinnerPlugin.LayoutModeConfig.Value == RecipePinnerPlugin.PinLayoutMode.ForceBottomRightHorizontal);
             bool isSailing = (Player.m_localPlayer.GetControlledShip() != null);
-            bool isInvOpen = InventoryGui.instance != null && InventoryGui.IsVisible();
+            bool isInvOpen = ReflectionHelper.IsInventoryShown();
             bool shouldBeHorizontal = RecipePinnerPlugin.Instance.IsHorizontalMode || isSailing || isInvOpen;
 
             // Width of the pin box in the current layout. Horizontal mode applies it to the rect
@@ -633,12 +812,26 @@ namespace ValheimRecipePinner
                     : RecipePinnerPlugin.HorizontalColumnWidth.Value)
                 : RecipePinnerPlugin.VerticalListWidth.Value;
 
+            // In the Gathering List's place the pin takes the list's width: the same cells and
+            // column count, plus the 14 + 8 padding both are built with.
+            GridLayoutGroup listCells = uiSlot.CompactResourceRoot != null ? uiSlot.CompactResourceRoot.GetComponent<GridLayoutGroup>() : null;
+            if (listCells != null && isInvOpen && ShouldPlaceSinglePinBesideChest())
+            {
+                int listCols = RecipePinnerPlugin.GatheringListColumns?.Value ?? 4;
+                slotWidth = listCols * (listCells.cellSize.x + listCells.spacing.x) - listCells.spacing.x + 22f;
+            }
+
+            // On the plank the padding grows by the inset on both sides, as the Gathering List's
+            // width does; the box grows with it so the content keeps its width. UpdateData subtracts
+            // that padding, so it gets this width too, or the compact grid loses a column.
+            float rectWidth = uiSlot.HasInventoryBackground ? slotWidth + 2f * PlankInset : slotWidth;
+
             if (shouldBeHorizontal)
             {
                 RectTransform slotRect = uiSlot.Rect ?? uiSlot.GetComponent<RectTransform>();
-
-                if (Mathf.Abs(slotRect.sizeDelta.x - slotWidth) > 1f)
-                    slotRect.sizeDelta = new Vector2(slotWidth, slotRect.sizeDelta.y);
+                // Half a unit, not one: the pin in the list's place is exactly one unit wider.
+                if (Mathf.Abs(slotRect.sizeDelta.x - rectWidth) > 0.5f)
+                    slotRect.sizeDelta = new Vector2(rectWidth, slotRect.sizeDelta.y);
             }
 
             bool dataChanged = (uiSlot.CurrentData != pinData);
@@ -686,14 +879,128 @@ namespace ValheimRecipePinner
 
             // Re-run UpdateData when the pin box width changed, so the compact grid re-fits its
             // columns to a live ColumnWidth change even if the pin's data did not change.
-            bool widthChanged = Mathf.Abs(slotWidth - uiSlot.LastSlotWidth) > 0.5f;
+            bool widthChanged = Mathf.Abs(rectWidth - uiSlot.LastSlotWidth) > 0.5f;
             bool uncapChanged = uncapCompact != uiSlot.LastUncap;
-            if (dataChanged || pinData.IsDirty || widthChanged || uncapChanged)
+            int fitRows = GetFitRows(uiSlot);
+            bool fitChanged = fitRows != uiSlot.LastFitRows;
+            if (dataChanged || pinData.IsDirty || widthChanged || uncapChanged || fitChanged)
             {
-                uiSlot.UpdateData(pinData, _cachedFont, slotWidth, uncapCompact);
-                uiSlot.LastSlotWidth = slotWidth;
+                uiSlot.UpdateData(pinData, _cachedFont, rectWidth, uncapCompact, fitRows);
+                uiSlot.LastSlotWidth = rectWidth;
                 uiSlot.LastUncap = uncapCompact;
+                uiSlot.LastFitRows = fitRows;
                 pinData.IsDirty = false;
+            }
+        }
+
+        // Rows a compact group may show so its card stays clear of what is around it while the
+        // inventory is open: under the crafting window at the bottom-right, or above the health bar
+        // (GetLowerBound) for a lone pin in the Gathering List's place; 0 for no limit. Measured
+        // from the last frame's layout: the part of the card above the grid does not change with the
+        // row count, so a change settles in one frame at any resolution and GUI scale.
+        private int GetFitRows(PinSlotUI uiSlot)
+        {
+            if (!ReflectionHelper.IsInventoryShown()) return 0;
+            bool belowInventory = ShouldPlaceSinglePinBesideChest();
+
+            RectTransform crafting = InventoryGui.instance.m_crafting;
+            RectTransform grid = uiSlot.CompactResourceRoot as RectTransform;
+            RectTransform slotRect = uiSlot.Rect;
+            if (slotRect == null)
+                slotRect = uiSlot.GetComponent<RectTransform>();
+            if (!belowInventory && (crafting == null || !crafting.gameObject.activeInHierarchy)) return 0;
+            if (grid == null || !grid.gameObject.activeInHierarchy || slotRect == null) return 0;
+
+            GridLayoutGroup glg = grid.GetComponent<GridLayoutGroup>();
+            VerticalLayoutGroup slotVlg = uiSlot.GetComponent<VerticalLayoutGroup>();
+            float scale = slotRect.lossyScale.y;
+            if (glg == null || slotVlg == null || scale <= 0f) return 0;
+
+            slotRect.GetWorldCorners(_slotCorners);
+            grid.GetWorldCorners(_gridCorners);
+
+            float cardRoom;
+            if (belowInventory)
+            {
+                cardRoom = (_slotCorners[1].y - GetLowerBound(_slotCorners[0].x, _slotCorners[2].x)) / scale;
+            }
+            else
+            {
+                crafting.GetWorldCorners(_craftingCorners);
+                // A pin left of the window has nothing above it.
+                if (_slotCorners[2].x <= _craftingCorners[0].x) return 0;
+                cardRoom = (_craftingCorners[0].y - _slotCorners[0].y) / scale - CraftingWindowClearance;
+            }
+
+            float aboveGrid = (_slotCorners[1].y - _gridCorners[1].y) / scale;
+            float gridRoom = cardRoom - aboveGrid - slotVlg.padding.bottom - glg.padding.vertical;
+            int rows = Mathf.FloorToInt((gridRoom + glg.spacing.y) / (glg.cellSize.y + glg.spacing.y));
+            return Mathf.Max(1, rows);
+        }
+
+        // The lowest world y a panel spanning left..right may reach while the inventory is open:
+        // above the game's health bar where the two overlap sideways, else the screen's bottom edge,
+        // with the windows' own gap either way.
+        private float GetLowerBound(float left, float right)
+        {
+            float bound = 0f;
+            Hud hud = Hud.instance;
+            RectTransform bar = hud != null ? hud.m_healthBarRoot : null;
+            if (bar != null && bar.gameObject.activeInHierarchy)
+            {
+                bar.GetWorldCorners(_healthBarCorners);
+                // The bar is rotated, so its corners are not in the usual order.
+                float barLeft = Mathf.Min(Mathf.Min(_healthBarCorners[0].x, _healthBarCorners[1].x), Mathf.Min(_healthBarCorners[2].x, _healthBarCorners[3].x));
+                float barRight = Mathf.Max(Mathf.Max(_healthBarCorners[0].x, _healthBarCorners[1].x), Mathf.Max(_healthBarCorners[2].x, _healthBarCorners[3].x));
+                float barTop = Mathf.Max(Mathf.Max(_healthBarCorners[0].y, _healthBarCorners[1].y), Mathf.Max(_healthBarCorners[2].y, _healthBarCorners[3].y));
+                if (barRight > left && barLeft < right)
+                    bound = barTop;
+            }
+
+            float hudScale = hud != null && hud.m_rootObject != null ? hud.m_rootObject.transform.lossyScale.y : 1f;
+            return bound + InventoryWindowGap * hudScale;
+        }
+
+        // At a large GUI scale not even one row of the bottom-right pins fits under the crafting
+        // window. They are then made transparent while the inventory is open: only a mask, like
+        // ShowPinsOnlyWithInventory, since the Gathering List and a lone pin sit under the inventory.
+        private void UpdateCraftingRoomMask()
+        {
+            bool mask = false;
+            InventoryGui gui = InventoryGui.instance;
+            RectTransform rootRect = _pinListRoot as RectTransform;
+            if (gui != null && ReflectionHelper.IsInventoryShown() && rootRect != null && !ShouldPlaceSinglePinBesideChest())
+            {
+                RectTransform crafting = gui.m_crafting;
+                if (crafting != null && crafting.gameObject.activeInHierarchy)
+                {
+                    crafting.GetWorldCorners(_craftingCorners);
+                    rootRect.GetWorldCorners(_rootCorners);
+                    float clearance = CraftingWindowClearance * rootRect.lossyScale.y;
+                    mask = _rootCorners[2].x > _craftingCorners[0].x
+                        && _rootCorners[1].y > _craftingCorners[0].y - clearance;
+                }
+            }
+
+            // A root rebuilt this frame replaces one whose destruction is still pending.
+            if (_pinRootGroup == null || _pinRootGroup.transform != _pinListRoot)
+            {
+                if (_pinListRoot == null) return;
+                _pinRootGroup = _pinListRoot.GetComponent<CanvasGroup>();
+                if (_pinRootGroup == null)
+                    _pinRootGroup = _pinListRoot.gameObject.AddComponent<CanvasGroup>();
+            }
+
+            float alpha = mask ? 0f : 1f;
+            if (_pinRootGroup.alpha != alpha)
+                _pinRootGroup.alpha = alpha;
+
+            if (mask != _pinsMaskedForRoom)
+            {
+                _pinsMaskedForRoom = mask;
+                DebugLogger.Log(mask
+                    ? "Pins hidden while the inventory is open: no room under the crafting window"
+                    : "Pins shown under the crafting window again");
             }
         }
 
@@ -769,6 +1076,7 @@ namespace ValheimRecipePinner
             rootObj.transform.SetParent(parentTransform, false);
             _pinListRoot = rootObj.transform;
             _mapOrderChecked = false;
+            _rootRaised = false;
             _pinListRoot.localScale = Vector3.one * RecipePinnerPlugin.UIScale.Value;
 
             RectTransform rect = rootObj.GetComponent<RectTransform>();
@@ -778,7 +1086,7 @@ namespace ValheimRecipePinner
 
             bool isSailing = Player.m_localPlayer != null && Player.m_localPlayer.GetControlledShip() != null;
             bool isForcedBottomRight = RecipePinnerPlugin.LayoutModeConfig.Value == RecipePinnerPlugin.PinLayoutMode.ForceBottomRightHorizontal;
-            bool isInventoryOpen = InventoryGui.instance != null && InventoryGui.IsVisible();
+            bool isInventoryOpen = ReflectionHelper.IsInventoryShown();
             bool isBottomRightMode = isSailing || isForcedBottomRight || isInventoryOpen;
             bool shouldUseHorizontal = RecipePinnerPlugin.Instance.IsHorizontalMode || isSailing || isInventoryOpen;
 
@@ -850,7 +1158,7 @@ namespace ValheimRecipePinner
             var instance = RecipePinnerPlugin.Instance;
             bool isForcedBottomRight = RecipePinnerPlugin.LayoutModeConfig.Value == RecipePinnerPlugin.PinLayoutMode.ForceBottomRightHorizontal;
             bool isSailing = !isForcedBottomRight && Player.m_localPlayer.GetControlledShip() != null;
-            bool isInventoryOpen = InventoryGui.instance != null && InventoryGui.IsVisible();
+            bool isInventoryOpen = ReflectionHelper.IsInventoryShown();
             bool isBottomRightMode = isForcedBottomRight || isSailing || isInventoryOpen;
             bool shouldBeHorizontal = instance.IsHorizontalMode || isSailing || isInventoryOpen;
 
@@ -869,11 +1177,21 @@ namespace ValheimRecipePinner
                 _pinListRoot.localScale = Vector3.one * RecipePinnerPlugin.UIScale.Value;
             }
 
+            if (_rootRaised && !ShouldPlaceSinglePinBesideChest())
+            {
+                // Back behind the large map; EnsurePinsBehindMap measures it again.
+                _rootRaised = false;
+                _mapOrderChecked = false;
+            }
+
             RectTransform rootRect = _pinListRoot.GetComponent<RectTransform>();
 
             if (shouldBeHorizontal)
             {
-                UpdateHorizontalLayout(rootRect, isBottomRightMode);
+                if (ShouldPlaceSinglePinBesideChest())
+                    PlaceSinglePinBesideChest(rootRect);
+                else
+                    UpdateHorizontalLayout(rootRect, isBottomRightMode);
             }
             else
             {
@@ -889,7 +1207,7 @@ namespace ValheimRecipePinner
             HorizontalLayoutGroup hlg = _pinListRoot.GetComponent<HorizontalLayoutGroup>();
             if (isBottomRightMode)
             {
-                if (rootRect.anchorMin != new Vector2(1, 0))
+                if (rootRect.anchorMin != new Vector2(1, 0) || rootRect.pivot != new Vector2(1, 0))
                 {
                     rootRect.anchorMin = new Vector2(1, 0);
                     rootRect.anchorMax = new Vector2(1, 0);
@@ -914,7 +1232,7 @@ namespace ValheimRecipePinner
             }
             else
             {
-                if (rootRect.anchorMin != new Vector2(1, 1))
+                if (rootRect.anchorMin != new Vector2(1, 1) || rootRect.pivot != new Vector2(1, 1))
                 {
                     rootRect.anchorMin = new Vector2(1, 1);
                     rootRect.anchorMax = new Vector2(1, 1);
@@ -938,6 +1256,49 @@ namespace ValheimRecipePinner
                 if (rootRect.anchoredPosition != targetPos)
                     rootRect.anchoredPosition = targetPos;
             }
+        }
+
+        // With exactly one pin and the Gathering List closed, the pin takes the list's place
+        // (GetInventorySpot), with or without a chest: above the pins a lone group's grid would grow
+        // into the crafting window. An open list keeps that place.
+        private bool ShouldPlaceSinglePinBesideChest()
+        {
+            if (!RecipePinnerPlugin.SinglePinBesideChest.Value) return false;
+            if (!ReflectionHelper.IsInventoryShown()) return false;
+
+            var recipeMgr = RecipePinnerPlugin.Instance.RecipeMgr;
+            if (recipeMgr == null || recipeMgr.CachedPins.Count != 1) return false;
+
+            return !(_gatheringListVisible && _gatheringListPanel != null);
+        }
+
+        // Same place as RepositionGatheringListForInventory. The whole root moves, so the pin keeps
+        // its layout; UpdateHorizontalLayout restores the pivot once this stops applying.
+        private void PlaceSinglePinBesideChest(RectTransform rootRect)
+        {
+            RectTransform hudRect = _pinListRoot.parent as RectTransform;
+            RectTransform containerRect = InventoryGui.instance != null ? InventoryGui.instance.m_container : null;
+            if (hudRect == null || containerRect == null)
+            {
+                UpdateHorizontalLayout(rootRect, true);
+                return;
+            }
+
+            Vector3 wantedPosition = GetInventorySpot(rootRect, containerRect, hudRect.lossyScale.x);
+
+            // In the chest window's place the pin draws over the HUD as that window does; the large
+            // map cannot open while the inventory is open.
+            if (!_rootRaised)
+            {
+                _pinListRoot.SetAsLastSibling();
+                _rootRaised = true;
+            }
+
+            Vector2 topLeftPivot = new Vector2(0f, 1f);
+            if (rootRect.pivot != topLeftPivot)
+                rootRect.pivot = topLeftPivot;
+            if (rootRect.position != wantedPosition)
+                rootRect.position = wantedPosition;
         }
 
         private void UpdateVerticalLayout(RectTransform rootRect)

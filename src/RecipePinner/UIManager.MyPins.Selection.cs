@@ -39,6 +39,7 @@ namespace ValheimRecipePinner
                     recipeMgr.PinnedRecipeOrder.Clear();
                     recipeMgr.PinGroups.Clear();
                     recipeMgr.RefreshRecipeCache();
+                    CloseGatheringList();
                     RecipePinnerPlugin.Instance?.DataMgr.SavePins();
                 }
                 RefreshMyPinsList();

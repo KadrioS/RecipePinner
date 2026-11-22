@@ -60,7 +60,7 @@ Groups earn their keep on armour sets, station upgrades, building projects and f
 
 [size=4][b]📋 Count the chests, not just your pockets[/b][/size]
 
-The [b]Gathering List[/b] adds up everything your pins need and shows one combined total — what to bring back from the trip, rather than what each recipe wants separately. It snaps alongside an open chest, so you can see what you still need while you are moving things around.
+The [b]Gathering List[/b] adds up everything your pins need and shows one combined total — what to bring back from the trip, rather than what each recipe wants separately. Open your inventory and it sits right under it, where a chest window would go; open a chest and it moves beside it, so you can see what you still need while you are moving things around. It opens by itself once you have pinned enough recipes (you choose how many, or never), and it remembers whether you left it open.
 
 Turn on the [b]Chest Scanner[/b] in the config ([font=Courier New]EnableChestScanning[/font]) and the nearby chests count too. Then the colours on your pins tell you three different things:
 
@@ -78,7 +78,9 @@ It is off by default, and it only ever reads — it never moves, takes or touche
 
 [size=4][b]🖥️ Gets out of the way[/b][/size]
 
-Pins move themselves depending on what you are doing: a normal spot while you are exploring, the bottom right when your inventory or a chest is open, moved aside while you are sailing, and clear of Valheim's button-hint bar when that is on. Pin more than fits on one screen and the list pages instead of growing.
+Pins move themselves depending on what you are doing: a normal spot while you are exploring, the bottom right under the crafting window when your inventory or a chest is open, moved aside while you are sailing, and clear of Valheim's button-hint bar when that is on. Pin more than fits on one screen and the list pages instead of growing.
+
+With your inventory open the pins sit on the inventory's own wooden background, so they look like part of the game's windows, and a single pin takes the Gathering List's place under the inventory. Groups and the Gathering List shrink to what fits — under the crafting window, above your health bar — and count the rest in a +N cell; at a very large GUI scale the bottom-right pins step aside until you close the inventory. If you would rather see your pins only while the inventory is open, there is a setting for that too.
 
 If you use [b]MyLittleUI[/b], the layout goes horizontal on its own to stay out of its way. If you prefer a different spot entirely, every layout's position is a setting.
 
@@ -244,10 +246,10 @@ Install [url=https://valheim.thunderstore.io/package/Azumatt/Official_BepInEx_Co
 [tr][td][b]General[/b][/td][td]Enable the mod, language override, layout mode, pin limit, pins per page, auto-unpin after crafting or building[/td][/tr]
 [tr][td][b]Controls[/b][/td][td]Every hotkey: pin, unpin, toggle visibility, Gathering List, page switch, clear all; and whether the button-hint bar shrinks to fit when the Pin and Unpin hints would push it off screen[/td][/tr]
 [tr][td][b]Chest Scanner[/b][/td][td]Whether nearby chests count toward your materials, plus scan range and interval[/td][/tr]
-[tr][td][b]HUD Appearance[/b][/td][td]UI scale, background opacity, font sizes, recipe/material/group icon sizes, the craft-readiness bar, the single-unit bracket[/td][/tr]
+[tr][td][b]HUD Appearance[/b][/td][td]UI scale, background opacity, the inventory's wooden background, showing pins only while the inventory is open, font sizes, recipe/material/group icon sizes, the craft-readiness bar, the single-unit bracket[/td][/tr]
 [tr][td][b]Colors[/b][/td][td]The three material states, the recipe name, and both readiness-bar colors[/td][/tr]
 [tr][td][b]Pagination[/b][/td][td]Page dot size, spacing, color and inactive opacity[/td][/tr]
-[tr][td][b]Gathering List[/b][/td][td]Turn it on, open it automatically, column count, font sizes, and where it sits beside an open chest[/td][/tr]
+[tr][td][b]Gathering List[/b][/td][td]Turn it on, at how many pins it opens by itself, column count, font sizes, where it sits beside an open chest, and whether a single pin takes its place[/td][/tr]
 [tr][td][b]Groups[/b][/td][td]When a group switches to the compact grid, how many rows it may use, and the group icon's font size[/td][/tr]
 [tr][td][b]My Pins Panel[/b][/td][td]Panel width, height and position, the button's position, size and icon color, and the size of the materials shown on each row[/td][/tr]
 [tr][td][b]Layout (Vertical)[/b][/td][td]List width, pin spacing, position[/td][/tr]
@@ -309,7 +311,7 @@ No. Each character has its own pins, saved separately. Switching characters load
 Yes. Auto-Detect switches to the horizontal layout when MyLittleUI is installed, reading MyLittleUI's own settings to decide.
 
 [b]Why does my group pin show +N instead of all its materials?[/b]
-A group with many different materials switches to a compact grid, and that grid is capped so one large group cannot stretch the pins beside it. Raise the cap with [font=Courier New]GroupCompactMaxRows[/font], or change when compact mode starts with [font=Courier New]GroupCompactThreshold[/font]. When a group is your only pin, it never shows +N.
+A group with many different materials switches to a compact grid, and that grid is capped so one large group cannot stretch the pins beside it. Raise the cap with [font=Courier New]GroupCompactMaxRows[/font], or change when compact mode starts with [font=Courier New]GroupCompactThreshold[/font]. When a group is your only pin, it shows everything — unless your inventory is open and the screen runs out of room, where groups and the Gathering List show what fits and count the rest.
 
 [b]Can I force a particular language?[/b]
 Yes, with the [font=Courier New]LanguageOverride[/font] setting. Left alone, the mod follows Valheim's language.
@@ -318,7 +320,7 @@ Yes, with the [font=Courier New]LanguageOverride[/font] setting. Left alone, the
 Open the matching [font=Courier New].json[/font] in [font=Courier New]BepInEx/plugins/RecipePinner/RecipePinner_languages/[/font], edit the text on the right of each line, and save. Leave placeholders like [font=Courier New]{0}[/font] alone — they are replaced with numbers and key names at runtime.
 
 [b]Why did some config settings reset after updating?[/b]
-Version 1.3.0 reorganized the config categories, so a setting that moved may not have kept its old value. If you are coming from 1.2.x, launch once and glance over the layout, hotkey, Chest Scanner and Gathering List sections. Nothing is broken if you skip it — you may just be running a default you did not choose.
+Version 1.3.0 reorganized the config categories, so a setting that moved may not have kept its old value. If you are coming from 1.2.x, launch once and glance over the layout, hotkey, Chest Scanner and Gathering List sections. Nothing is broken if you skip it — you may just be running a default you did not choose. Version 1.6.0 moves a few positions to new defaults, but only the ones you never changed yourself.
 [/spoiler]
 
 [center]──────────────────────────────────────────────────────────────────[/center]
@@ -329,9 +331,8 @@ Fixes for these are planned.
 
 [list]
 [*][b]Turning off a mod that adds recipes deletes its pins[/b], even for one launch, and they do not come back.[/*]
-[*][b]Gathering List:[/b] can reopen by itself after you close it, can stay hidden when it opens on its own, vanishes if you walk away from an open chest, and shows chest-only materials green instead of yellow.[/*]
-[*][b]"Any one ingredient" recipes[/b] such as Raw fish: pinned on their own they show one row, but when grouped, the group's pin on the HUD and the Gathering List still list every fish as required.[/*]
 [*][b]WardIsLove:[/b] the Chest Scanner counts chests in other players' wards.[/*]
+[*][b]Vertical layout:[/b] a large group together with an open Gathering List can run past the bottom of the screen.[/*]
 [*][b]A few small visual glitches.[/b][/*]
 [/list]
 

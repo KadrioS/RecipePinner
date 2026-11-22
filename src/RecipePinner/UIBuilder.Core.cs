@@ -5,7 +5,7 @@ namespace ValheimRecipePinner
 {
     public static partial class UIBuilder
     {
-        private static Sprite GetBackgroundSprite()
+        internal static Sprite GetBackgroundSprite()
         {
             if (_cachedUiSprite != null) return _cachedUiSprite;
 

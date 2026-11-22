@@ -21,8 +21,8 @@ namespace ValheimRecipePinner
         public PinGroupData GroupRef = null;
 
         // Set for a recipe the game crafts from any single one of its requirements. Resources still
-        // lists every alternative, which group totals and the Gathering List read; the pin and
-        // My Pins draw this one row instead.
+        // lists every alternative; the pin, My Pins, a group's totals and the Gathering List use
+        // this one row instead.
         public PinnedResData AnyOneRow;
     }
 
@@ -41,6 +41,11 @@ namespace ValheimRecipePinner
         public int LastKnownAmount;
         public int LastKnownInvAmount;
         public string CachedAmountString;
+        /// <summary>
+        /// Set only on the summary row of a recipe crafted from any one of its requirements: the
+        /// alternatives it counts. Such a row's ItemName is a key no item has.
+        /// </summary>
+        public List<PinnedResData> Alternatives;
     }
 
     public class PinGroupData

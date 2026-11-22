@@ -1,3 +1,35 @@
+### 1.6.0
+
+#### Added
+
+* While your inventory is open, your pins and the Gathering List sit on the inventory window's own wooden background, so they look like part of the game's windows. You can turn this off with the new Inventory Background setting.
+* With a single pin and the Gathering List closed, opening a chest moves that pin beside the chest, where the Gathering List would go. You can turn this off with the new Single Pin Beside Chest setting.
+* New setting, Show Pins Only With Inventory (off by default): show your pins and the Gathering List only while your inventory is open (any crafting station, cauldron or chest counts) or while you hold a building tool.
+
+#### Changed
+
+* The Gathering List's Auto Open setting is now a number: the Gathering List opens by itself once that many recipes are pinned, and closes again below it. The default is 2, as before; 0 never opens it by itself. If you had Auto Open turned off, it becomes 0.
+* In the bottom-right layout, which is also where your pins go while the inventory is open, the pins now line up with the crafting window above them. If you never changed that position, it moves for you.
+* With your inventory open and no chest, the Gathering List no longer hides behind the crafting window: it goes under your inventory, where a chest window would open, and moves down with extra inventory rows. A single pin goes there too while the Gathering List is closed.
+* While your inventory is open, a large group shows only as many material rows as fit under the crafting window; the rest are counted in its "+N" cell.
+* Beside an open chest, the Gathering List now lines up with the top of the chest window. If you never changed its position, it moves for you.
+* The Gathering List remembers whether it was open: the game starts with it the way you left it, and it no longer opens by itself at every launch just because you have enough pins.
+
+#### Fixed
+
+* Opening the Gathering List with its key while your inventory is open no longer flashes it for a moment in the wrong place.
+* A Gathering List you closed with its key no longer reopens by itself when you open or close your inventory, change the layout, or respawn. It stays closed until your pin count drops below the Auto Open number and comes back up.
+* The Gathering List no longer stays invisible when it opens by itself with your inventory closed, for example when you pin a second build piece with the hammer.
+* Walking away from an open chest with your inventory still open no longer makes the Gathering List disappear; it moves under your inventory.
+* With the pins hidden (F7) and only the Gathering List showing, more than 4 columns no longer spill out of its background.
+* Clear in My Pins now also closes the Gathering List, as the Clear All key does, so it no longer reopens with your next pin.
+* The Gathering List now shows a material that is enough only together with your chests in the same colour as your pins do (yellow by default), instead of the "enough" colour.
+* Recipes that need only one of their ingredients, such as Raw fish, now count as one entry in groups and in the Gathering List too, as they already did on their own pin, instead of listing every fish as required.
+* Closing your inventory or a chest with the Gathering List open no longer makes the pins jump sideways for a moment.
+* At a large GUI scale, the pins no longer hide behind the crafting window while your inventory is open; when they do not fit under it they step aside until you close the inventory, and the Gathering List under your inventory still shows every material.
+
+---
+
 ### 1.5.6
 
 #### Fixed
