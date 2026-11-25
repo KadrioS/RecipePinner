@@ -318,8 +318,8 @@ namespace ValheimRecipePinner
 
                 if (File.Exists(savePath))
                 {
-                    if (File.Exists(backupPath))
-                        File.Delete(backupPath);
+                    // File.Replace overwrites an existing backup only once the swap succeeds;
+                    // deleting it first would lose it whenever the replace fails.
                     File.Replace(tempPath, savePath, backupPath, true);
                 }
                 else

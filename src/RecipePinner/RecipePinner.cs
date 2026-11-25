@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace ValheimRecipePinner
 {
-    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.6.0")]
+    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.6.1")]
     public partial class RecipePinnerPlugin : BaseUnityPlugin
     {
         public static RecipePinnerPlugin Instance;
@@ -194,7 +194,9 @@ namespace ValheimRecipePinner
                 Input.GetKeyDown(HotkeyPageSwitch.Value) ||
                 Input.GetKeyDown(HotkeyGatheringList.Value);
             // With no player the pins in memory are a previous character's; no hotkey may act on them.
-            bool hotkeysBlocked = recipePinnerHotkeyPressed && (Player.m_localPlayer == null || AreRecipePinnerHotkeysBlocked());
+            // A dead player's HUD is hidden, so a press there would act on pins nobody can see.
+            bool hotkeysBlocked = recipePinnerHotkeyPressed &&
+                (Player.m_localPlayer == null || Player.m_localPlayer.IsDead() || AreRecipePinnerHotkeysBlocked());
             if (Input.GetKeyDown(HotkeyToggleVisibility.Value))
             {
                 if (!hotkeysBlocked)

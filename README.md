@@ -1,9 +1,9 @@
 <h1 align="center">Recipe Pinner</h1>
 
-<h3 align="center">Your crafting companion for Valheim</h3>
+<h3 align="center">Your crafting and building companion for Valheim</h3>
 
 <p align="center">
-  <img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.5.3/assets/images/hero.gif" alt="Recipe Pinner tracking materials on the HUD">
+  <img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.6.1/assets/images/hero.gif" alt="Recipe Pinner tracking materials on the HUD">
   <br>
   <sub>Shown with a larger HUD and a solid background, both of which are settings. By default the pins are smaller and half-transparent.</sub>
 </p>
@@ -22,7 +22,7 @@ Pin any recipe or build piece to your HUD and what it still needs stays in front
 
 Hover a crafting recipe or a Hammer build piece, press the Pin key, and it lands on your HUD with everything it needs. From then on the numbers follow you: they climb as you pick things up, and the row turns green the moment that material is covered. Nothing to open, nothing to check.
 
-<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.5.3/assets/images/Vertical.png" alt="The HUD pin list"></p>
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.6.1/assets/images/Vertical.png" alt="The HUD pin list"></p>
 
 Press the key again on the same recipe to pin a second copy, a third, a tenth — every total scales with it.
 
@@ -32,7 +32,7 @@ Pin something more than once and each row also shows what **one** of them costs,
 
 The total stays red because fifty is far off, while `(5)` turns green the moment you can afford a single axe. That is the difference between "I can't do this yet" and "I can make one right now", and you get it without doing arithmetic.
 
-<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.5.3/assets/images/SingleUnit.png" alt="A recipe pinned ten times, showing what one of them costs"></p>
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.6.1/assets/images/SingleUnit.png" alt="A recipe pinned ten times, showing what one of them costs"></p>
 
 Your Pin and Unpin keys appear in Valheim's own button-hint bar, next to Move and Use, and follow your keys if you rebind them — so the control is discoverable without opening a config file. The Unpin hint stays hidden until there is actually something it can remove.
 
@@ -44,11 +44,11 @@ An armour set is not one recipe. Pin each piece separately and your HUD fills up
 
 Select them in the **My Pins** panel and combine them into a named **group**. The group becomes a single HUD pin with one merged material list — the running total for the entire project, in one place.
 
-<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.5.3/assets/images/PinGroups.png" alt="A group on the HUD"></p>
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.6.1/assets/images/PinGroups.png" alt="A group on the HUD"></p>
 
 Expand the group in the **My Pins** panel and every member shows its own materials underneath its name, which answers the question a merged list never can: **which one of these can I make right now?**
 
-<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.5.3/assets/images/GroupMembers.png" alt="A group expanded in the My Pins panel"></p>
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.6.1/assets/images/GroupMembers.png" alt="A group expanded in the My Pins panel"></p>
 
 From the panel you can also:
 
@@ -63,7 +63,7 @@ Groups earn their keep on armour sets, station upgrades, building projects and f
 
 The **Gathering List** adds up everything your pins need and shows one combined total — what to bring back from the trip, rather than what each recipe wants separately. Open your inventory and it sits right under it, where a chest window would go; open a chest and it moves beside it, so you can see what you still need while you are moving things around. It opens by itself once you have pinned enough recipes (you choose how many, or never), and it remembers whether you left it open.
 
-Turn on the **Chest Scanner** in the config (`EnableChestScanning`) and the nearby chests count too. Then the colours on your pins tell you three different things:
+Turn on the **Chest Scanner** in the config (`EnableChestScanning`) and the nearby chests count too. Then the colours on your pins and in the Gathering List tell you three different things:
 
 * 🟢 **Green** — you have it on you.
 * 🟡 **Yellow** — you have it, but it is in a chest nearby.
@@ -73,7 +73,7 @@ Yellow is the useful one: it is the difference between "go mine more copper" and
 
 It is off by default, and it only ever reads — it never moves, takes or touches anything in a chest.
 
-<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.5.3/assets/images/Chest.png" alt="The Gathering List beside an open chest"></p>
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.6.1/assets/images/Chest.png" alt="The Gathering List beside an open chest"></p>
 
 ### 🖥️ Gets out of the way
 
@@ -87,7 +87,7 @@ Each pin can also carry a coloured bar along its edge — ready or not ready —
 
 Almost none of this is fixed. The settings cover the hotkeys, the layouts and where they sit, HUD scale, fonts, colours, icon sizes, how many pins fit on a page, when a group goes compact, and whether a recipe unpins itself once you have crafted it — and **nearly every one applies the moment you change it.** Open the config with the HUD on screen and you can watch a slider move the pins.
 
-<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.5.3/assets/images/Inventory.png" alt="Pins repositioned with the inventory open"></p>
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.6.1/assets/images/Inventory.png" alt="Pins repositioned with the inventory open"></p>
 
 ### 🌍 Every language Valheim speaks
 
@@ -95,7 +95,7 @@ Recipe Pinner follows the language you play in. There is nothing to set and noth
 
 Some of those translations were AI-assisted, so one may read awkwardly in your language. Please report it if it does — or fix it yourself and keep the fix. The language files sit in a plain folder next to the mod, one line per piece of text, and a text editor is the only tool you need.
 
-<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.5.3/assets/images/Languages.png" alt="The My Pins panel in German"></p>
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.6.1/assets/images/Languages.png" alt="The My Pins panel in German"></p>
 
 ---
 
@@ -136,11 +136,11 @@ BepInEx/
 
 ## 🕹️ Getting Started
 
-**Pin something.** Open a crafting station or the Hammer's build menu, hover a recipe or a piece, and press `Mouse Wheel Click`. It lands on your HUD with its materials. Press the same key again on the same recipe to pin a second copy; hold `Left Shift` and press it to take one back off.
+**Pin something.** Open a crafting station or the Hammer's build menu, hover a recipe or a piece, and press `Mouse Wheel Click` (shown as `Mouse-3` in the button-hint bar). It lands on your HUD with its materials. Press the same key again on the same recipe to pin a second copy; hold `Left Shift` and press it to take one back off.
 
 **Open the panel.** With your inventory open, click the pin icon just left of the crafting panel's **CRAFT** tab — hover it and it reads **MY PINS**. That is everything you have pinned, each row with its own materials, and the controls to change a count or remove a pin.
 
-<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.5.3/assets/images/MyPinsButton.png" alt="The My Pins button, beside the CRAFT tab"></p>
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.6.1/assets/images/MyPinsButton.png" alt="The My Pins button, beside the CRAFT tab"></p>
 
 **Group them into a project.** In My Pins, click **Group**, select at least two pins, confirm, and give the group a name. They collapse into a single HUD pin with one merged material list. Expand the group again and each member shows its own materials; **Disband** turns them back into separate pins whenever you want.
 
@@ -179,19 +179,23 @@ The screenshots above show the core loop. These cover the rest — layouts, grou
 
 <p align="center">Horizontal, near the map side. Auto-Detect picks this when MyLittleUI is installed.</p>
 
-<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.5.3/assets/images/Horizontal.png" alt="Horizontal layout"></p>
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.6.1/assets/images/Horizontal.png" alt="Horizontal layout"></p>
 
 <p align="center">Alongside MyLittleUI, with the layout adjusted around it.</p>
 
-<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.5.3/assets/images/MyLittleUI.png" alt="Running with MyLittleUI"></p>
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.6.1/assets/images/MyLittleUI.png" alt="Running with MyLittleUI"></p>
 
 <p align="center">Out at sea, moved clear of the sailing HUD.</p>
 
-<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.5.3/assets/images/Sailing.png" alt="Pins while sailing"></p>
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.6.1/assets/images/Sailing.png" alt="Pins while sailing"></p>
 
 <p align="center">Pin more than fits and the list pages instead of growing. The dots on top show which page you are on.</p>
 
-<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.5.3/assets/images/Pages1.png" alt="First page of pins"> <img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.5.3/assets/images/Pages2.png" alt="Second page of pins"></p>
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.6.1/assets/images/Pages1.png" alt="First page of pins"> <img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.6.1/assets/images/Pages2.png" alt="Second page of pins"></p>
+
+<p align="center">One pin and the Gathering List closed: with the inventory open, the pin takes the list's place under it.</p>
+
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.6.1/assets/images/SinglePin.png" alt="A single group pin under the inventory, in the Gathering List's place"></p>
 
 <br>
 
@@ -199,11 +203,11 @@ The screenshots above show the core loop. These cover the rest — layouts, grou
 
 <p align="center">A group needing many different materials switches to a compact grid.</p>
 
-<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.5.3/assets/images/GroupCompactPin.png" alt="Compact group layout"></p>
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.6.1/assets/images/GroupCompactPin.png" alt="Compact group layout"></p>
 
 <p align="center">Still too long, and the remainder collapses into a single <code>+N</code> cell.</p>
 
-<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.5.3/assets/images/GroupPinN.png" alt="Group overflow cell"></p>
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.6.1/assets/images/GroupPinN.png" alt="Group overflow cell"></p>
 
 <br>
 
@@ -211,7 +215,7 @@ The screenshots above show the core loop. These cover the rest — layouts, grou
 
 <p align="center">Hammer build pieces pin exactly like recipes, straight from the build menu.</p>
 
-<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.5.3/assets/images/BuildPiecePin.png" alt="A Hammer build piece pinned from the build menu"></p>
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.6.1/assets/images/BuildPiecePin.png" alt="A Hammer build piece pinned from the build menu"></p>
 
 <br>
 
@@ -219,7 +223,7 @@ The screenshots above show the core loop. These cover the rest — layouts, grou
 
 <p align="center">An upgrade pinned at the Forge of Potential asks for the Idol instead of the ordinary materials.</p>
 
-<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.5.3/assets/images/ForgeUpgradePin.png" alt="An upgrade pinned at the Forge of Potential"></p>
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.6.1/assets/images/ForgeUpgradePin.png" alt="An upgrade pinned at the Forge of Potential"></p>
 
 <br>
 
@@ -227,11 +231,11 @@ The screenshots above show the core loop. These cover the rest — layouts, grou
 
 <p align="center">The info button in the My Pins panel, showing your current keys without leaving the game.</p>
 
-<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.5.3/assets/images/ControlsInfo.png" alt="The controls info panel"></p>
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.6.1/assets/images/ControlsInfo.png" alt="The controls info panel"></p>
 
 <p align="center">The Gathering List on its own, totalling every pin at once.</p>
 
-<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.5.3/assets/images/GatheringList.png" alt="The Gathering List"></p>
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.6.1/assets/images/GatheringList.png" alt="The Gathering List"></p>
 </details>
 
 ---
@@ -341,6 +345,7 @@ Fixes for these are planned.
 * **Turning off a mod that adds recipes deletes its pins**, even for one launch, and they do not come back.
 * **WardIsLove:** the Chest Scanner counts chests in other players' wards.
 * **Vertical layout:** a large group together with an open Gathering List can run past the bottom of the screen.
+* **Gathering List:** it can open or close by itself, for example after switching characters, after you remove your last pin with the key, or after crafting or building when its Auto Open setting is 0 or 1.
 * **A few small visual glitches.**
 
 Anything else, please report it — see **Support And Feedback** below.
@@ -377,7 +382,7 @@ What it is not is unattended. Every release is reviewed, tested in game and judg
 
 <p align="center"><a href="https://buymeacoffee.com/kadrio"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee"></a></p>
 
-<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.5.3/assets/images/BMC_QRCode.png" alt="Buy Me A Coffee QR" width="150"></p>
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/KadrioS/RecipePinner@1.6.1/assets/images/BMC_QRCode.png" alt="Buy Me A Coffee QR" width="150"></p>
 
 ---
 

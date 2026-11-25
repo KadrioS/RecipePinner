@@ -74,13 +74,15 @@ namespace ValheimRecipePinner
             KeyHints hints = KeyHints.instance;
             if (hints == null) return;
 
-            // A None unpin key disables the shortcut, so its hint would show an empty key box.
-            bool canUnpin = GetUnpinKey() != KeyCode.None && HasHotkeyRemovablePin();
+            // A None key disables its shortcut, so its hint would show an empty key box. Unpin is
+            // the pin key pressed with the unpin key held, so it needs both.
+            bool canPin = GetPinKey() != KeyCode.None;
+            bool canUnpin = canPin && GetUnpinKey() != KeyCode.None && HasHotkeyRemovablePin();
             bool buildMenuOpen = IsBuildMenuOpen();
 
-            SetEntriesActive(hints.m_inventoryHints, true, canUnpin);
-            SetEntriesActive(hints.m_inventoryWithContainerHints, true, canUnpin);
-            SetEntriesActive(hints.m_buildHints, buildMenuOpen, buildMenuOpen && canUnpin);
+            SetEntriesActive(hints.m_inventoryHints, canPin, canUnpin);
+            SetEntriesActive(hints.m_inventoryWithContainerHints, canPin, canUnpin);
+            SetEntriesActive(hints.m_buildHints, buildMenuOpen && canPin, buildMenuOpen && canUnpin);
 
             FitBar(hints.m_inventoryHints);
             FitBar(hints.m_inventoryWithContainerHints);

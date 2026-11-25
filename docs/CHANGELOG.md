@@ -1,5 +1,14 @@
 # Changelog
 
+### 1.6.1
+
+#### Fixed
+
+* Pressing the Clear All key twice on the death screen no longer deletes all your pins. None of Recipe Pinner's keys do anything while you are dead.
+* If saving your pins fails, for example because antivirus or cloud sync has the file locked, the backup copy of your pins is no longer deleted along the way.
+* The message for a pin that cannot be removed because it is in a group no longer ends in a stray backslash (`"Starter Kit\`) in English and 28 other languages.
+* With the Pin key set to None, the Pin and Unpin hints no longer show empty key boxes. They are hidden instead.
+
 ### 1.6.0
 
 #### Added

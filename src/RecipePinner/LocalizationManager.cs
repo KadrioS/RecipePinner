@@ -130,7 +130,10 @@ namespace ValheimRecipePinner
                     if (parts.Length == 2)
                     {
                         string key = parts[0].Trim(',', '"', ' ', '\t', '\r');
-                        string val = parts[1].Trim(',', '"', ' ', '\t', '\r');
+                        // One quote per end: a greedy Trim('"') also eats an escaped quote that ends the value.
+                        string val = parts[1].Trim(',', ' ', '\t', '\r');
+                        if (val.StartsWith("\"")) val = val.Substring(1);
+                        if (val.EndsWith("\"")) val = val.Substring(0, val.Length - 1);
 
                         val = UnescapeValue(val);
 
