@@ -206,11 +206,15 @@ namespace ValheimRecipePinner
 
             // Auto-open/close gathering list — must run before early returns so state stays in sync
             int currentPinCount = recipeMgr.CachedPins.Count;
-            // The first count after the pins load is where the session starts, not a change;
-            // counted from 0 the list would open at every launch, whatever state it was left in.
+            // The first count after the pins load is where the session starts, not a change. Only a
+            // list closed with the hotkey is seeded that way and stays closed; one closed because the
+            // count was under the threshold is seeded from 0, so the auto-open below opens it if this
+            // character's count reaches the threshold.
             if (!_pinCountSeeded && instance.IsPinDataLoaded)
             {
-                _previousPinCount = currentPinCount;
+                _previousPinCount = (_gatheringListVisible || RecipePinnerPlugin.GatheringListClosedByHand.Value)
+                    ? currentPinCount
+                    : 0;
                 _pinCountSeeded = true;
             }
             int autoOpenAt = RecipePinnerPlugin.AutoOpenGatheringListAt.Value;
@@ -221,6 +225,7 @@ namespace ValheimRecipePinner
                 _previousPinCount < autoOpenAt)
             {
                 _gatheringListVisible = true;
+                RecipePinnerPlugin.GatheringListClosedByHand.Value = false;
                 // Activated here because the inventory branch below does it only while the inventory is open.
                 if (_gatheringListPanel != null)
                     _gatheringListPanel.SetActive(true);
@@ -236,6 +241,14 @@ namespace ValheimRecipePinner
                 if (_gatheringListPanel != null)
                     _gatheringListPanel.SetActive(false);
                 DebugLogger.Log($"Gathering list auto-closed (below {autoOpenAt} pins)");
+            }
+            // Pin removals leave closing to this method, so AutoOpenGatheringListAt is the only
+            // threshold. Whatever it is, removing the last pin closes the list, or the next pin
+            // would bring it back.
+            if (_pinCountSeeded && _gatheringListVisible && currentPinCount == 0 && _previousPinCount > 0)
+            {
+                CloseGatheringList();
+                DebugLogger.Log("Gathering list closed (no pins left)");
             }
             _previousPinCount = currentPinCount;
 

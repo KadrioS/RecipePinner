@@ -345,7 +345,6 @@ Fixes for these are planned.
 * **Turning off a mod that adds recipes deletes its pins**, even for one launch, and they do not come back.
 * **WardIsLove:** the Chest Scanner counts chests in other players' wards.
 * **Vertical layout:** a large group together with an open Gathering List can run past the bottom of the screen.
-* **Gathering List:** it can open or close by itself, for example after switching characters, after you remove your last pin with the key, or after crafting or building when its Auto Open setting is 0 or 1.
 * **A few small visual glitches.**
 
 Anything else, please report it — see **Support And Feedback** below.

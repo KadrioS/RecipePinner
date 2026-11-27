@@ -37,6 +37,13 @@ namespace ValheimRecipePinner
         private Color _hexMissingSource;
         private Color _hexChestsSource;
 
+        // The next character's first pin count is where its session starts, not a change from
+        // the last character's count.
+        public void ResetPinCountSeed()
+        {
+            _pinCountSeeded = false;
+        }
+
         public void ToggleGatheringList()
         {
             var recipeMgr = RecipePinnerPlugin.Instance?.RecipeMgr;
@@ -54,6 +61,7 @@ namespace ValheimRecipePinner
             }
 
             _gatheringListVisible = !_gatheringListVisible;
+            RecipePinnerPlugin.GatheringListClosedByHand.Value = !_gatheringListVisible;
             DebugLogger.Log($"Gathering list toggled: {_gatheringListVisible}");
 
             // This runs after the frame's UpdateUI. With the inventory open the next UpdateUI shows

@@ -20,6 +20,7 @@ namespace ValheimRecipePinner
         private int _lastKnownPinCount = -1;
         private int _lastKnownGroupCount = -1;
         private int _lastKnownInvSignature;
+        private int _lastKnownContainerSignature;
 
         /// <summary>
         /// True while the My Pins panel is visible; Harmony patches use this to intercept Escape.
@@ -121,8 +122,11 @@ namespace ValheimRecipePinner
                     if (Player.m_localPlayer != null)
                         RefreshInventoryCounts(Player.m_localPlayer.GetInventory());
 
+                    // The HUD reads chest totals from the scan too, and a scan can land while the panel is open.
+                    int containerSignature = RecipePinnerPlugin.Instance.ContainerMgr?.CacheSignature ?? 0;
                     if (currentPinCount != _lastKnownPinCount || currentGroupCount != _lastKnownGroupCount
-                        || _invCountsSignature != _lastKnownInvSignature)
+                        || _invCountsSignature != _lastKnownInvSignature
+                        || containerSignature != _lastKnownContainerSignature)
                     {
                         _lastKnownPinCount = currentPinCount;
                         _lastKnownGroupCount = currentGroupCount;

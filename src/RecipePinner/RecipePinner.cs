@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace ValheimRecipePinner
 {
-    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.6.1")]
+    [BepInPlugin("com.Kadrio.RecipePinner", "Recipe Pinner", "1.6.2")]
     public partial class RecipePinnerPlugin : BaseUnityPlugin
     {
         public static RecipePinnerPlugin Instance;
@@ -161,6 +161,7 @@ namespace ValheimRecipePinner
                 DebugLogger.Log($"Player '{_currentSessionPlayer}' left - pin session closed");
                 _currentSessionPlayer = null;
                 _pinsLoadedFor = null;
+                UIMgr?.ResetPinCountSeed();
             }
 
             if (!EnableMod.Value) return;
@@ -377,6 +378,7 @@ namespace ValheimRecipePinner
                 RecipeMgr.PinGroups.Clear();
                 UIMgr.DestroyUI();
                 UIMgr.DestroyMyPinsUI(); // Full destroy on session change
+                UIMgr.ResetPinCountSeed();
 
                 _currentSessionPlayer = activePlayerName;
 
@@ -626,9 +628,6 @@ namespace ValheimRecipePinner
 
                         Instance.RecipeMgr.RefreshRecipeCache();
                         Instance.DataMgr.SavePins();
-
-                        if (Instance.RecipeMgr.GetEffectivePinCount() < 2)
-                            Instance.UIMgr.CloseGatheringList();
                     }
                     else
                     {
@@ -689,9 +688,6 @@ namespace ValheimRecipePinner
 
             Instance.RecipeMgr.RefreshRecipeCache();
             Instance.DataMgr.SavePins();
-
-            if (Instance.RecipeMgr.GetEffectivePinCount() < 2)
-                Instance.UIMgr.CloseGatheringList();
         }
 
         // ============================================================

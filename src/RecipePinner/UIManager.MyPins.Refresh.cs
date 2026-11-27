@@ -37,6 +37,7 @@ namespace ValheimRecipePinner
             _lastKnownPinCount = recipeMgr.PinnedRecipes.Count;
             _lastKnownGroupCount = recipeMgr.PinGroups.Count;
             _lastKnownInvSignature = _invCountsSignature;
+            _lastKnownContainerSignature = RecipePinnerPlugin.Instance.ContainerMgr?.CacheSignature ?? 0;
 
             ContainerScanner amountContainers = RecipePinnerPlugin.Instance.ContainerMgr;
 

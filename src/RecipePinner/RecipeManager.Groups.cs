@@ -203,9 +203,6 @@ namespace ValheimRecipePinner
 
             RefreshRecipeCache();
             RecipePinnerPlugin.Instance?.DataMgr.SavePins();
-
-            if (GetEffectivePinCount() < 2)
-                RecipePinnerPlugin.Instance?.UIMgr.CloseGatheringList();
         }
 
         /// <summary>
@@ -279,9 +276,6 @@ namespace ValheimRecipePinner
 
             RefreshRecipeCache();
             RecipePinnerPlugin.Instance?.DataMgr.SavePins();
-
-            if (GetEffectivePinCount() < 2)
-                RecipePinnerPlugin.Instance?.UIMgr.CloseGatheringList();
         }
 
         /// <summary>

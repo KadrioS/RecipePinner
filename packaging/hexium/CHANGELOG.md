@@ -1,3 +1,16 @@
+### 1.6.2
+
+#### Changed
+
+* When you enter the game or switch characters, the Gathering List opens by itself if you have enough pins for its Auto Open setting, unless you closed it with its key. A list you closed with the key stays closed, also after a restart.
+
+#### Fixed
+
+* With Auto Open Gathering List At set to 0 or 1, crafting, building or deleting a pin in My Pins no longer closes the Gathering List when one pin is left. The list now closes by itself only below the number you set.
+* Removing your last pin now closes the Gathering List, so it no longer opens by itself the next time you pin a single recipe.
+* Switching characters no longer opens or closes the Gathering List by itself.
+* With Chest Scanning on, My Pins now updates its material counts when a chest scan finishes, as your pins on screen do, instead of waiting until you reopen it.
+
 ### 1.6.1
 
 #### Fixed

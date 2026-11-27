@@ -85,6 +85,7 @@ namespace ValheimRecipePinner
         public static ConfigEntry<float> MaterialStripHeight;
         public static ConfigEntry<int> ConfigVersion;
         public static ConfigEntry<bool> GatheringListOpen;
+        public static ConfigEntry<bool> GatheringListClosedByHand;
 
         // ── 10 - Layout: Vertical ────────────────────────────────
         public static ConfigEntry<float> VerticalListWidth;
@@ -470,6 +471,9 @@ namespace ValheimRecipePinner
             GatheringListOpen = Config.Bind("14 - Internal", "GatheringListOpen", false,
                 new ConfigDescription("Whether the Gathering List was open when the game last ran, so the next launch starts the same way. Not meant to be edited.", null,
                 new ConfigurationManagerAttributes { Browsable = false, Order = 2 }));
+            GatheringListClosedByHand = Config.Bind("14 - Internal", "GatheringListClosedByHand", false,
+                new ConfigDescription("Whether the Gathering List was last closed with its hotkey. A list closed that way stays closed when a character enters; otherwise it opens if the pin count reaches AutoOpenGatheringListAt. Not meant to be edited.", null,
+                new ConfigurationManagerAttributes { Browsable = false, Order = 3 }));
 
             // Migration 1 - the My Pins button placement. Its old default sat on top of the
             // crafting station's own picture, but BepInEx writes the config file on a player's

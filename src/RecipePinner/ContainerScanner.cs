@@ -11,6 +11,8 @@ namespace ValheimRecipePinner
         internal static readonly object ContainerLock = new object();
 
         public Dictionary<string, int> ContainerCache = new Dictionary<string, int>();
+        // Changes whenever a scan's totals change; My Pins compares it to know when to redraw.
+        public int CacheSignature { get; private set; }
 
         private static readonly HashSet<int> _processedIDs = new HashSet<int>();
         private readonly List<Container> _snapshotBuffer = new List<Container>();
@@ -135,6 +137,7 @@ namespace ValheimRecipePinner
 
             _processedIDs.Clear();
 
+            int signature = 0;
             int scannedCount = 0;
             int skippedCount = 0;
             int accessDeniedCount = 0;
@@ -198,12 +201,14 @@ namespace ValheimRecipePinner
                         {
                             ContainerCache[name] = item.m_stack;
                         }
+                        signature += name.GetHashCode() * 31 + item.m_stack;
                     }
                     scannedCount++;
                 }
             }
 
             _lastScanPos = center;
+            CacheSignature = signature;
 
             DebugLogger.Verbose($"Container scan complete - Scanned: {scannedCount}, Skipped: {skippedCount}, AccessDenied: {accessDeniedCount}, UniqueItems: {ContainerCache.Count}");
         }
